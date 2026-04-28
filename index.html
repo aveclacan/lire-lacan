@@ -2082,6 +2082,53 @@ function setFontSize(size) {
   });
 }
 
+const DICT_LOCAL = {
+  // FR → PT
+  'rapport':    {d:'fr',v:[{t:'relação',c:'subst'},{t:'relatório',c:'subst'},{t:'proporção',c:'subst'},{t:'razão',c:'subst'},{t:'ligação',c:'subst'},{t:'rácio',c:'subst'},{t:'relacionamento',c:'subst'},{t:'conexão',c:'subst'},{t:'nexo',c:'subst'},{t:'vínculo',c:'subst'}],
+    ex:[{fr:"Il n'y a pas de rapport sexuel.",pt:"Não há relação sexual."},{fr:"Un rapport de force entre les deux parties.",pt:"Uma relação de força entre as duas partes."}]},
+  'sens':       {d:'fr',v:[{t:'sentido',c:'subst'},{t:'significado',c:'subst'},{t:'direção',c:'subst'},{t:'percepção',c:'subst'},{t:'orientação',c:'subst'}],
+    ex:[{fr:"Le sens de la vie.",pt:"O sentido da vida."},{fr:"Dans le sens des aiguilles d'une montre.",pt:"No sentido dos ponteiros do relógio."}]},
+  'desir':      {d:'fr',v:[{t:'desejo',c:'subst'},{t:'anseio',c:'subst'},{t:'vontade',c:'subst'},{t:'aspiração',c:'subst'}],
+    ex:[{fr:"Le désir de l'homme est le désir de l'Autre.",pt:"O desejo do homem é o desejo do Outro."}]},
+  'jouissance': {d:'fr',v:[{t:'gozo',c:'subst'},{t:'jouissance',c:'subst'},{t:'prazer',c:'subst'},{t:'usufruição',c:'subst'}],
+    ex:[{fr:"La jouissance de l'Autre.",pt:"O gozo do Outro."}]},
+  'sujet':      {d:'fr',v:[{t:'sujeito',c:'subst'},{t:'assunto',c:'subst'},{t:'tema',c:'subst'},{t:'súdito',c:'subst'},{t:'tópico',c:'subst'}],
+    ex:[{fr:"Le sujet de l'inconscient.",pt:"O sujeito do inconsciente."}]},
+  'signifiant': {d:'fr',v:[{t:'significante',c:'subst'},{t:'expressivo',c:'adj'},{t:'representativo',c:'adj'}],
+    ex:[{fr:"La chaîne signifiante.",pt:"A cadeia significante."}]},
+  'reel':       {d:'fr',v:[{t:'real',c:'subst'},{t:'real',c:'adj'},{t:'verdadeiro',c:'adj'},{t:'efetivo',c:'adj'},{t:'concreto',c:'adj'}],
+    ex:[{fr:"Le registre du réel.",pt:"O registro do real."}]},
+  'pulsion':    {d:'fr',v:[{t:'pulsão',c:'subst'},{t:'impulso',c:'subst'},{t:'instinto',c:'subst'},{t:'drive',c:'subst'}],
+    ex:[{fr:"La pulsion de mort.",pt:"A pulsão de morte."}]},
+  'manque':     {d:'fr',v:[{t:'falta',c:'subst'},{t:'carência',c:'subst'},{t:'ausência',c:'subst'},{t:'lacuna',c:'subst'},{t:'escassez',c:'subst'}],
+    ex:[{fr:"Le manque constitutif du sujet.",pt:"A falta constitutiva do sujeito."}]},
+  'transfert':  {d:'fr',v:[{t:'transferência',c:'subst'},{t:'deslocamento',c:'subst'},{t:'transporte',c:'subst'}],
+    ex:[{fr:"Le transfert analytique.",pt:"A transferência analítica."}]},
+  'angoisse':   {d:'fr',v:[{t:'angústia',c:'subst'},{t:'ansiedade',c:'subst'},{t:'aflição',c:'subst'}],
+    ex:[{fr:"L'angoisse comme signal du danger.",pt:"A angústia como sinal de perigo."}]},
+  'inconscient':{d:'fr',v:[{t:'inconsciente',c:'subst'},{t:'involuntário',c:'adj'}],
+    ex:[{fr:"L'inconscient est structuré comme un langage.",pt:"O inconsciente é estruturado como uma linguagem."}]},
+  'fantasme':   {d:'fr',v:[{t:'fantasia',c:'subst'},{t:'fantasma',c:'subst'},{t:'devaneio',c:'subst'}],
+    ex:[{fr:"La traversée du fantasme.",pt:"A travessia da fantasia."}]},
+  'langage':    {d:'fr',v:[{t:'linguagem',c:'subst'},{t:'fala',c:'subst'},{t:'idioma',c:'subst'},{t:'língua',c:'subst'}],
+    ex:[{fr:"L'inconscient est structuré comme un langage.",pt:"O inconsciente é estruturado como uma linguagem."}]},
+  'parole':     {d:'fr',v:[{t:'palavra',c:'subst'},{t:'fala',c:'subst'},{t:'discurso',c:'subst'},{t:'promessa',c:'subst'},{t:'voz',c:'subst'}],
+    ex:[{fr:"La parole pleine et la parole vide.",pt:"A palavra plena e a palavra vazia."}]},
+  'lien':       {d:'fr',v:[{t:'laço',c:'subst'},{t:'vínculo',c:'subst'},{t:'conexão',c:'subst'},{t:'ligação',c:'subst'},{t:'elo',c:'subst'}],
+    ex:[{fr:"Le lien social.",pt:"O laço social."}]},
+  'verite':     {d:'fr',v:[{t:'verdade',c:'subst'},{t:'veracidade',c:'subst'},{t:'realidade',c:'subst'}],
+    ex:[{fr:"La vérité surgit dans l'acte.",pt:"A verdade surge no ato."}]},
+  // PT → FR (termos que o Reverso também confunde)
+  'relação':    {d:'pt',v:[{t:'rapport',c:'subst'},{t:'relation',c:'subst'},{t:'lien',c:'subst'},{t:'connexion',c:'subst'}],
+    ex:[{pt:"Não há relação sexual.",fr:"Il n'y a pas de rapport sexuel."}]},
+  'gozo':       {d:'pt',v:[{t:'jouissance',c:'subst'},{t:'plaisir',c:'subst'},{t:'joie',c:'subst'}],
+    ex:[{pt:"O gozo do Outro.",fr:"La jouissance de l'Autre."}]},
+  'falta':      {d:'pt',v:[{t:'manque',c:'subst'},{t:'absence',c:'subst'},{t:'carence',c:'subst'}],
+    ex:[{pt:"A falta constitutiva do sujeito.",fr:"Le manque constitutif du sujet."}]},
+  'pulsao':     {d:'pt',v:[{t:'pulsion',c:'subst'},{t:'instinct',c:'subst'},{t:'drive',c:'subst'}],
+    ex:[{pt:"A pulsão de morte.",fr:"La pulsion de mort."}]},
+};
+
 // ══════════════════════════════════════════════════════
 //  PAINEL DIREITO — mini-tradutor + vocab
 // ══════════════════════════════════════════════════════
@@ -2132,18 +2179,7 @@ async function buscarTradPainel(termoExterno) {
     }
   } catch(e) {}
 
-  // 2. TRAD_DICT geral (se disponível)
-  try {
-    if (typeof TRAD_DICT !== 'undefined') {
-      const entTrad = TRAD_DICT[chave];
-      if (entTrad && entTrad.length) {
-        mostrarTags(entTrad.map(x => x.t), null);
-        return;
-      }
-    }
-  } catch(e) {}
-
-  // 3. Reverso com timeout
+  // 2. Reverso com timeout
   res.innerHTML = '<span style="color:var(--ink-faint);font-size:12px">Buscando…</span>';
   const [srcLang, tgtLang] = tradDir === 'fr-pt' ? ['fr','pt'] : ['pt','fr'];
 
@@ -2250,6 +2286,8 @@ function toggleTradDir() {
     : 'Digite qualquer palavra em português…';
 }
 
+
+
 async function buscarTraducao() {
   if (!document.getElementById('tradResults')) renderTradView();
   const inp = document.getElementById('tradInput');
@@ -2271,52 +2309,6 @@ async function buscarTraducao() {
 
   // Dicionário local — termos onde o Reverso falha ou prioriza errado
   // Fonte: dados lexicográficos reais do francês acadêmico/filosófico
-  const DICT_LOCAL = {
-    // FR → PT
-    'rapport':    {d:'fr',v:[{t:'relação',c:'subst'},{t:'relatório',c:'subst'},{t:'proporção',c:'subst'},{t:'razão',c:'subst'},{t:'ligação',c:'subst'},{t:'rácio',c:'subst'},{t:'relacionamento',c:'subst'},{t:'conexão',c:'subst'},{t:'nexo',c:'subst'},{t:'vínculo',c:'subst'}],
-      ex:[{fr:"Il n'y a pas de rapport sexuel.",pt:"Não há relação sexual."},{fr:"Un rapport de force entre les deux parties.",pt:"Uma relação de força entre as duas partes."}]},
-    'sens':       {d:'fr',v:[{t:'sentido',c:'subst'},{t:'significado',c:'subst'},{t:'direção',c:'subst'},{t:'percepção',c:'subst'},{t:'orientação',c:'subst'}],
-      ex:[{fr:"Le sens de la vie.",pt:"O sentido da vida."},{fr:"Dans le sens des aiguilles d'une montre.",pt:"No sentido dos ponteiros do relógio."}]},
-    'desir':      {d:'fr',v:[{t:'desejo',c:'subst'},{t:'anseio',c:'subst'},{t:'vontade',c:'subst'},{t:'aspiração',c:'subst'}],
-      ex:[{fr:"Le désir de l'homme est le désir de l'Autre.",pt:"O desejo do homem é o desejo do Outro."}]},
-    'jouissance': {d:'fr',v:[{t:'gozo',c:'subst'},{t:'jouissance',c:'subst'},{t:'prazer',c:'subst'},{t:'usufruição',c:'subst'}],
-      ex:[{fr:"La jouissance de l'Autre.",pt:"O gozo do Outro."}]},
-    'sujet':      {d:'fr',v:[{t:'sujeito',c:'subst'},{t:'assunto',c:'subst'},{t:'tema',c:'subst'},{t:'súdito',c:'subst'},{t:'tópico',c:'subst'}],
-      ex:[{fr:"Le sujet de l'inconscient.",pt:"O sujeito do inconsciente."}]},
-    'signifiant': {d:'fr',v:[{t:'significante',c:'subst'},{t:'expressivo',c:'adj'},{t:'representativo',c:'adj'}],
-      ex:[{fr:"La chaîne signifiante.",pt:"A cadeia significante."}]},
-    'reel':       {d:'fr',v:[{t:'real',c:'subst'},{t:'real',c:'adj'},{t:'verdadeiro',c:'adj'},{t:'efetivo',c:'adj'},{t:'concreto',c:'adj'}],
-      ex:[{fr:"Le registre du réel.",pt:"O registro do real."}]},
-    'pulsion':    {d:'fr',v:[{t:'pulsão',c:'subst'},{t:'impulso',c:'subst'},{t:'instinto',c:'subst'},{t:'drive',c:'subst'}],
-      ex:[{fr:"La pulsion de mort.",pt:"A pulsão de morte."}]},
-    'manque':     {d:'fr',v:[{t:'falta',c:'subst'},{t:'carência',c:'subst'},{t:'ausência',c:'subst'},{t:'lacuna',c:'subst'},{t:'escassez',c:'subst'}],
-      ex:[{fr:"Le manque constitutif du sujet.",pt:"A falta constitutiva do sujeito."}]},
-    'transfert':  {d:'fr',v:[{t:'transferência',c:'subst'},{t:'deslocamento',c:'subst'},{t:'transporte',c:'subst'}],
-      ex:[{fr:"Le transfert analytique.",pt:"A transferência analítica."}]},
-    'angoisse':   {d:'fr',v:[{t:'angústia',c:'subst'},{t:'ansiedade',c:'subst'},{t:'aflição',c:'subst'}],
-      ex:[{fr:"L'angoisse comme signal du danger.",pt:"A angústia como sinal de perigo."}]},
-    'inconscient':{d:'fr',v:[{t:'inconsciente',c:'subst'},{t:'involuntário',c:'adj'}],
-      ex:[{fr:"L'inconscient est structuré comme un langage.",pt:"O inconsciente é estruturado como uma linguagem."}]},
-    'fantasme':   {d:'fr',v:[{t:'fantasia',c:'subst'},{t:'fantasma',c:'subst'},{t:'devaneio',c:'subst'}],
-      ex:[{fr:"La traversée du fantasme.",pt:"A travessia da fantasia."}]},
-    'langage':    {d:'fr',v:[{t:'linguagem',c:'subst'},{t:'fala',c:'subst'},{t:'idioma',c:'subst'},{t:'língua',c:'subst'}],
-      ex:[{fr:"L'inconscient est structuré comme un langage.",pt:"O inconsciente é estruturado como uma linguagem."}]},
-    'parole':     {d:'fr',v:[{t:'palavra',c:'subst'},{t:'fala',c:'subst'},{t:'discurso',c:'subst'},{t:'promessa',c:'subst'},{t:'voz',c:'subst'}],
-      ex:[{fr:"La parole pleine et la parole vide.",pt:"A palavra plena e a palavra vazia."}]},
-    'lien':       {d:'fr',v:[{t:'laço',c:'subst'},{t:'vínculo',c:'subst'},{t:'conexão',c:'subst'},{t:'ligação',c:'subst'},{t:'elo',c:'subst'}],
-      ex:[{fr:"Le lien social.",pt:"O laço social."}]},
-    'verite':     {d:'fr',v:[{t:'verdade',c:'subst'},{t:'veracidade',c:'subst'},{t:'realidade',c:'subst'}],
-      ex:[{fr:"La vérité surgit dans l'acte.",pt:"A verdade surge no ato."}]},
-    // PT → FR (termos que o Reverso também confunde)
-    'relação':    {d:'pt',v:[{t:'rapport',c:'subst'},{t:'relation',c:'subst'},{t:'lien',c:'subst'},{t:'connexion',c:'subst'}],
-      ex:[{pt:"Não há relação sexual.",fr:"Il n'y a pas de rapport sexuel."}]},
-    'gozo':       {d:'pt',v:[{t:'jouissance',c:'subst'},{t:'plaisir',c:'subst'},{t:'joie',c:'subst'}],
-      ex:[{pt:"O gozo do Outro.",fr:"La jouissance de l'Autre."}]},
-    'falta':      {d:'pt',v:[{t:'manque',c:'subst'},{t:'absence',c:'subst'},{t:'carence',c:'subst'}],
-      ex:[{pt:"A falta constitutiva do sujeito.",fr:"Le manque constitutif du sujet."}]},
-    'pulsao':     {d:'pt',v:[{t:'pulsion',c:'subst'},{t:'instinct',c:'subst'},{t:'drive',c:'subst'}],
-      ex:[{pt:"A pulsão de morte.",fr:"La pulsion de mort."}]},
-  };
 
   // Verificar se está no dicionário local
   const entradaLocal = DICT_LOCAL[chave];
