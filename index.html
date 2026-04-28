@@ -1190,7 +1190,9 @@ const S = {
   comments: {},     // segId → [string]
   saved: [],        // [{semNum,licaoNum,segId,texto,cor,comentario,date}]
   totalSegs: 0,
-  readSegs: new Set(),
+ readSegs: new Set(),
+lastSegId: null,
+scrollPos: 0,
 };
 
 const textosPuros = {};
