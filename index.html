@@ -1837,130 +1837,14 @@ function traduzirNoPainel() {
   document.querySelector('.panel')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
-// Chamado pelo botão no painel
-async function buscarTradPainel(termoForc) {
-  const inp = document.getElementById('panelTradInput');
-  const res = document.getElementById('panelTradResult');
-  const termo = (termoForc || inp?.value || '').trim();
-  if (!termo || !res) return;
-  if (inp && !termoForc) inp.value = termo;
-
-  res.innerHTML = '<span style="color:var(--ink-faint);font-size:12px">Buscando…</span>';
-
-  // Normalizar para busca no dicionário local
-  const chave = termo.toLowerCase()
-    .replace(/œ/g,'oe').replace(/æ/g,'ae')
-    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
-    .replace(/\s+/g,' ').trim();
-
-  // 1. Dicionário local (lacanianos)
-  const entradaLocal = DICT_LOCAL[chave];
-  const dirLocal = tradDir === 'fr-pt' ? 'fr' : 'pt';
-  const localOk = entradaLocal && entradaLocal.d === dirLocal;
-  if (localOk) {
-    renderPanelTrad(termo, entradaLocal.v.map(x => x.t), entradaLocal.ex);
-    // Preencher campo vocab automaticamente
-    preencherPainelVocab(termo, entradaLocal.v[0]?.t || '');
-    return;
-  }
-
-  // 2. TRAD_DICT geral
-  const entradaTrad = TRAD_DICT[chave];
-  if (entradaTrad) {
-    renderPanelTrad(termo, entradaTrad.map(x => x.t), []);
-    preencherPainelVocab(termo, entradaTrad[0]?.t || '');
-    return;
-  }
-
-  // 3. Reverso como fallback
-  try {
-    const [src, tgt] = tradDir === 'fr-pt' ? ['fr','pt'] : ['pt','fr'];
-    const r = await fetch('https://api.reverso.net/translate/v1/translation', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Origin': 'https://context.reverso.net' },
-      body: JSON.stringify({ format:'text', from:src, to:tgt, input:termo,
-        options: { sentenceSplitter:false, origin:'translation.web',
-                   contextResults:true, languageDetection:true } })
-    });
-    const data = await r.json();
-    const trs = (data.translation || []).slice(0, 6);
-    const exs = (data.contextResults?.results || []).slice(0, 2).map(ex => ({
-      fr: (ex.sourceExamples||[])[0]?.replace(/<[^>]+>/g,'').trim()||'',
-      pt: (ex.targetExamples||[])[0]?.replace(/<[^>]+>/g,'').trim()||'',
-    })).filter(e => e.fr && e.pt);
-    if (trs.length) {
-      renderPanelTrad(termo, trs, exs);
-      preencherPainelVocab(termo, trs[0] || '');
-      return;
-    }
-  } catch(e) {}
-
-  res.innerHTML = '<span style="color:var(--ink-faint);font-size:12px;font-style:italic">Sem resultado.</span>';
-}
-
-function renderPanelTrad(termo, traducoes, exemplos) {
-  const res = document.getElementById('panelTradResult');
-  if (!res) return;
-  const tags = traducoes.map(t =>
-    `<span class="panel-trad-tag">${t.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</span>`
-  ).join('');
-  const exHtml = exemplos.slice(0, 2).map(e =>
-    `<div class="panel-trad-ex">
-      <div style="font-style:italic;color:var(--ink-soft)">${e.fr.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</div>
-      <div style="color:var(--ink-faint);font-size:11px">↳ ${e.pt.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</div>
-    </div>`
-  ).join('');
-  res.innerHTML = `
-    <div style="font-weight:500;color:var(--ink);margin-bottom:8px;font-family:'IM Fell English',serif">${termo.replace(/&/g,'&amp;')}</div>
-    <div class="panel-trad-tags">${tags}</div>
-    ${exHtml}`;
-}
+// Chamado pelo botão no painel — delega para a função principal abaixo
 
 // ── Vocabulário no painel ────────────────────────────
 function preencherPainelVocab(palavra, trad) {
-  const sec = document.getElementById('panelVocabSection');
-  const wordEl = document.getElementById('panelVocabWord');
+  panelUltimoTermo = palavra;
+  mostrarVocabPainel(palavra);
   const tradEl = document.getElementById('panelVocabTrad');
-  const msgEl = document.getElementById('panelVocabMsg');
-  if (!sec) return;
-  sec.style.display = 'block';
-  if (wordEl) wordEl.textContent = palavra;
-  if (tradEl) tradEl.value = trad;
-  if (msgEl) msgEl.textContent = '';
-}
-
-// Chamado pelo botão "+ Vocabulário" no menu de seleção
-function doAddVocab() {
-  if (!currentSel) return;
-  const palavra = currentSel.text.trim();
-  hideMenu();
-  preencherPainelVocab(palavra, '');
-  // Tentar buscar tradução automaticamente
-  const chave = palavra.toLowerCase()
-    .replace(/œ/g,'oe').replace(/æ/g,'ae')
-    .normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
-  const local = DICT_LOCAL[chave];
-  const trad2 = TRAD_DICT[chave];
-  const trad = local?.v[0]?.t || trad2?.[0]?.t || '';
-  preencherPainelVocab(palavra, trad);
-  document.querySelector('.panel')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
-
-function salvarVocabDoPainel() {
-  const wordEl = document.getElementById('panelVocabWord');
-  const tradEl = document.getElementById('panelVocabTrad');
-  const msgEl = document.getElementById('panelVocabMsg');
-  const palavra = wordEl?.textContent?.trim();
-  const trad = tradEl?.value?.trim();
-  if (!palavra) return;
-  // Verificar se já existe
-  if (vocabItems.some(v => v.word.toLowerCase() === palavra.toLowerCase())) {
-    if (msgEl) msgEl.textContent = 'Já está no vocabulário.';
-    return;
-  }
-  vocabItems.unshift({ word: palavra, trad, ctx: '', data: new Date().toLocaleDateString('pt-BR') });
-  salvarVocab();
-  if (msgEl) { msgEl.textContent = '✓ Salvo!'; setTimeout(() => { msgEl.textContent = ''; }, 2000); }
+  if (tradEl) tradEl.value = trad || '';
 }
 
 function posicionarMenu(rect) {
@@ -4131,6 +4015,3 @@ function formatDate(iso) {
 </script>
 </body>
 </html>
-
-
-
