@@ -1302,27 +1302,145 @@ async function carregarSeminariosDaPasta() {
     .filter(d => d && d.licoes);
 }
 
+// ══════════════════════════════════════════════════════
+//  SUPABASE — sync na nuvem para usuários logados
+// ══════════════════════════════════════════════════════
+const SUPA_URL  = 'https://hczrvpghrntbvsjqbgqm.supabase.co';
+const SUPA_KEY  = 'sb_publishable_x8rZm5Bn1SXVSsJrReUOxg_Va4Gi3fH';
+let supaToken = null;
+let supaUserId = null;
+
+async function supaFetch(path, opts = {}) {
+  if (!supaToken) return null;
+  try {
+    const r = await fetch(SUPA_URL + path, {
+      ...opts,
+      headers: {
+        'apikey': SUPA_KEY,
+        'Authorization': 'Bearer ' + supaToken,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal',
+        ...(opts.headers || {})
+      }
+    });
+    if (!r.ok) return null;
+    const txt = await r.text();
+    return txt ? JSON.parse(txt) : true;
+  } catch(e) { return null; }
+}
+
+async function iniciarSessaoSupabase() {
+  // Pegar token da URL ou localStorage
+  const urlParams = new URLSearchParams(window.location.search);
+  const tokenUrl = urlParams.get('token');
+  if (tokenUrl) {
+    supaToken = tokenUrl;
+    try { localStorage.setItem('lirelacan_token', tokenUrl); } catch(e) {}
+    const url = new URL(window.location.href);
+    url.searchParams.delete('token');
+    window.history.replaceState({}, '', url.toString());
+  } else {
+    try { supaToken = localStorage.getItem('lirelacan_token'); } catch(e) {}
+  }
+  if (!supaToken) return;
+
+  // Buscar userId do token
+  const user = await supaFetch('/auth/v1/user');
+  if (user?.id) {
+    supaUserId = user.id;
+    await carregarDadosNuvem();
+  }
+}
+
+// ── Salvar na nuvem ────────────────────────────────────
+async function nuvemSalvar(tabela, dados) {
+  if (!supaUserId) return;
+  await supaFetch(`/rest/v1/${tabela}`, {
+    method: 'POST',
+    headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+    body: JSON.stringify({ user_id: supaUserId, ...dados })
+  });
+}
+
+async function nuvemDeletar(tabela, filtros) {
+  if (!supaUserId) return;
+  const params = Object.entries({ user_id: `eq.${supaUserId}`, ...filtros })
+    .map(([k,v]) => `${k}=${v}`).join('&');
+  await supaFetch(`/rest/v1/${tabela}?${params}`, { method: 'DELETE' });
+}
+
+// ── Carregar todos os dados do usuário ────────────────
+async function carregarDadosNuvem() {
+  if (!supaUserId) return;
+
+  // Highlights
+  const hl = await supaFetch(`/rest/v1/highlights?user_id=eq.${supaUserId}&select=*`);
+  if (hl?.length) {
+    S.highlights = {};
+    hl.forEach(h => {
+      if (!S.highlights[h.seg_id]) S.highlights[h.seg_id] = [];
+      S.highlights[h.seg_id].push({ start: h.start, end: h.end, color: h.color, text: h.text });
+    });
+  }
+
+  // Vocabulário
+  const voc = await supaFetch(`/rest/v1/trechos_salvos?user_id=eq.${supaUserId}&tipo=eq.vocab&select=*&order=criado_em.desc`);
+  if (voc?.length) {
+    vocabItems = voc.map(v => ({
+      word: v.texto_fr, trad: v.traducao || '', ctx: v.contexto || '',
+      data: new Date(v.criado_em).toLocaleDateString('pt-BR')
+    }));
+    try { localStorage.setItem('lirelacan_vocab', JSON.stringify(vocabItems)); } catch(e) {}
+  }
+
+  // Salvos (trechos)
+  const sv = await supaFetch(`/rest/v1/trechos_salvos?user_id=eq.${supaUserId}&tipo=eq.trecho&select=*&order=criado_em.desc`);
+  if (sv?.length) {
+    S.saved = sv.map(s => ({
+      semNum: s.seminario, licaoNum: s.licao || 1,
+      segId: s.seg_id, texto: s.texto_fr,
+      comentario: s.comentario, date: new Date(s.criado_em).toLocaleDateString('pt-BR')
+    }));
+  }
+
+  // Caderno (notas)
+  const notas = await supaFetch(`/rest/v1/notas?user_id=eq.${supaUserId}&select=*&order=atualizado_em.desc`);
+  if (notas?.length) {
+    cadernoNotas = notas.map(n => ({
+      id: n.id, titulo: n.titulo, conteudo: n.conteudo,
+      atualizado: new Date(n.atualizado_em).toLocaleDateString('pt-BR') + ' ' +
+                  new Date(n.atualizado_em).toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'}),
+      criado: new Date(n.criado_em).toLocaleDateString('pt-BR')
+    }));
+    try { localStorage.setItem('lirelacan_notas', JSON.stringify(cadernoNotas)); } catch(e) {}
+  }
+
+  // Posição de leitura
+  const prog = await supaFetch(`/rest/v1/progresso?user_id=eq.${supaUserId}&select=*&limit=1`);
+  if (prog?.[0]?.seg_id) {
+    try {
+      localStorage.setItem('lirelacan_pos', JSON.stringify({
+        sem: prog[0].seminario, segId: prog[0].seg_id
+      }));
+    } catch(e) {}
+  }
+
+  // Re-renderizar se leitor já aberto
+  if (S.semAtual !== null) {
+    renderFullReader(S.seminarios[S.semAtual]);
+  }
+}
+
+// ══════════════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', async () => {
   if ('speechSynthesis' in window) speechSynthesis.getVoices();
   setupScrollObserver();
   setupSelectionMenu();
 
-  // Receber token da URL (login via Vercel → GitHub Pages)
-  // Necessário porque Safari bloqueia cookies de terceiros
-  const urlParams = new URLSearchParams(window.location.search);
-  const token = urlParams.get('token');
-  if (token) {
-    // Salvar token no localStorage para uso posterior
-    try {
-      localStorage.setItem('lirelacan_token', token);
-    } catch(e) {}
-    // Limpar token da URL sem recarregar a página
-    const url = new URL(window.location.href);
-    url.searchParams.delete('token');
-    window.history.replaceState({}, '', url.toString());
-  }
+  // Iniciar sessão Supabase (token da URL ou localStorage)
+  await iniciarSessaoSupabase();
 
-  // Carregar JSONs da pasta seminarios/
+  // Carregar seminários em paralelo
   const seminariosDaPasta = await carregarSeminariosDaPasta();
   if (seminariosDaPasta.length > 0) {
     S.seminarios = seminariosDaPasta;
@@ -1687,19 +1805,19 @@ function setupSelectionMenu() {
     menuClickando = true;
   }, { passive: true });
 
-  // Clique dentro do menu — não fechar
+  // Clique dentro do menu — não fechar nunca
   menu.addEventListener('click', e => {
     e.stopPropagation();
-    menuClickando = true;
-    setTimeout(() => { menuClickando = false; }, 300);
+    // Processar botão de remover highlight
+    const btnRemover = e.target.closest('.sel-btn-remove');
+    if (btnRemover) {
+      removeHighlight();
+      return;
+    }
   });
 
   // Clique fora do menu → fechar
   document.addEventListener('click', e => {
-    if (menuClickando) {
-      menuClickando = false;
-      return;
-    }
     // Clique em highlight existente → menu de remoção
     const hiSpan = e.target.closest('[data-hi]');
     if (hiSpan && !e.target.closest('#selMenu')) {
@@ -1708,7 +1826,7 @@ function setupSelectionMenu() {
       const cor = corLabel[hiSpan.dataset.hi] || 'destaque';
       menu.innerHTML = `
         <div class="sel-section-label">Destaque ${cor}</div>
-        <button class="sel-btn sel-btn-remove" onclick="removeHighlight()">
+        <button class="sel-btn sel-btn-remove">
           <svg class="sel-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
             <polyline points="3,6 17,6"/><path d="M8,6V4h4v2"/><path d="M5,6l1,11h8l1-11"/>
           </svg>
@@ -2075,6 +2193,14 @@ function salvarPosicaoLeitura() {
       sem: S.semAtual, segId
     }));
   } catch(e) {}
+
+  // Sync nuvem
+  if (supaUserId && segId) {
+    nuvemSalvar('progresso', {
+      seminario: S.semAtual, seg_id: segId,
+      percentual: S.totalSegs ? Math.round(100 * S.readSegs.size / S.totalSegs) : 0
+    });
+  }
 }
 
 function restaurarPosicaoLeitura() {
@@ -3289,6 +3415,15 @@ try { vocabItems = JSON.parse(localStorage.getItem('lirelacan_vocab') || '[]'); 
 
 function salvarVocab() {
   try { localStorage.setItem('lirelacan_vocab', JSON.stringify(vocabItems)); } catch(e) {}
+  // Sync nuvem — salvar primeiro item (mais recente)
+  if (supaUserId && vocabItems[0]) {
+    const v = vocabItems[0];
+    nuvemSalvar('trechos_salvos', {
+      tipo: 'vocab', texto_fr: v.word, traducao: v.trad || '',
+      contexto: v.ctx || '', seminario: S.semAtual || 0,
+      seg_id: 'vocab_' + Date.now(), licao: 1
+    });
+  }
 }
 
 function renderVocabView() {
@@ -3554,6 +3689,19 @@ try { cadernoNotas = JSON.parse(localStorage.getItem('lirelacan_notas') || '[]')
 
 function salvarCaderno() {
   try { localStorage.setItem('lirelacan_notas', JSON.stringify(cadernoNotas)); } catch(e) {}
+  // Sync nuvem — salvar nota atual
+  if (supaUserId && cadernoNotaAtual !== null) {
+    const nota = cadernoNotas[cadernoNotaAtual];
+    if (nota) {
+      const body = {
+        tipo: 'nota', titulo: nota.titulo || 'Sem título',
+        conteudo: nota.conteudo || '',
+        seminario: S.semAtual || 0, seg_id: 'nota_' + (nota.id || Date.now()),
+        licao: 1, texto_fr: nota.titulo || '', traducao: ''
+      };
+      nuvemSalvar('trechos_salvos', body);
+    }
+  }
 }
 
 function renderCadernoView() {
