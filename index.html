@@ -2103,48 +2103,61 @@ async function buscarTradPainel(termoExterno) {
     .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
     .replace(/\s+/g,' ').trim();
 
-  // 1. Dicionário local lacaniano — instantâneo
-  const entLocal = DICT_LOCAL[chave];
-  if (entLocal && (tradDir === 'fr-pt' ? entLocal.d === 'fr' : entLocal.d === 'pt')) {
-    const tags = entLocal.v.slice(0,8).map(x =>
-      `<span class="panel-trad-tag">${escH(x.t)}</span>`).join('');
+  const mostrarTags = (trs, ex) => {
+    if (!trs.length) {
+      res.innerHTML = `<span style="color:var(--ink-faint);font-size:12px">
+        Sem resultado. Tente na aba <strong>Tradução</strong>.
+      </span>`;
+      return;
+    }
+    const tags = trs.slice(0,8).map(t =>
+      `<span class="panel-trad-tag">${escH(t)}</span>`).join('');
     let html = `<div class="panel-trad-tags">${tags}</div>`;
-    if (entLocal.ex?.[0]) {
-      html += `<div class="panel-trad-ex"><em>${escH(entLocal.ex[0].fr)}</em><br>↳ ${escH(entLocal.ex[0].pt)}</div>`;
+    if (ex?.fr && ex?.pt) {
+      html += `<div class="panel-trad-ex"><em>${escH(ex.fr)}</em><br>↳ ${escH(ex.pt)}</div>`;
     }
     res.innerHTML = html;
     mostrarVocabPainel(termo);
-    return;
-  }
+  };
 
-  // 2. TRAD_DICT geral — instantâneo
-  const entTrad = TRAD_DICT[chave];
-  if (entTrad && entTrad.length) {
-    const tags = entTrad.slice(0,8).map(x =>
-      `<span class="panel-trad-tag">${escH(x.t)}</span>`).join('');
-    res.innerHTML = `<div class="panel-trad-tags">${tags}</div>`;
-    mostrarVocabPainel(termo);
-    return;
-  }
+  // 1. Dicionário local lacaniano (se disponível)
+  try {
+    if (typeof DICT_LOCAL !== 'undefined') {
+      const entLocal = DICT_LOCAL[chave];
+      const dirOk = tradDir === 'fr-pt' ? entLocal?.d === 'fr' : entLocal?.d === 'pt';
+      if (entLocal && dirOk) {
+        mostrarTags(entLocal.v.map(x => x.t), entLocal.ex?.[0]);
+        return;
+      }
+    }
+  } catch(e) {}
 
-  // 3. Reverso com timeout de 4 segundos — não travar
+  // 2. TRAD_DICT geral (se disponível)
+  try {
+    if (typeof TRAD_DICT !== 'undefined') {
+      const entTrad = TRAD_DICT[chave];
+      if (entTrad && entTrad.length) {
+        mostrarTags(entTrad.map(x => x.t), null);
+        return;
+      }
+    }
+  } catch(e) {}
+
+  // 3. Reverso com timeout
   res.innerHTML = '<span style="color:var(--ink-faint);font-size:12px">Buscando…</span>';
   const [srcLang, tgtLang] = tradDir === 'fr-pt' ? ['fr','pt'] : ['pt','fr'];
 
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 4000);
-
+    const tid = setTimeout(() => controller.abort(), 5000);
     const resp = await fetch('https://api.reverso.net/translate/v1/translation', {
-      method: 'POST',
-      signal: controller.signal,
+      method: 'POST', signal: controller.signal,
       headers: { 'Content-Type': 'application/json', 'Origin': 'https://context.reverso.net' },
       body: JSON.stringify({ format:'text', from:srcLang, to:tgtLang, input:termo,
         options: { sentenceSplitter:false, origin:'translation.web',
-                   contextResults:true, languageDetection:true } })
+                   contextResults:true, languageDetection:true }})
     });
-    clearTimeout(timeoutId);
-
+    clearTimeout(tid);
     const data = await resp.json();
     const vistas = new Set();
     const trs = [];
@@ -2155,27 +2168,15 @@ async function buscarTradPainel(termoExterno) {
     };
     (data.translation||[]).forEach(t => add(t));
     (data.contextResults?.results||[]).forEach(r => {
-      const tgt = (r.targetExamples||[])[0]||'';
-      [...tgt.matchAll(/<em>([^<]+)<\/em>/g)].forEach(m => add(m[1]));
+      [...((r.targetExamples||[])[0]||'').matchAll(/<em>([^<]+)<\/em>/g)].forEach(m => add(m[1]));
     });
-
-    if (trs.length) {
-      const tags = trs.slice(0,8).map(t => `<span class="panel-trad-tag">${escH(t)}</span>`).join('');
-      const ex = (data.contextResults?.results||[])[0];
-      const exFr = ex ? (ex.sourceExamples||[])[0]?.replace(/<[^>]+>/g,'').trim()||'' : '';
-      const exPt = ex ? (ex.targetExamples||[])[0]?.replace(/<[^>]+>/g,'').trim()||'' : '';
-      let html = `<div class="panel-trad-tags">${tags}</div>`;
-      if (exFr && exPt) html += `<div class="panel-trad-ex"><em>${escH(exFr)}</em><br>↳ ${escH(exPt)}</div>`;
-      res.innerHTML = html;
-      mostrarVocabPainel(termo);
-    } else {
-      res.innerHTML = `<span style="color:var(--ink-faint);font-size:12px">Sem resultado para "<em>${escH(termo)}</em>".</span>`;
-    }
+    const ex0 = (data.contextResults?.results||[])[0];
+    const exFr = ex0 ? (ex0.sourceExamples||[])[0]?.replace(/<[^>]+>/g,'').trim()||'' : '';
+    const exPt = ex0 ? (ex0.targetExamples||[])[0]?.replace(/<[^>]+>/g,'').trim()||'' : '';
+    mostrarTags(trs, exFr && exPt ? {fr:exFr, pt:exPt} : null);
   } catch(e) {
-    // Timeout ou CORS — mostrar mensagem limpa sem travar
     res.innerHTML = `<span style="color:var(--ink-faint);font-size:12px">
-      Termo não encontrado no dicionário local.<br>
-      <em style="font-size:11px">Tente na aba Tradução para busca completa.</em>
+      Sem resultado. Tente na aba <strong>Tradução</strong>.
     </span>`;
   }
 }
