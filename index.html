@@ -1815,7 +1815,7 @@ function menuNormalHTML() {
       </svg>
       Salvar trecho
     </button>
-    <button class="sel-btn" onclick="doAddVocab()">
+    <button class="sel-btn" id="selVocabBtn" onclick="doAddVocab()">
       <svg class="sel-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
         <path d="M4 19V4a2 2 0 012-2h12v14H6a2 2 0 000 4z"/>
         <line x1="12" y1="7" x2="12" y2="13"/><line x1="9" y1="10" x2="15" y2="10"/>
@@ -1831,18 +1831,50 @@ function menuNormalHTML() {
     </button>`;
 }
 
+// ── Ações do menu — NÃO fecham o menu automaticamente ──────────────
+// O menu fecha apenas ao clicar no background (ver setupSelectionMenu)
+
+function doAddVocab() {
+  if (!currentSel) return;
+  const palavra = currentSel.text.trim();
+  if (!palavra) return;
+  // Buscar tradução automática do dicionário local
+  const chave = palavra.toLowerCase()
+    .replace(/œ/g,'oe').replace(/æ/g,'ae')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+  const local = typeof DICT_LOCAL !== 'undefined' ? DICT_LOCAL[chave] : null;
+  const trad = local?.v?.[0]?.t || '';
+  // Salvar no vocabulário
+  if (vocabItems.some(v => v.word.toLowerCase() === palavra.toLowerCase())) {
+    // Já existe — mostrar feedback no botão
+    const btn = document.getElementById('selVocabBtn');
+    if (btn) { btn.textContent = '✓ Já salvo'; setTimeout(() => { btn.innerHTML = btn.innerHTML; document.getElementById('selMenu').innerHTML = menuNormalHTML(); }, 1500); }
+    return;
+  }
+  vocabItems.unshift({ word: palavra, trad, ctx: currentSel.text, data: new Date().toLocaleDateString('pt-BR') });
+  salvarVocab();
+  // Atualizar painel vocab
+  preencherPainelVocab(palavra, trad);
+  // Feedback visual no botão sem fechar o menu
+  const btn = document.getElementById('selVocabBtn');
+  if (btn) {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '✓ Salvo no vocabulário';
+    btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 2000);
+  }
+}
+
 // ── PAINEL DIREITO — Tradução rápida e Vocabulário ──────────────────
 
 // Chamado pelo botão "Traduzir" no menu de seleção
 function traduzirNoPainel() {
   if (!currentSel) return;
   const palavra = currentSel.text.trim().split(/\s+/).slice(0, 4).join(' ');
-  hideMenu();
-  // Preencher input do painel e buscar
+  // Não fechar menu — traduz no painel e mantém seleção ativa
   const inp = document.getElementById('panelTradInput');
-  if (inp) { inp.value = palavra; }
+  if (inp) inp.value = palavra;
   buscarTradPainel(palavra);
-  // Scroll suave para o painel (mobile)
   document.querySelector('.panel')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
@@ -1916,8 +1948,15 @@ function doSave(extraComment) {
     date: new Date().toLocaleDateString('pt-BR'),
   });
   updateSavedBadge();
-  hideMenu();
-  window.getSelection().removeAllRanges();
+  // Feedback visual sem fechar o menu
+  const menu = document.getElementById('selMenu');
+  const btns = menu?.querySelectorAll('.sel-btn');
+  btns?.forEach(b => { if (b.textContent.includes('Salvar')) {
+    const orig = b.innerHTML;
+    b.innerHTML = '✓ Trecho salvo';
+    b.style.color = 'var(--accent)';
+    setTimeout(() => { b.innerHTML = orig; b.style.color = ''; }, 2000);
+  }});
 }
 
 // ── Comentar ──
@@ -1928,7 +1967,7 @@ function doComment() {
     '"' + currentSel.text.slice(0, 120) + (currentSel.text.length > 120 ? '…' : '') + '"';
   document.getElementById('modalText').value = '';
   document.getElementById('modalOverlay').classList.add('visible');
-  hideMenu();
+  // Não fechar menu — fecha ao confirmar/cancelar o modal
   window.getSelection().removeAllRanges();
   setTimeout(() => document.getElementById('modalText').focus(), 50);
 }
@@ -3981,9 +4020,9 @@ function doHighlight(color) {
     console.warn('Highlight error:', e);
   }
 
+  // Manter menu aberto — não fechar nem limpar currentSel
+  // O usuário pode querer fazer outras ações (comentar, salvar, etc.)
   window.getSelection().removeAllRanges();
-  currentSel = null;
-  hideMenu();
 }
 
 // ══════════════════════════════════════════════════════
