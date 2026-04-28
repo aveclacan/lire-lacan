@@ -1678,7 +1678,7 @@ let selSegAtual = null;
 function setupSelectionMenu() {
   const menu = document.getElementById('selMenu');
 
-  // ── Proteger menu: mousedown previne desfazer seleção
+  // Proteger menu: mousedown previne desfazer seleção
   menu.addEventListener('mousedown', e => {
     menuClickando = true;
     e.preventDefault();
@@ -1686,18 +1686,20 @@ function setupSelectionMenu() {
   menu.addEventListener('touchstart', () => {
     menuClickando = true;
   }, { passive: true });
-  menu.addEventListener('mouseup', () => {
-    // Resetar flag após o ciclo de eventos completar
-    setTimeout(() => { menuClickando = false; }, 0);
+
+  // Clique dentro do menu — não fechar
+  menu.addEventListener('click', e => {
+    e.stopPropagation();
+    menuClickando = true;
+    setTimeout(() => { menuClickando = false; }, 300);
   });
 
-  // ── Clique fora do menu → fechar
+  // Clique fora do menu → fechar
   document.addEventListener('click', e => {
     if (menuClickando) {
       menuClickando = false;
       return;
     }
-
     // Clique em highlight existente → menu de remoção
     const hiSpan = e.target.closest('[data-hi]');
     if (hiSpan && !e.target.closest('#selMenu')) {
@@ -1717,23 +1719,18 @@ function setupSelectionMenu() {
       menuAberto = true;
       return;
     }
-
-    // Clique dentro do menu → não fechar
-    if (e.target.closest('#selMenu')) return;
-
     // Clique fora → fechar
-    hideMenu();
+    if (!e.target.closest('#selMenu')) {
+      hideMenu();
+    }
   });
 
-  // ── Mostrar menu ao soltar após seleção
+  // Mostrar menu ao soltar após seleção
   document.addEventListener('pointerup', e => {
     if (e.target.closest('#selMenu')) return;
     clearTimeout(selTimer);
     selTimer = setTimeout(() => verificarSelecao(), 100);
   });
-
-  // ── NÃO usar selectionchange para fechar — causa fechamento prematuro
-  // O menu só fecha via clique no background (acima)
 }
 
 function verificarSelecao() {
@@ -1958,20 +1955,39 @@ function doComment() {
     '"' + currentSel.text.slice(0, 120) + (currentSel.text.length > 120 ? '…' : '') + '"';
   document.getElementById('modalText').value = '';
   document.getElementById('modalOverlay').classList.add('visible');
-  // Não fechar menu — fecha ao confirmar/cancelar o modal
+  // Fechar menu enquanto modal está aberto — sem poluição visual
+  hideMenu();
   window.getSelection().removeAllRanges();
   setTimeout(() => document.getElementById('modalText').focus(), 50);
 }
 
+function reabrirMenu() {
+  if (!currentSel) return;
+  const menu = document.getElementById('selMenu');
+  menu.innerHTML = menuNormalHTML();
+  // Posicionar no centro inferior da tela
+  menu.style.left = Math.round(window.innerWidth / 2 - 96) + 'px';
+  menu.style.top = Math.round(window.innerHeight * 0.6) + 'px';
+  menu.style.transform = 'none';
+  menu.classList.add('visible');
+  menuAberto = true;
+}
+
 function closeModal() {
   document.getElementById('modalOverlay').classList.remove('visible');
-  commentTarget = null;
+  // Reabrir menu após fechar modal (cancelar)
+  if (commentTarget) {
+    currentSel = commentTarget;
+    commentTarget = null;
+    reabrirMenu();
+  } else {
+    commentTarget = null;
+  }
 }
 
 function confirmComment() {
   const txt = document.getElementById('modalText').value.trim();
   if (!txt || !commentTarget) { closeModal(); return; }
-  // Adicionar comentário inline ao segmento
   const cmtsEl = document.getElementById('cmts_' + commentTarget.segId);
   if (cmtsEl) {
     const div = document.createElement('div');
@@ -1979,10 +1995,12 @@ function confirmComment() {
     div.innerHTML = `<button class="seg-comment-del" onclick="this.parentElement.remove()" title="Remover">×</button>${escH(txt)}`;
     cmtsEl.appendChild(div);
   }
-  // Salvar junto com o trecho
   currentSel = commentTarget;
+  commentTarget = null;
   doSave(txt);
-  closeModal();
+  document.getElementById('modalOverlay').classList.remove('visible');
+  // Reabrir menu após confirmar comentário
+  reabrirMenu();
 }
 
 // ══════════════════════════════════════════════════════
