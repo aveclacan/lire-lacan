@@ -1678,22 +1678,29 @@ let selSegAtual = null;
 function setupSelectionMenu() {
   const menu = document.getElementById('selMenu');
 
-  // ── Proteger o menu: mousedown/touchstart no menu não fecha e não desfaz seleção
+  // ── Proteger menu: mousedown previne desfazer seleção
   menu.addEventListener('mousedown', e => {
     menuClickando = true;
-    e.preventDefault(); // impede desfazer seleção ao clicar no menu
+    e.preventDefault();
   });
-  menu.addEventListener('touchstart', e => {
+  menu.addEventListener('touchstart', () => {
     menuClickando = true;
-    // NÃO preventDefault no touch para não bloquear scroll
   }, { passive: true });
+  menu.addEventListener('mouseup', () => {
+    // Resetar flag após o ciclo de eventos completar
+    setTimeout(() => { menuClickando = false; }, 0);
+  });
 
   // ── Clique fora do menu → fechar
   document.addEventListener('click', e => {
-    // Clique em highlight existente
+    if (menuClickando) {
+      menuClickando = false;
+      return;
+    }
+
+    // Clique em highlight existente → menu de remoção
     const hiSpan = e.target.closest('[data-hi]');
     if (hiSpan && !e.target.closest('#selMenu')) {
-      e.stopPropagation();
       hiSpanAlvo = hiSpan;
       const corLabel = { yellow: 'amarelo', green: 'verde', blue: 'azul' };
       const cor = corLabel[hiSpan.dataset.hi] || 'destaque';
@@ -1708,42 +1715,25 @@ function setupSelectionMenu() {
       posicionarMenu(hiSpan.getBoundingClientRect());
       menu.classList.add('visible');
       menuAberto = true;
-      menuClickando = false;
       return;
     }
 
-    // Clique fora do menu (e não foi clique em botão do menu)
-    if (!e.target.closest('#selMenu') && !menuClickando) {
-      hideMenu();
-    }
-    menuClickando = false;
+    // Clique dentro do menu → não fechar
+    if (e.target.closest('#selMenu')) return;
+
+    // Clique fora → fechar
+    hideMenu();
   });
 
-  // ── Mostrar menu ao soltar o mouse/touch após seleção
-  // Usar pointerup em vez de selectionchange — mais confiável
+  // ── Mostrar menu ao soltar após seleção
   document.addEventListener('pointerup', e => {
     if (e.target.closest('#selMenu')) return;
-    // Pequeno delay para a seleção estabilizar
     clearTimeout(selTimer);
-    selTimer = setTimeout(() => verificarSelecao(), 80);
+    selTimer = setTimeout(() => verificarSelecao(), 100);
   });
 
-  // ── selectionchange: só usar para detectar quando seleção é ZERADA pelo usuário
-  // (ex: clicar em área vazia), não para fechar durante arraste
-  document.addEventListener('selectionchange', () => {
-    const sel = window.getSelection();
-    // Se seleção foi zerada E menu está aberto E não estamos clicando no menu
-    if (menuAberto && !menuClickando && sel && sel.isCollapsed) {
-      clearTimeout(selTimer);
-      // Aguardar para ver se foi apenas transição durante arraste
-      selTimer = setTimeout(() => {
-        const s = window.getSelection();
-        if (s && s.isCollapsed && !menuClickando) {
-          hideMenu();
-        }
-      }, 300);
-    }
-  });
+  // ── NÃO usar selectionchange para fechar — causa fechamento prematuro
+  // O menu só fecha via clique no background (acima)
 }
 
 function verificarSelecao() {
@@ -1927,7 +1917,8 @@ function hideMenu() {
   const menu = document.getElementById('selMenu');
   if (menu) menu.classList.remove('visible');
   menuAberto = false;
-  currentSel = null;
+  // Manter currentSel para permitir múltiplas ações
+  // Só limpar currentSel ao abrir novo menu ou clicar no background
 }
 
 
