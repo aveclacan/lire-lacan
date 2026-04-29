@@ -792,20 +792,68 @@ body.theme-paper {
 .vocab-empty-state { text-align:center; padding:60px 20px; color:var(--ink-faint); font-style:italic; font-size:14px; }
 .vocab-stats { font-size:12px; color:var(--ink-faint); margin-bottom:16px; }
 
-/* ── CADERNO notas salvas ── */
-.caderno-header { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
-.caderno-titulo { flex:1; font-family:'IM Fell English',serif; font-size:20px; border:none; background:transparent; color:var(--ink); outline:none; border-bottom:1px solid transparent; padding:4px 0; }
-.caderno-titulo:focus { border-bottom-color:var(--border-strong); }
-.caderno-actions { display:flex; gap:10px; margin-top:12px; align-items:center; }
-.caderno-save-btn { padding:8px 20px; border-radius:8px; border:none; background:var(--accent); color:white; cursor:pointer; font-size:13px; font-weight:500; }
-.caderno-status { font-size:12px; color:var(--ink-faint); }
-.caderno-notas-lista { margin-top:28px; }
-.caderno-nota-item { display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:8px; cursor:pointer; border:1px solid var(--border); margin-bottom:8px; background:var(--paper-warm); transition:all .15s; }
-.caderno-nota-item:hover, .caderno-nota-item.active { border-color:var(--accent-light); background:var(--accent-pale); }
-.caderno-nota-titulo { font-size:14px; color:var(--ink); flex:1; }
-.caderno-nota-data { font-size:11px; color:var(--ink-faint); white-space:nowrap; }
-.caderno-nota-del { background:none; border:none; color:var(--ink-faint); cursor:pointer; font-size:16px; padding:2px 6px; border-radius:4px; }
-.caderno-nota-del:hover { color:var(--accent); background:var(--paper-dark); }
+/* ── CADERNO — layout duas colunas estilo Notas ── */
+.caderno-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 0;
+  height: calc(100vh - 180px);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--paper);
+}
+.caderno-lista-col {
+  border-right: 1px solid var(--border);
+  background: var(--paper-warm);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.caderno-lista-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px; border-bottom: 1px solid var(--border);
+  background: var(--paper-dark);
+}
+.caderno-nova-btn {
+  background: var(--accent); color: white; border: none;
+  border-radius: 50%; width: 24px; height: 24px;
+  font-size: 16px; cursor: pointer; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+}
+#cadernoListaNotas { flex: 1; overflow-y: auto; }
+.caderno-nota-item {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 10px 14px; cursor: pointer; border-bottom: 1px solid var(--border);
+  transition: background .1s;
+}
+.caderno-nota-item:hover { background: var(--paper-dark); }
+.caderno-nota-item.active { background: var(--accent-pale); border-left: 3px solid var(--accent); }
+.caderno-nota-titulo { font-size: 13px; color: var(--ink); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.caderno-nota-data { font-size: 10px; color: var(--ink-faint); margin-top: 2px; }
+.caderno-nota-del { background: none; border: none; color: var(--ink-faint); cursor: pointer; font-size: 14px; padding: 0 4px; opacity: 0; transition: opacity .15s; }
+.caderno-nota-item:hover .caderno-nota-del { opacity: 1; }
+.caderno-editor-col {
+  display: flex; flex-direction: column; overflow: hidden;
+  background: var(--paper);
+}
+.caderno-editor-col .caderno-toolbar {
+  border-radius: 0; border-left: none; border-right: none; border-top: none;
+  border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.caderno-editor-col .caderno-titulo {
+  border: none; border-bottom: 1px solid var(--border);
+  border-radius: 0; font-size: 20px; padding: 14px 20px;
+  background: var(--paper); flex-shrink: 0;
+}
+.caderno-editor-col .caderno-editor {
+  border: none; border-radius: 0; flex: 1;
+  overflow-y: auto; padding: 16px 20px;
+  background: var(--paper);
+}
+@media (max-width: 768px) {
+  .caderno-layout { grid-template-columns: 1fr; grid-template-rows: 200px 1fr; height: auto; }
+  .caderno-lista-col { border-right: none; border-bottom: 1px solid var(--border); }
+}
 .select-font, .select-size { font-size:12px; padding:4px 6px; border:1px solid var(--border); border-radius:5px; background:var(--paper); color:var(--ink); cursor:pointer; font-family:'Karla',sans-serif; }
 .select-size { width:55px; }
 .conj-verb-header { font-family:'IM Fell English',serif; font-size:26px; color:var(--ink); margin-bottom:6px; }
@@ -1303,34 +1351,37 @@ async function carregarSeminariosDaPasta() {
 }
 
 // ══════════════════════════════════════════════════════
-//  SUPABASE — sync na nuvem para usuários logados
+//  SUPABASE — sincronização na nuvem
+//  Tabelas: progresso · highlights · comentarios · notas · trechos_salvos
 // ══════════════════════════════════════════════════════
-const SUPA_URL  = 'https://hczrvpghrntbvsjqbgqm.supabase.co';
-const SUPA_KEY  = 'sb_publishable_x8rZm5Bn1SXVSsJrReUOxg_Va4Gi3fH';
+const SUPA_URL = 'https://hczrvpghrntbvsjqbgqm.supabase.co';
+const SUPA_KEY = 'sb_publishable_x8rZm5Bn1SXVSsJrReUOxg_Va4Gi3fH';
 let supaToken = null;
 let supaUserId = null;
 
+// Fetch autenticado ao Supabase REST API
 async function supaFetch(path, opts = {}) {
   if (!supaToken) return null;
   try {
-    const r = await fetch(SUPA_URL + path, {
+    const resp = await fetch(SUPA_URL + path, {
       ...opts,
       headers: {
         'apikey': SUPA_KEY,
         'Authorization': 'Bearer ' + supaToken,
         'Content-Type': 'application/json',
-        'Prefer': 'return=minimal',
         ...(opts.headers || {})
       }
     });
-    if (!r.ok) return null;
-    const txt = await r.text();
+    if (resp.status === 204) return true;
+    if (!resp.ok) { console.warn('Supabase error:', resp.status, path); return null; }
+    const txt = await resp.text();
     return txt ? JSON.parse(txt) : true;
-  } catch(e) { return null; }
+  } catch(e) { console.warn('Supabase fetch error:', e.message); return null; }
 }
 
+// Iniciar sessão com token da URL ou localStorage
 async function iniciarSessaoSupabase() {
-  // Pegar token da URL ou localStorage
+  // 1. Tentar token da URL (vindo do login no Vercel)
   const urlParams = new URLSearchParams(window.location.search);
   const tokenUrl = urlParams.get('token');
   if (tokenUrl) {
@@ -1340,95 +1391,228 @@ async function iniciarSessaoSupabase() {
     url.searchParams.delete('token');
     window.history.replaceState({}, '', url.toString());
   } else {
+    // 2. Tentar token salvo no localStorage
     try { supaToken = localStorage.getItem('lirelacan_token'); } catch(e) {}
   }
-  if (!supaToken) return;
+  if (!supaToken) return; // Não logado
 
-  // Buscar userId do token
+  // 3. Verificar se token é válido e pegar userId
   const user = await supaFetch('/auth/v1/user');
-  if (user?.id) {
-    supaUserId = user.id;
-    await carregarDadosNuvem();
-  }
+  if (!user?.id) { supaToken = null; return; }
+  supaUserId = user.id;
+  console.log('Supabase: logado como', user.email);
+
+  // 4. Carregar todos os dados do usuário da nuvem
+  await carregarDadosNuvem();
 }
 
-// ── Salvar na nuvem ────────────────────────────────────
-async function nuvemSalvar(tabela, dados) {
-  if (!supaUserId) return;
-  await supaFetch(`/rest/v1/${tabela}`, {
-    method: 'POST',
-    headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
-    body: JSON.stringify({ user_id: supaUserId, ...dados })
-  });
-}
-
-async function nuvemDeletar(tabela, filtros) {
-  if (!supaUserId) return;
-  const params = Object.entries({ user_id: `eq.${supaUserId}`, ...filtros })
-    .map(([k,v]) => `${k}=${v}`).join('&');
-  await supaFetch(`/rest/v1/${tabela}?${params}`, { method: 'DELETE' });
-}
-
-// ── Carregar todos os dados do usuário ────────────────
+// ── CARREGAR dados da nuvem ao iniciar ────────────────
 async function carregarDadosNuvem() {
   if (!supaUserId) return;
+  const sem = S.semAtual || 0;
 
   // Highlights
-  const hl = await supaFetch(`/rest/v1/highlights?user_id=eq.${supaUserId}&select=*`);
+  const hl = await supaFetch(
+    `/rest/v1/highlights?user_id=eq.${supaUserId}&seminario=eq.${sem}&select=*&order=criado_em.asc`
+  );
   if (hl?.length) {
     S.highlights = {};
     hl.forEach(h => {
       if (!S.highlights[h.seg_id]) S.highlights[h.seg_id] = [];
-      S.highlights[h.seg_id].push({ start: h.start, end: h.end, color: h.color, text: h.text });
+      S.highlights[h.seg_id].push({ color: h.cor, text: h.texto, id: h.id });
     });
   }
 
-  // Vocabulário
-  const voc = await supaFetch(`/rest/v1/trechos_salvos?user_id=eq.${supaUserId}&tipo=eq.vocab&select=*&order=criado_em.desc`);
+  // Comentários
+  const cmts = await supaFetch(
+    `/rest/v1/comentarios?user_id=eq.${supaUserId}&seminario=eq.${sem}&select=*`
+  );
+  if (cmts?.length) {
+    S.comments = {};
+    cmts.forEach(c => {
+      if (!S.comments[c.seg_id]) S.comments[c.seg_id] = [];
+      S.comments[c.seg_id].push(c.nota);
+    });
+  }
+
+  // Trechos salvos
+  const tr = await supaFetch(
+    `/rest/v1/trechos_salvos?user_id=eq.${supaUserId}&select=*&order=criado_em.desc`
+  );
+  if (tr?.length) {
+    S.saved = tr.map(t => ({
+      semNum: t.seminario, segId: t.seg_id,
+      texto: t.texto_fr, comentario: t.traducao || null,
+      date: new Date(t.criado_em).toLocaleDateString('pt-BR')
+    }));
+  }
+
+  // Vocabulário (trechos_salvos com tipo vocab — usando traducao como trad)
+  const voc = await supaFetch(
+    `/rest/v1/trechos_salvos?user_id=eq.${supaUserId}&seg_id=like.vocab_*&select=*&order=criado_em.desc`
+  );
   if (voc?.length) {
     vocabItems = voc.map(v => ({
-      word: v.texto_fr, trad: v.traducao || '', ctx: v.contexto || '',
-      data: new Date(v.criado_em).toLocaleDateString('pt-BR')
+      word: v.texto_fr, trad: v.traducao || '', ctx: '',
+      data: new Date(v.criado_em).toLocaleDateString('pt-BR'),
+      supId: v.id
     }));
     try { localStorage.setItem('lirelacan_vocab', JSON.stringify(vocabItems)); } catch(e) {}
   }
 
-  // Salvos (trechos)
-  const sv = await supaFetch(`/rest/v1/trechos_salvos?user_id=eq.${supaUserId}&tipo=eq.trecho&select=*&order=criado_em.desc`);
-  if (sv?.length) {
-    S.saved = sv.map(s => ({
-      semNum: s.seminario, licaoNum: s.licao || 1,
-      segId: s.seg_id, texto: s.texto_fr,
-      comentario: s.comentario, date: new Date(s.criado_em).toLocaleDateString('pt-BR')
-    }));
-  }
-
-  // Caderno (notas)
-  const notas = await supaFetch(`/rest/v1/notas?user_id=eq.${supaUserId}&select=*&order=atualizado_em.desc`);
+  // Notas do caderno
+  const notas = await supaFetch(
+    `/rest/v1/notas?user_id=eq.${supaUserId}&select=*&order=atualizado_em.desc`
+  );
   if (notas?.length) {
     cadernoNotas = notas.map(n => ({
-      id: n.id, titulo: n.titulo, conteudo: n.conteudo,
+      id: n.id, titulo: n.titulo || 'Sem título', conteudo: n.conteudo || '',
+      criado: new Date(n.criado_em).toLocaleDateString('pt-BR'),
       atualizado: new Date(n.atualizado_em).toLocaleDateString('pt-BR') + ' ' +
-                  new Date(n.atualizado_em).toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'}),
-      criado: new Date(n.criado_em).toLocaleDateString('pt-BR')
+                  new Date(n.atualizado_em).toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'})
     }));
     try { localStorage.setItem('lirelacan_notas', JSON.stringify(cadernoNotas)); } catch(e) {}
   }
 
   // Posição de leitura
-  const prog = await supaFetch(`/rest/v1/progresso?user_id=eq.${supaUserId}&select=*&limit=1`);
-  if (prog?.[0]?.seg_id) {
-    try {
-      localStorage.setItem('lirelacan_pos', JSON.stringify({
-        sem: prog[0].seminario, segId: prog[0].seg_id
-      }));
-    } catch(e) {}
+  const prog = await supaFetch(
+    `/rest/v1/progresso?user_id=eq.${supaUserId}&select=*&order=atualizado_em.desc&limit=1`
+  );
+  if (prog?.[0]) {
+    const p = prog[0];
+    const segIds = p.segs_lidos || [];
+    if (segIds.length) {
+      S.lastSegId = segIds[segIds.length - 1]; // último segmento lido
+      try {
+        localStorage.setItem('lirelacan_pos', JSON.stringify({
+          sem: p.seminario, segId: S.lastSegId
+        }));
+      } catch(e) {}
+    }
   }
+}
 
-  // Re-renderizar se leitor já aberto
-  if (S.semAtual !== null) {
-    renderFullReader(S.seminarios[S.semAtual]);
+// ── SALVAR na nuvem ───────────────────────────────────
+
+// Highlight: salvar destaque
+async function nuvemSalvarHighlight(segId, texto, cor) {
+  if (!supaUserId) return;
+  await supaFetch('/rest/v1/highlights', {
+    method: 'POST',
+    headers: { 'Prefer': 'return=minimal' },
+    body: JSON.stringify({
+      user_id: supaUserId,
+      seminario: S.semAtual || 0,
+      seg_id: segId, texto, cor
+    })
+  });
+}
+
+// Highlight: remover destaque
+async function nuvemRemoverHighlight(segId, texto) {
+  if (!supaUserId) return;
+  await supaFetch(
+    `/rest/v1/highlights?user_id=eq.${supaUserId}&seg_id=eq.${encodeURIComponent(segId)}&texto=eq.${encodeURIComponent(texto)}`,
+    { method: 'DELETE' }
+  );
+}
+
+// Comentário: salvar
+async function nuvemSalvarComentario(segId, textoFr, nota) {
+  if (!supaUserId) return;
+  await supaFetch('/rest/v1/comentarios', {
+    method: 'POST',
+    headers: { 'Prefer': 'return=minimal' },
+    body: JSON.stringify({
+      user_id: supaUserId,
+      seminario: S.semAtual || 0,
+      seg_id: segId, texto_fr: textoFr, nota
+    })
+  });
+}
+
+// Trecho salvo
+async function nuvemSalvarTrecho(segId, textoFr, comentario) {
+  if (!supaUserId) return;
+  await supaFetch('/rest/v1/trechos_salvos', {
+    method: 'POST',
+    headers: { 'Prefer': 'return=minimal' },
+    body: JSON.stringify({
+      user_id: supaUserId,
+      seminario: S.semAtual || 0,
+      seg_id: segId, texto_fr: textoFr,
+      traducao: comentario || null
+    })
+  });
+}
+
+// Vocabulário: salvar
+async function nuvemSalvarVocab(word, trad) {
+  if (!supaUserId) return;
+  await supaFetch('/rest/v1/trechos_salvos', {
+    method: 'POST',
+    headers: { 'Prefer': 'return=minimal' },
+    body: JSON.stringify({
+      user_id: supaUserId,
+      seminario: 0, seg_id: 'vocab_' + Date.now(),
+      texto_fr: word, traducao: trad || null
+    })
+  });
+}
+
+// Nota do caderno: salvar ou atualizar
+async function nuvemSalvarNota(nota) {
+  if (!supaUserId) return;
+  if (nota.id && !nota.id.startsWith('local_')) {
+    // Atualizar nota existente
+    await supaFetch(`/rest/v1/notas?id=eq.${nota.id}&user_id=eq.${supaUserId}`, {
+      method: 'PATCH',
+      headers: { 'Prefer': 'return=minimal' },
+      body: JSON.stringify({
+        titulo: nota.titulo || 'Sem título',
+        conteudo: nota.conteudo || '',
+        atualizado_em: new Date().toISOString()
+      })
+    });
+  } else {
+    // Criar nota nova e atualizar ID local
+    const r = await supaFetch('/rest/v1/notas', {
+      method: 'POST',
+      headers: { 'Prefer': 'return=representation' },
+      body: JSON.stringify({
+        user_id: supaUserId,
+        titulo: nota.titulo || 'Sem título',
+        conteudo: nota.conteudo || '',
+        criado_em: new Date().toISOString(),
+        atualizado_em: new Date().toISOString()
+      })
+    });
+    if (r?.[0]?.id) nota.id = r[0].id; // Atualizar ID na memória
   }
+}
+
+// Nota do caderno: deletar
+async function nuvemDeletarNota(notaId) {
+  if (!supaUserId || !notaId || notaId.startsWith('local_')) return;
+  await supaFetch(`/rest/v1/notas?id=eq.${notaId}&user_id=eq.${supaUserId}`, {
+    method: 'DELETE'
+  });
+}
+
+// Posição de leitura: salvar
+async function nuvemSalvarPosicao(seminario, segId) {
+  if (!supaUserId || !segId) return;
+  // Usar upsert para atualizar registro existente
+  await supaFetch('/rest/v1/progresso', {
+    method: 'POST',
+    headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+    body: JSON.stringify({
+      user_id: supaUserId,
+      seminario: seminario || 0,
+      segs_lidos: [...S.readSegs].slice(-50), // últimos 50 segmentos lidos
+      atualizado_em: new Date().toISOString()
+    })
+  });
 }
 
 // ══════════════════════════════════════════════════════
@@ -1711,9 +1895,17 @@ document.addEventListener('click', e => {
 // ══════════════════════════════════════════════════════
 document.addEventListener('click', e => {
   if (e.target.closest('[data-mi]') || e.target.closest('.btn-audio') ||
-      e.target.closest('.sel-menu') || e.target.closest('.seg-comment-del')) return;
+      e.target.closest('#selMenu') || e.target.closest('.seg-comment-del')) return;
   const segEl = e.target.closest('.segment');
   if (!segEl || !S.bilingualOn) return;
+
+  // Não fechar/abrir se o usuário acabou de selecionar texto
+  const sel = window.getSelection();
+  if (sel && !sel.isCollapsed && sel.toString().trim().length > 0) return;
+
+  // Não fechar se clicou dentro da tradução PT (para permitir seleção)
+  if (e.target.closest('.seg-pt')) return;
+
   const id = segEl.dataset.seg;
   const pt = document.getElementById('pt_' + id);
   if (!pt) return;
@@ -2046,15 +2238,16 @@ function doSave(extraComment) {
     if (licao.segmentos.find(s => s.id === currentSel.segId)) { licaoNum = licao.numero; break; }
   }
   S.saved.push({
-    semNum: sem.numero,
-    licaoNum,
+    semNum: sem.numero, licaoNum,
     segId: currentSel.segId,
     texto: currentSel.text,
     comentario: extraComment || null,
     date: new Date().toLocaleDateString('pt-BR'),
   });
   updateSavedBadge();
-  // Feedback visual sem fechar o menu
+  // Sync nuvem
+  nuvemSalvarTrecho(currentSel.segId, currentSel.text, extraComment || null);
+  // Feedback visual
   const menu = document.getElementById('selMenu');
   const btns = menu?.querySelectorAll('.sel-btn');
   btns?.forEach(b => { if (b.textContent.includes('Salvar')) {
@@ -2196,10 +2389,7 @@ function salvarPosicaoLeitura() {
 
   // Sync nuvem
   if (supaUserId && segId) {
-    nuvemSalvar('progresso', {
-      seminario: S.semAtual, seg_id: segId,
-      percentual: S.totalSegs ? Math.round(100 * S.readSegs.size / S.totalSegs) : 0
-    });
+    nuvemSalvarPosicao(S.semAtual, segId);
   }
 }
 
@@ -3415,14 +3605,10 @@ try { vocabItems = JSON.parse(localStorage.getItem('lirelacan_vocab') || '[]'); 
 
 function salvarVocab() {
   try { localStorage.setItem('lirelacan_vocab', JSON.stringify(vocabItems)); } catch(e) {}
-  // Sync nuvem — salvar primeiro item (mais recente)
+  // Sync nuvem — salvar item mais recente
   if (supaUserId && vocabItems[0]) {
     const v = vocabItems[0];
-    nuvemSalvar('trechos_salvos', {
-      tipo: 'vocab', texto_fr: v.word, traducao: v.trad || '',
-      contexto: v.ctx || '', seminario: S.semAtual || 0,
-      seg_id: 'vocab_' + Date.now(), licao: 1
-    });
+    nuvemSalvarVocab(v.word, v.trad || '');
   }
 }
 
@@ -3689,106 +3875,83 @@ try { cadernoNotas = JSON.parse(localStorage.getItem('lirelacan_notas') || '[]')
 
 function salvarCaderno() {
   try { localStorage.setItem('lirelacan_notas', JSON.stringify(cadernoNotas)); } catch(e) {}
-  // Sync nuvem — salvar nota atual
-  if (supaUserId && cadernoNotaAtual !== null) {
-    const nota = cadernoNotas[cadernoNotaAtual];
-    if (nota) {
-      const body = {
-        tipo: 'nota', titulo: nota.titulo || 'Sem título',
-        conteudo: nota.conteudo || '',
-        seminario: S.semAtual || 0, seg_id: 'nota_' + (nota.id || Date.now()),
-        licao: 1, texto_fr: nota.titulo || '', traducao: ''
-      };
-      nuvemSalvar('trechos_salvos', body);
-    }
-  }
 }
 
 function renderCadernoView() {
   const v = document.getElementById('cadernoView');
   if (!v) return;
   v.innerHTML = `
-    <div class="tool-header">Caderno Pessoal</div>
-    <div class="caderno-header">
-      <input class="caderno-titulo" id="cadernoTitulo" placeholder="Título da nota…">
-      <button class="conj-btn" onclick="novaNota()" title="Nova nota">+ Nova nota</button>
-    </div>
-
-    <!-- Barra de ferramentas de formatação -->
-    <div class="caderno-toolbar">
-      <!-- Fonte -->
-      <select class="select-font" onchange="execCmd('fontName',this.value)" title="Fonte">
-        <option value="'IM Fell English',serif">IM Fell</option>
-        <option value="Georgia,serif">Georgia</option>
-        <option value="'Helvetica Neue',Arial,sans-serif">Sans-serif</option>
-        <option value="'Courier New',monospace">Monospace</option>
-      </select>
-      <!-- Tamanho -->
-      <select class="select-size" onchange="execCmdSize(this.value)" title="Tamanho">
-        <option value="1">10px</option>
-        <option value="2">12px</option>
-        <option value="3" selected>14px</option>
-        <option value="4">16px</option>
-        <option value="5">18px</option>
-        <option value="6">22px</option>
-        <option value="7">26px</option>
-      </select>
-      <div class="caderno-sep"></div>
-      <!-- Formatação básica -->
-      <button class="caderno-btn" onclick="execCmd('bold')" title="Negrito"><strong>N</strong></button>
-      <button class="caderno-btn" onclick="execCmd('italic')" title="Itálico"><em>I</em></button>
-      <button class="caderno-btn" onclick="execCmd('underline')" title="Sublinhado"><u>S</u></button>
-      <button class="caderno-btn" onclick="execCmd('strikeThrough')" title="Tachado"><s>T</s></button>
-      <div class="caderno-sep"></div>
-      <!-- Alinhamento -->
-      <button class="caderno-btn" onclick="execCmd('justifyLeft')" title="Alinhar à esquerda">⬅</button>
-      <button class="caderno-btn" onclick="execCmd('justifyCenter')" title="Centralizar">↔</button>
-      <button class="caderno-btn" onclick="execCmd('justifyRight')" title="Alinhar à direita">➡</button>
-      <button class="caderno-btn" onclick="execCmd('justifyFull')" title="Justificar">≡</button>
-      <div class="caderno-sep"></div>
-      <!-- Listas -->
-      <button class="caderno-btn" onclick="execCmd('insertUnorderedList')" title="Lista com marcadores">•—</button>
-      <button class="caderno-btn" onclick="execCmd('insertOrderedList')" title="Lista numerada">1.</button>
-      <div class="caderno-sep"></div>
-      <!-- Cores -->
-      <label class="caderno-btn" title="Cor do texto">
-        A <input type="color" style="display:none" oninput="execCmd('foreColor',this.value)">
-      </label>
-      <label class="caderno-btn" title="Cor de fundo">
-        <span style="background:#ffeb3b;padding:0 3px">M</span>
-        <input type="color" style="display:none" value="#ffeb3b" oninput="execCmd('backColor',this.value)">
-      </label>
-      <div class="caderno-sep"></div>
-      <!-- Limpar -->
-      <button class="caderno-btn" onclick="execCmd('removeFormat')" title="Limpar formatação">✕</button>
-    </div>
-
-    <!-- Editor -->
-    <div class="caderno-editor" id="cadernoEditor"
-      contenteditable="true"
-      onkeydown="cadernoKeydown(event)"
-      oninput="cadernoAutoSave()"></div>
-
-    <div class="caderno-actions">
-      <button class="caderno-save-btn" onclick="salvarNotaAtual()">💾 Salvar nota</button>
-      <span class="caderno-status" id="cadernoStatus"></span>
-    </div>
-
-    <!-- Lista de notas -->
-    <div class="caderno-notas-lista">
-      <div style="font-family:'IM Fell English SC',serif;font-size:11px;letter-spacing:.1em;color:var(--ink-faint);text-transform:uppercase;margin-bottom:12px">
-        Notas salvas
+    <div class="caderno-layout">
+      <!-- Lista de notas (coluna esquerda) -->
+      <div class="caderno-lista-col">
+        <div class="caderno-lista-header">
+          <span style="font-family:'IM Fell English SC',serif;font-size:12px;letter-spacing:.08em;color:var(--ink-faint)">Notas</span>
+          <button class="caderno-nova-btn" onclick="novaNota()" title="Nova nota">＋</button>
+        </div>
+        <div id="cadernoListaNotas"></div>
       </div>
-      <div id="cadernoListaNotas"></div>
+      <!-- Editor (coluna direita) -->
+      <div class="caderno-editor-col">
+        <div class="caderno-toolbar">
+          <select class="select-font" onchange="execCmd('fontName',this.value)" title="Fonte">
+            <option value="'IM Fell English',serif">IM Fell</option>
+            <option value="Georgia,serif">Georgia</option>
+            <option value="'Helvetica Neue',Arial,sans-serif">Sans-serif</option>
+            <option value="'Courier New',monospace">Mono</option>
+          </select>
+          <select class="select-size" onchange="execCmdSize(this.value)" title="Tamanho">
+            <option value="2">12</option>
+            <option value="3" selected>14</option>
+            <option value="4">16</option>
+            <option value="5">18</option>
+            <option value="6">22</option>
+          </select>
+          <div class="caderno-sep"></div>
+          <button class="caderno-btn" onclick="execCmd('bold')" title="Negrito"><strong>N</strong></button>
+          <button class="caderno-btn" onclick="execCmd('italic')" title="Itálico"><em>I</em></button>
+          <button class="caderno-btn" onclick="execCmd('underline')" title="Sublinhado"><u>S</u></button>
+          <button class="caderno-btn" onclick="execCmd('strikeThrough')" title="Tachado"><s>T</s></button>
+          <div class="caderno-sep"></div>
+          <button class="caderno-btn" onclick="execCmd('insertUnorderedList')" title="Lista">•</button>
+          <button class="caderno-btn" onclick="execCmd('insertOrderedList')" title="Numerada">1.</button>
+          <div class="caderno-sep"></div>
+          <label class="caderno-btn" title="Cor do texto">A
+            <input type="color" style="display:none" oninput="execCmd('foreColor',this.value)">
+          </label>
+          <label class="caderno-btn" title="Destaque">
+            <span style="background:#ffeb3b;padding:0 2px">M</span>
+            <input type="color" style="display:none" value="#ffeb3b" oninput="execCmd('backColor',this.value)">
+          </label>
+          <div class="caderno-sep"></div>
+          <button class="caderno-btn" onclick="execCmd('removeFormat')" title="Limpar">✕</button>
+          <span class="caderno-status" id="cadernoStatus" style="margin-left:auto;font-size:11px;color:var(--ink-faint)"></span>
+        </div>
+        <input class="caderno-titulo" id="cadernoTitulo" placeholder="Título…"
+          oninput="cadernoAutoSave()">
+        <div class="caderno-editor" id="cadernoEditor"
+          contenteditable="true"
+          onkeydown="cadernoKeydown(event)"
+          oninput="cadernoAutoSave()"></div>
+      </div>
     </div>`;
 
-  // Carregar nota atual se existir
-  if (cadernoNotaAtual !== null) {
+  // Carregar nota atual
+  if (cadernoNotaAtual !== null && cadernoNotas[cadernoNotaAtual]) {
     const nota = cadernoNotas[cadernoNotaAtual];
-    if (nota) {
-      document.getElementById('cadernoTitulo').value = nota.titulo || '';
-      document.getElementById('cadernoEditor').innerHTML = nota.conteudo || '';
-    }
+    const tit = document.getElementById('cadernoTitulo');
+    const ed  = document.getElementById('cadernoEditor');
+    if (tit) tit.value = nota.titulo || '';
+    if (ed)  ed.innerHTML = nota.conteudo || '';
+  } else if (cadernoNotas.length > 0) {
+    // Abrir a primeira nota automaticamente
+    cadernoNotaAtual = 0;
+    const nota = cadernoNotas[0];
+    setTimeout(() => {
+      const tit = document.getElementById('cadernoTitulo');
+      const ed  = document.getElementById('cadernoEditor');
+      if (tit) tit.value = nota.titulo || '';
+      if (ed)  ed.innerHTML = nota.conteudo || '';
+    }, 0);
   }
   renderListaNotas();
 }
@@ -3819,47 +3982,87 @@ function cadernoKeydown(e) {
 }
 
 function novaNota() {
-  const titulo = document.getElementById('cadernoTitulo');
-  const editor = document.getElementById('cadernoEditor');
-  if (titulo) titulo.value = '';
-  if (editor) editor.innerHTML = '';
-  cadernoNotaAtual = null;
-  document.getElementById('cadernoStatus').textContent = '';
+  // Salvar nota atual antes de criar nova
+  if (cadernoNotaAtual !== null) salvarNotaAtual(true);
+  const agora = new Date().toLocaleDateString('pt-BR') + ' ' +
+    new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
+  const novaId = 'local_' + Date.now();
+  cadernoNotas.unshift({ id: novaId, titulo: '', conteudo: '', criado: agora, atualizado: agora });
+  cadernoNotaAtual = 0;
+  salvarCaderno();
+  const tit = document.getElementById('cadernoTitulo');
+  const ed  = document.getElementById('cadernoEditor');
+  if (tit) { tit.value = ''; tit.focus(); }
+  if (ed)  ed.innerHTML = '';
+  renderListaNotas();
 }
 
 function salvarNotaAtual(silencioso = false) {
   const titulo = document.getElementById('cadernoTitulo')?.value.trim() || 'Sem título';
   const conteudo = document.getElementById('cadernoEditor')?.innerHTML || '';
-  const agora = new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
+  const agora = new Date().toLocaleDateString('pt-BR') + ' ' +
+    new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
 
   if (cadernoNotaAtual !== null && cadernoNotas[cadernoNotaAtual]) {
-    cadernoNotas[cadernoNotaAtual] = { ...cadernoNotas[cadernoNotaAtual], titulo, conteudo, atualizado: agora };
+    cadernoNotas[cadernoNotaAtual] = {
+      ...cadernoNotas[cadernoNotaAtual], titulo, conteudo, atualizado: agora
+    };
   } else {
-    cadernoNotas.unshift({ titulo, conteudo, criado: agora, atualizado: agora });
+    const novaId = 'local_' + Date.now();
+    cadernoNotas.unshift({ id: novaId, titulo, conteudo, criado: agora, atualizado: agora });
     cadernoNotaAtual = 0;
   }
   salvarCaderno();
   renderListaNotas();
+
+  // Sync nuvem
+  if (supaUserId && cadernoNotaAtual !== null) {
+    nuvemSalvarNota(cadernoNotas[cadernoNotaAtual]);
+  }
+
   if (!silencioso) {
     const status = document.getElementById('cadernoStatus');
-    if (status) { status.textContent = 'Nota salva ✓'; setTimeout(() => { status.textContent = ''; }, 2000); }
+    if (status) {
+      status.textContent = '✓ Salvo';
+      setTimeout(() => { status.textContent = ''; }, 2000);
+    }
   }
 }
 
 function abrirNota(i) {
+  if (cadernoNotaAtual !== null && cadernoNotaAtual !== i) {
+    salvarNotaAtual(true);
+  }
   cadernoNotaAtual = i;
   const nota = cadernoNotas[i];
-  const titulo = document.getElementById('cadernoTitulo');
-  const editor = document.getElementById('cadernoEditor');
-  if (titulo) titulo.value = nota.titulo || '';
-  if (editor) editor.innerHTML = nota.conteudo || '';
+  const tit = document.getElementById('cadernoTitulo');
+  const ed  = document.getElementById('cadernoEditor');
+  if (tit) tit.value = nota.titulo || '';
+  if (ed)  ed.innerHTML = nota.conteudo || '';
+  renderListaNotas();
+  setTimeout(() => ed?.focus(), 50);
 }
 
 function deletarNota(i) {
-  if (!confirm('Deletar esta nota?')) return;
+  if (!confirm('Deletar esta nota permanentemente?')) return;
+  const nota = cadernoNotas[i];
+  if (nota?.id) nuvemDeletarNota(nota.id);
   cadernoNotas.splice(i, 1);
-  if (cadernoNotaAtual === i) { cadernoNotaAtual = null; novaNota(); }
-  else if (cadernoNotaAtual > i) cadernoNotaAtual--;
+  if (cadernoNotaAtual === i) {
+    cadernoNotaAtual = cadernoNotas.length > 0 ? 0 : null;
+    const tit = document.getElementById('cadernoTitulo');
+    const ed  = document.getElementById('cadernoEditor');
+    if (cadernoNotaAtual !== null) {
+      const n = cadernoNotas[0];
+      if (tit) tit.value = n.titulo || '';
+      if (ed)  ed.innerHTML = n.conteudo || '';
+    } else {
+      if (tit) tit.value = '';
+      if (ed)  ed.innerHTML = '';
+    }
+  } else if (cadernoNotaAtual > i) {
+    cadernoNotaAtual--;
+  }
   salvarCaderno();
   renderListaNotas();
 }
@@ -3868,16 +4071,22 @@ function renderListaNotas() {
   const lista = document.getElementById('cadernoListaNotas');
   if (!lista) return;
   if (!cadernoNotas.length) {
-    lista.innerHTML = `<div style="font-size:13px;color:var(--ink-faint);font-style:italic">Nenhuma nota salva ainda.</div>`;
+    lista.innerHTML = `<div style="padding:20px 12px;font-size:12px;color:var(--ink-faint);font-style:italic;text-align:center">
+      Nenhuma nota.<br>Toque em ＋ para criar.
+    </div>`;
     return;
   }
   lista.innerHTML = cadernoNotas.map((n, i) => `
-    <div class="caderno-nota-item ${i === cadernoNotaAtual ? 'active' : ''}" onclick="abrirNota(${i})">
-      <span class="caderno-nota-titulo">${escH(n.titulo || 'Sem título')}</span>
-      <span class="caderno-nota-data">${escH(n.atualizado || n.criado || '')}</span>
+    <div class="caderno-nota-item ${i === cadernoNotaAtual ? 'active' : ''}"
+      onclick="abrirNota(${i})">
+      <div style="flex:1;min-width:0">
+        <div class="caderno-nota-titulo">${escH(n.titulo || 'Sem título')}</div>
+        <div class="caderno-nota-data">${escH(n.atualizado || n.criado || '')}</div>
+      </div>
       <button class="caderno-nota-del" onclick="event.stopPropagation();deletarNota(${i})" title="Deletar">×</button>
     </div>`).join('');
 }
+
 
 function renderSaved() {
   const sv = document.getElementById('savedView');
