@@ -860,7 +860,70 @@ body.theme-paper {
 .conj-verb-info { font-size:12px; color:var(--ink-faint); font-family:'Karla',sans-serif; margin-left:10px; }
 .conj-tense-name { font-family:'IM Fell English SC',serif; font-size:11px; letter-spacing:.08em; color:white; background:var(--accent); padding:7px 12px; }
 
-/* ── PAINEL EXPLICATIVO CONJUGADOR ── */
+/* ── MARCADORES INLINE ── */
+.seg-bookmark-btn {
+  position: absolute; left: -28px; top: 50%;
+  transform: translateY(-50%);
+  background: none; border: none; cursor: pointer;
+  font-size: 14px; opacity: 0; transition: opacity .15s;
+  padding: 4px; line-height: 1;
+}
+.segment { position: relative; }
+.segment:hover .seg-bookmark-btn { opacity: 0.6; }
+.segment:hover .seg-bookmark-btn:hover { opacity: 1; }
+.seg-marcador-tag {
+  display: inline-flex; align-items: center;
+  font-size: 9px; font-weight: 700; color: white;
+  padding: 1px 5px; border-radius: 10px;
+  margin-left: 6px; cursor: pointer;
+  font-family: 'Karla', sans-serif; letter-spacing: .03em;
+  vertical-align: middle; position: relative; top: -1px;
+}
+.seg-marcador-tag:hover { opacity: .8; }
+/* ── CADERNO toolbar moderna ── */
+.caderno-toolbar {
+  display: flex; align-items: center; gap: 2px;
+  padding: 6px 10px; background: var(--paper-warm);
+  border-bottom: 1px solid var(--border); flex-shrink: 0; flex-wrap: wrap;
+}
+.caderno-toolbar-group { display: flex; align-items: center; gap: 1px; }
+.caderno-toolbar-sep { width: 1px; height: 18px; background: var(--border-strong); margin: 0 4px; }
+.caderno-tbtn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border: none; border-radius: 6px;
+  background: transparent; cursor: pointer; font-size: 13px;
+  color: var(--ink-soft); transition: background .1s; font-family: inherit;
+}
+.caderno-tbtn:hover { background: var(--paper-dark); color: var(--ink); }
+.caderno-tbtn:active { background: var(--border); }
+.caderno-select {
+  font-size: 12px; padding: 3px 6px; border: 1px solid var(--border);
+  border-radius: 6px; background: var(--paper); color: var(--ink);
+  cursor: pointer; font-family: 'Karla', sans-serif; height: 28px;
+}
+.caderno-select-sm { width: 52px; }
+.caderno-color-btn { display: flex; flex-direction: column; align-items: center; gap: 1px; cursor: pointer; padding: 2px 4px !important; }
+.caderno-color-bar { width: 18px; height: 3px; border-radius: 2px; }
+.caderno-status { margin-left: auto; font-size: 11px; color: var(--accent); font-family: 'Karla', sans-serif; }
+
+/* ── MARCADORES INLINE ── */
+.segment { position: relative; }
+.seg-bookmark-btn {
+  position: absolute; left: -24px; top: 8px;
+  background: none; border: none; cursor: pointer;
+  font-size: 13px; opacity: 0; transition: opacity .15s; padding: 2px;
+}
+.segment:hover .seg-bookmark-btn { opacity: 0.5; }
+.segment:hover .seg-bookmark-btn:hover { opacity: 1; }
+.seg-marcador-tag {
+  display: inline-flex; align-items: center; font-size: 9px; font-weight: 700;
+  color: white; padding: 1px 5px; border-radius: 10px; margin-left: 4px;
+  cursor: pointer; font-family: 'Karla', sans-serif; vertical-align: middle;
+  position: relative; top: -1px;
+}
+.bookmark-menu { animation: fadeIn .1s ease; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:none; } }
+
 .conj-explainer {
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -1525,9 +1588,10 @@ async function carregarDadosNuvem() {
   // Re-renderizar leitor com highlights carregados
   if (S.semAtual !== null) renderFullReader(S.seminarios[S.semAtual]);
 
-  // Carregar marcadores
+  // Carregar marcadores e aplicar visuais
   await carregarMarcadoresNuvem();
   renderMarcadores();
+  aplicarMarcadoresVisuais();
 }
 
 // ── SALVAR na nuvem ────────────────────────────────────
@@ -1693,6 +1757,8 @@ function loadSeminario(idx) {
   document.getElementById('tabSaved').classList.remove('active');
   renderSideIndex(sem);
   renderFullReader(sem);
+  // Aplicar marcadores visuais após renderizar
+  setTimeout(() => aplicarMarcadoresVisuais(), 100);
 
   // Restaurar posição salva por segmento
   try {
@@ -1777,6 +1843,14 @@ function buildSegEl(seg, idx, licaoNum) {
 
   // Div raiz
   const div = el('div', { cls: 'segment', id: 'seg_' + seg.id, 'data-seg': seg.id, 'data-licao': licaoNum });
+
+  // Botão de marcador inline (aparece ao hover, à esquerda do número)
+  const marcadorBtn = el('button', { cls: 'seg-bookmark-btn', title: 'Adicionar marcador de página' }, '🔖');
+  marcadorBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    mostrarMenuMarcador(seg.id, marcadorBtn);
+  });
+  div.appendChild(marcadorBtn);
 
   // seg-body
   const body = el('div', { cls: 'seg-body' });
@@ -2360,10 +2434,10 @@ function switchTab(tab) {
   document.getElementById('gramView').classList.toggle('visible', tab === 'gram');
   document.getElementById('cadernoView').classList.toggle('visible', tab === 'caderno');
 
-  // Restaurar posição DEPOIS de mostrar o reader — elementos precisam ser visíveis
+  // Restaurar posição DEPOIS de mostrar o reader
   if (isRead) {
-    // Duplo requestAnimationFrame garante que o browser já pintou o conteúdo
-    requestAnimationFrame(() => requestAnimationFrame(() => restaurarPosicaoLeitura()));
+    // Usar setTimeout para garantir que display:none foi removido e layout recalculado
+    setTimeout(() => restaurarPosicaoLeitura(), 50);
   }
 
   if (tab === 'saved') renderSaved();
@@ -2374,164 +2448,206 @@ function switchTab(tab) {
   if (tab === 'caderno') renderCadernoView();
 }
 
-// ── Salvar/restaurar posição de leitura por segmento ──────────────
+// ── Salvar/restaurar posição de leitura ───────────────────────────
+let savedScrollTop = 0;
+
 function salvarPosicaoLeitura() {
-  // Encontrar o segmento mais visível na viewport
+  // Salvar scrollTop do elemento que realmente faz scroll
+  const scrollEl = document.scrollingElement || document.documentElement;
+  savedScrollTop = scrollEl.scrollTop || window.scrollY || 0;
+
+  // Encontrar segmento visível para identificação e nuvem
   const segs = document.querySelectorAll('[data-seg]');
   if (!segs.length) return;
-
-  let melhorSeg = null;
-  let melhorY = Infinity;
-  const main = document.querySelector('main') || document.body;
-  const mainRect = main.getBoundingClientRect();
-
+  let melhorSeg = null, melhorY = Infinity;
   segs.forEach(seg => {
     const rect = seg.getBoundingClientRect();
-    // Pegar o segmento mais próximo do topo visível
-    if (rect.bottom > mainRect.top && rect.top < mainRect.bottom) {
-      const distTopo = Math.abs(rect.top - mainRect.top);
-      if (distTopo < melhorY) {
-        melhorY = distTopo;
-        melhorSeg = seg;
-      }
+    if (rect.bottom > 0 && rect.top < window.innerHeight) {
+      const d = Math.abs(rect.top - 80); // 80 = altura do topbar
+      if (d < melhorY) { melhorY = d; melhorSeg = seg; }
     }
   });
 
-  if (!melhorSeg) return;
-  const segId = melhorSeg.dataset.seg;
-  S.lastSegId = segId;
-
-  // Salvar localmente
-  try {
-    localStorage.setItem('lirelacan_pos', JSON.stringify({
-      sem: S.semAtual, segId
-    }));
-  } catch(e) {}
-
-  // Sync nuvem
-  if (supaUserId && segId) {
-    nuvemSalvarPosicao(S.semAtual, segId);
+  const segId = melhorSeg?.dataset?.seg || S.lastSegId;
+  if (segId) {
+    S.lastSegId = segId;
+    try {
+      localStorage.setItem('lirelacan_pos', JSON.stringify({
+        sem: S.semAtual, segId, scrollTop: savedScrollTop
+      }));
+    } catch(e) {}
+    if (supaUserId && supa) nuvemSalvarPosicao(S.semAtual, segId);
   }
 }
 
 function restaurarPosicaoLeitura() {
-  if (!S.lastSegId) {
+  // 1. Tentar restaurar pelo scrollTop salvo (mais rápido e preciso)
+  if (savedScrollTop > 0) {
+    const scrollEl = document.scrollingElement || document.documentElement;
+    scrollEl.scrollTop = savedScrollTop;
+    window.scrollTo(0, savedScrollTop);
+    return;
+  }
+
+  // 2. Fallback: restaurar pelo segId do localStorage
+  let segId = S.lastSegId;
+  let storedScroll = 0;
+  if (!segId) {
     try {
       const saved = JSON.parse(localStorage.getItem('lirelacan_pos') || '{}');
-      if (saved.segId) S.lastSegId = saved.segId;
+      if (saved.segId) { segId = saved.segId; storedScroll = saved.scrollTop || 0; }
     } catch(e) {}
   }
-  if (!S.lastSegId) return;
+  if (!segId) return;
+  S.lastSegId = segId;
 
-  const segId = S.lastSegId;
-  // Tentar múltiplas vezes — o leitor pode ainda estar renderizando
-  let tentativas = 0;
+  // Se temos scrollTop salvo, usar diretamente
+  if (storedScroll > 0) {
+    const scrollEl = document.scrollingElement || document.documentElement;
+    scrollEl.scrollTop = storedScroll;
+    window.scrollTo(0, storedScroll);
+    return;
+  }
+
+  // Último recurso: scrollIntoView com retry
+  let n = 0;
   const tentar = () => {
     const el = document.querySelector(`[data-seg="${segId}"]`);
     if (el) {
-      el.scrollIntoView({ behavior: 'instant', block: 'start' });
-      // Compensar topbar fixo
-      window.scrollBy(0, -80);
-      const main = document.querySelector('main');
-      if (main) main.scrollTop = Math.max(0, main.scrollTop - 80);
+      const rect = el.getBoundingClientRect();
+      const target = window.scrollY + rect.top - 80;
+      window.scrollTo({ top: target, behavior: 'instant' });
       return;
     }
-    tentativas++;
-    if (tentativas < 10) setTimeout(tentar, 200); // tentar por até 2 segundos
+    if (++n < 10) setTimeout(tentar, 150);
   };
-  requestAnimationFrame(() => setTimeout(tentar, 100));
+  tentar();
 }
 
-// ── Marcadores de página ────────────────────────────────────────────
+// ── Marcadores de página ─────────────────────────────────────────
 let marcadores = [];
 try { marcadores = JSON.parse(localStorage.getItem('lirelacan_marcadores') || '[]'); } catch(e) { marcadores = []; }
+let proxNumMarcador = marcadores.length ? Math.max(...marcadores.map(m => m.num || 0)) + 1 : 1;
 
 function salvarMarcadores() {
   try { localStorage.setItem('lirelacan_marcadores', JSON.stringify(marcadores)); } catch(e) {}
-  // Sync nuvem — salvar como trechos especiais
   if (supa && supaUserId) {
     marcadores.forEach(m => {
       supa.from('trechos_salvos').upsert({
-        user_id: supaUserId,
-        seminario: S.seminarios[m.sem]?.numero || 0,
-        seg_id: 'marcador_' + m.id,
-        texto_fr: m.label || '',
-        traducao: m.cor
+        user_id: supaUserId, seminario: S.seminarios[m.sem]?.numero || 0,
+        seg_id: 'marcador_' + m.id, texto_fr: m.segId, traducao: m.cor + '|' + m.num + '|' + (m.label||'')
       }, { onConflict: 'user_id,seg_id' }).catch(() => {});
     });
   }
 }
 
-function adicionarMarcador(cor) {
-  // Encontrar segmento atual visível
-  const segs = document.querySelectorAll('[data-seg]');
-  if (!segs.length) return;
-  let melhorSeg = null, melhorY = Infinity;
-  const main = document.querySelector('main') || document.body;
-  const mainRect = main.getBoundingClientRect();
-  segs.forEach(seg => {
-    const rect = seg.getBoundingClientRect();
-    if (rect.bottom > mainRect.top && rect.top < mainRect.bottom) {
-      const d = Math.abs(rect.top - mainRect.top);
-      if (d < melhorY) { melhorY = d; melhorSeg = seg; }
-    }
-  });
-  if (!melhorSeg) return;
+function mostrarMenuMarcador(segId, btnEl) {
+  // Remover menu existente
+  document.querySelectorAll('.bookmark-menu').forEach(e => e.remove());
+  const cores = [
+    { cor: 'blue',   hex: '#3b82f6', nome: 'Azul' },
+    { cor: 'green',  hex: '#22c55e', nome: 'Verde' },
+    { cor: 'red',    hex: '#ef4444', nome: 'Vermelho' },
+    { cor: 'yellow', hex: '#eab308', nome: 'Amarelo' },
+    { cor: 'purple', hex: '#a855f7', nome: 'Roxo' },
+  ];
+  const menu = document.createElement('div');
+  menu.className = 'bookmark-menu';
+  menu.innerHTML = `
+    <div style="font-size:11px;color:var(--ink-faint);margin-bottom:8px;font-family:'Karla',sans-serif">Escolha a cor do marcador:</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      ${cores.map(c => `
+        <button onclick="adicionarMarcadorNoSeg('${segId}','${c.cor}')"
+          style="width:28px;height:28px;border-radius:50%;background:${c.hex};border:2px solid white;
+          box-shadow:0 0 0 1px ${c.hex};cursor:pointer" title="${c.nome}"></button>
+      `).join('')}
+    </div>`;
 
-  const segId = melhorSeg.dataset.seg;
-  // Obter texto do segmento (primeiros 60 chars)
-  const textoEl = melhorSeg.querySelector('.seg-fr');
+  // Posicionar próximo ao botão
+  const rect = btnEl.getBoundingClientRect();
+  menu.style.cssText = `position:fixed;top:${rect.bottom+4}px;left:${rect.left}px;
+    background:var(--paper-warm);border:1px solid var(--border);border-radius:8px;
+    padding:12px;z-index:300;box-shadow:0 4px 16px rgba(0,0,0,.15);min-width:180px`;
+
+  document.body.appendChild(menu);
+
+  // Fechar ao clicar fora
+  setTimeout(() => {
+    document.addEventListener('click', function fechar(e) {
+      if (!menu.contains(e.target) && e.target !== btnEl) {
+        menu.remove();
+        document.removeEventListener('click', fechar);
+      }
+    });
+  }, 10);
+}
+
+function adicionarMarcadorNoSeg(segId, cor) {
+  // Fechar menu
+  document.querySelectorAll('.bookmark-menu').forEach(e => e.remove());
+
+  // Pegar texto do segmento
+  const el = document.querySelector(`[data-seg="${segId}"]`);
+  const textoEl = el?.querySelector('.seg-fr');
   const label = (textoEl?.textContent || '').slice(0, 60).trim() + '…';
-  const sem = S.semAtual;
+  const num = proxNumMarcador++;
   const id = Date.now();
+  const sem = S.semAtual;
 
-  // Remover marcador existente da mesma cor (só um por cor)
-  marcadores = marcadores.filter(m => !(m.cor === cor && m.sem === sem));
-  marcadores.unshift({ id, cor, segId, sem, label });
+  marcadores.unshift({ id, num, cor, segId, sem, label });
   salvarMarcadores();
   renderMarcadores();
 
-  // Feedback visual no segmento
-  melhorSeg.style.outline = `2px solid ${corMarcador(cor)}`;
-  setTimeout(() => { melhorSeg.style.outline = ''; }, 2000);
+  // Marcar visualmente no segmento
+  if (el) {
+    el.dataset.marcador = cor;
+    const indicador = document.createElement('div');
+    indicador.className = 'seg-marcador-tag';
+    indicador.style.cssText = `background:${corMarcador(cor)};`;
+    indicador.title = `Marcador #${num}`;
+    indicador.textContent = '#' + num;
+    indicador.onclick = (e) => { e.stopPropagation(); irParaSegmento(segId); };
+    el.appendChild(indicador);
+  }
 }
 
-function irParaMarcador(marcador) {
-  // Se seminário diferente, carregar primeiro
-  if (marcador.sem !== S.semAtual) {
-    loadSeminario(marcador.sem);
-    setTimeout(() => irParaSegmento(marcador.segId), 500);
-  } else {
-    irParaSegmento(marcador.segId);
-  }
+function corMarcador(cor) {
+  return { blue:'#3b82f6', green:'#22c55e', red:'#ef4444', yellow:'#eab308', purple:'#a855f7' }[cor] || '#888';
+}
+
+function irParaMarcador(m) {
+  if (m.sem !== S.semAtual) { loadSeminario(m.sem); setTimeout(() => irParaSegmento(m.segId), 600); }
+  else irParaSegmento(m.segId);
 }
 
 function irParaSegmento(segId) {
   S.lastSegId = segId;
-  // Garantir que está na aba de leitura
   if (S.activeTab !== 'read') switchTab('read');
-  const el = document.querySelector(`[data-seg="${segId}"]`);
-  if (el) {
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    // Highlight temporário
-    el.style.background = 'var(--accent-pale)';
-    setTimeout(() => { el.style.background = ''; }, 1500);
-  }
+  setTimeout(() => {
+    const el = document.querySelector(`[data-seg="${segId}"]`);
+    if (el) {
+      const rect = el.getBoundingClientRect();
+      const target = window.scrollY + rect.top - 100;
+      window.scrollTo({ top: target, behavior: 'smooth' });
+      el.style.outline = '2px solid var(--accent-light)';
+      setTimeout(() => { el.style.outline = ''; }, 2000);
+    }
+  }, 100);
 }
 
 function removerMarcador(id) {
+  const m = marcadores.find(x => x.id === id);
+  if (m) {
+    // Remover indicador visual
+    const el = document.querySelector(`[data-seg="${m.segId}"]`);
+    el?.querySelectorAll('.seg-marcador-tag').forEach(t => t.remove());
+  }
   marcadores = marcadores.filter(m => m.id !== id);
   salvarMarcadores();
-  // Remover da nuvem
   if (supa && supaUserId) {
-    supa.from('trechos_salvos')
-      .delete().eq('user_id', supaUserId).eq('seg_id', 'marcador_' + id).catch(() => {});
+    supa.from('trechos_salvos').delete().eq('user_id', supaUserId).eq('seg_id', 'marcador_' + id).catch(() => {});
   }
   renderMarcadores();
-}
-
-function corMarcador(cor) {
-  return { blue: '#3b82f6', green: '#22c55e', red: '#ef4444', yellow: '#eab308' }[cor] || '#888';
 }
 
 function renderMarcadores() {
@@ -2539,33 +2655,55 @@ function renderMarcadores() {
   if (!el) return;
   const semMarcadores = marcadores.filter(m => m.sem === S.semAtual);
   if (!semMarcadores.length) {
-    el.innerHTML = '<span style="font-size:11px;color:var(--ink-faint);font-style:italic">Clique numa cor para marcar o ponto atual da leitura.</span>';
+    el.innerHTML = '<span style="font-size:11px;color:var(--ink-faint);font-style:italic">Clique em 🔖 num trecho para adicionar um marcador.</span>';
     return;
   }
   el.innerHTML = semMarcadores.map(m => `
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;cursor:pointer"
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;cursor:pointer;padding:4px 0"
       onclick="irParaMarcador(${JSON.stringify(m).replace(/"/g,'&quot;')})">
       <div style="width:12px;height:12px;border-radius:50%;background:${corMarcador(m.cor)};flex-shrink:0"></div>
+      <span style="font-size:11px;font-weight:600;color:var(--ink-soft);flex-shrink:0">#${m.num}</span>
       <span style="font-size:11px;color:var(--ink-soft);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"
         title="${escH(m.label)}">${escH(m.label)}</span>
       <button onclick="event.stopPropagation();removerMarcador(${m.id})"
-        style="background:none;border:none;color:var(--ink-faint);cursor:pointer;font-size:13px;padding:0 2px">×</button>
+        style="background:none;border:none;color:var(--ink-faint);cursor:pointer;font-size:13px;padding:0 2px;flex-shrink:0">×</button>
     </div>`).join('');
 }
 
-// Carregar marcadores da nuvem
+// Aplicar indicadores visuais após renderizar o leitor
+function aplicarMarcadoresVisuais() {
+  marcadores.filter(m => m.sem === S.semAtual).forEach(m => {
+    const el = document.querySelector(`[data-seg="${m.segId}"]`);
+    if (el && !el.querySelector('.seg-marcador-tag')) {
+      const indicador = document.createElement('div');
+      indicador.className = 'seg-marcador-tag';
+      indicador.style.cssText = `background:${corMarcador(m.cor)};`;
+      indicador.title = `Marcador #${m.num}`;
+      indicador.textContent = '#' + m.num;
+      indicador.onclick = (e) => { e.stopPropagation(); irParaSegmento(m.segId); };
+      el.appendChild(indicador);
+    }
+  });
+}
+
 async function carregarMarcadoresNuvem() {
   if (!supa || !supaUserId) return;
   try {
     const { data } = await supa.from('trechos_salvos')
       .select('*').eq('user_id', supaUserId).like('seg_id', 'marcador_%');
     if (data?.length) {
-      marcadores = data.map(d => ({
-        id: parseInt(d.seg_id.replace('marcador_', '')) || Date.now(),
-        cor: d.traducao || 'blue',
-        segId: d.texto_fr.startsWith('seg_') ? d.texto_fr : d.seg_id.replace('marcador_', ''),
-        sem: 0, label: d.texto_fr || ''
-      }));
+      marcadores = data.map(d => {
+        const parts = (d.traducao || '').split('|');
+        return {
+          id: parseInt(d.seg_id.replace('marcador_', '')) || Date.now(),
+          cor: parts[0] || 'blue',
+          num: parseInt(parts[1]) || 1,
+          segId: d.texto_fr || '',
+          sem: 0,
+          label: parts.slice(2).join('|') || ''
+        };
+      });
+      proxNumMarcador = marcadores.length ? Math.max(...marcadores.map(m => m.num)) + 1 : 1;
       try { localStorage.setItem('lirelacan_marcadores', JSON.stringify(marcadores)); } catch(e) {}
     }
   } catch(e) {}
@@ -4041,38 +4179,71 @@ function renderCadernoView() {
       <!-- Editor (coluna direita) -->
       <div class="caderno-editor-col">
         <div class="caderno-toolbar">
-          <select class="select-font" onchange="execCmd('fontName',this.value)" title="Fonte">
-            <option value="'IM Fell English',serif">IM Fell</option>
-            <option value="Georgia,serif">Georgia</option>
-            <option value="'Helvetica Neue',Arial,sans-serif">Sans-serif</option>
-            <option value="'Courier New',monospace">Mono</option>
-          </select>
-          <select class="select-size" onchange="execCmdSize(this.value)" title="Tamanho">
-            <option value="2">12</option>
-            <option value="3" selected>14</option>
-            <option value="4">16</option>
-            <option value="5">18</option>
-            <option value="6">22</option>
-          </select>
-          <div class="caderno-sep"></div>
-          <button class="caderno-btn" onclick="execCmd('bold')" title="Negrito"><strong>N</strong></button>
-          <button class="caderno-btn" onclick="execCmd('italic')" title="Itálico"><em>I</em></button>
-          <button class="caderno-btn" onclick="execCmd('underline')" title="Sublinhado"><u>S</u></button>
-          <button class="caderno-btn" onclick="execCmd('strikeThrough')" title="Tachado"><s>T</s></button>
-          <div class="caderno-sep"></div>
-          <button class="caderno-btn" onclick="execCmd('insertUnorderedList')" title="Lista">•</button>
-          <button class="caderno-btn" onclick="execCmd('insertOrderedList')" title="Numerada">1.</button>
-          <div class="caderno-sep"></div>
-          <label class="caderno-btn" title="Cor do texto">A
-            <input type="color" style="display:none" oninput="execCmd('foreColor',this.value)">
-          </label>
-          <label class="caderno-btn" title="Destaque">
-            <span style="background:#ffeb3b;padding:0 2px">M</span>
-            <input type="color" style="display:none" value="#ffeb3b" oninput="execCmd('backColor',this.value)">
-          </label>
-          <div class="caderno-sep"></div>
-          <button class="caderno-btn" onclick="execCmd('removeFormat')" title="Limpar">✕</button>
-          <span class="caderno-status" id="cadernoStatus" style="margin-left:auto;font-size:11px;color:var(--ink-faint)"></span>
+          <div class="caderno-toolbar-group">
+            <select class="caderno-select" onchange="execCmd('fontName',this.value)" title="Fonte">
+              <option value="'IM Fell English',serif">IM Fell</option>
+              <option value="Georgia,serif">Georgia</option>
+              <option value="'Helvetica Neue',Arial,sans-serif">Sans-serif</option>
+              <option value="'Courier New',monospace">Mono</option>
+            </select>
+            <select class="caderno-select caderno-select-sm" onchange="execCmdSize(this.value)" title="Tamanho">
+              <option value="2">12</option>
+              <option value="3" selected>14</option>
+              <option value="4">16</option>
+              <option value="5">18</option>
+              <option value="6">22</option>
+              <option value="7">28</option>
+            </select>
+          </div>
+          <div class="caderno-toolbar-sep"></div>
+          <div class="caderno-toolbar-group">
+            <button class="caderno-tbtn" onclick="execCmd('bold')" title="Negrito (⌘B)"><strong>B</strong></button>
+            <button class="caderno-tbtn" onclick="execCmd('italic')" title="Itálico (⌘I)"><em>I</em></button>
+            <button class="caderno-tbtn" onclick="execCmd('underline')" title="Sublinhado (⌘U)"><u>U</u></button>
+            <button class="caderno-tbtn" onclick="execCmd('strikeThrough')" title="Tachado"><s>S</s></button>
+          </div>
+          <div class="caderno-toolbar-sep"></div>
+          <div class="caderno-toolbar-group">
+            <button class="caderno-tbtn" onclick="execCmd('justifyLeft')" title="Esquerda">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="1" width="14" height="2" rx="1"/><rect x="0" y="5" width="10" height="2" rx="1"/><rect x="0" y="9" width="14" height="2" rx="1"/><rect x="0" y="13" width="8" height="2" rx="1"/></svg>
+            </button>
+            <button class="caderno-tbtn" onclick="execCmd('justifyCenter')" title="Centro">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="1" width="14" height="2" rx="1"/><rect x="2" y="5" width="10" height="2" rx="1"/><rect x="0" y="9" width="14" height="2" rx="1"/><rect x="3" y="13" width="8" height="2" rx="1"/></svg>
+            </button>
+            <button class="caderno-tbtn" onclick="execCmd('justifyFull')" title="Justificado">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="1" width="14" height="2" rx="1"/><rect x="0" y="5" width="14" height="2" rx="1"/><rect x="0" y="9" width="14" height="2" rx="1"/><rect x="0" y="13" width="14" height="2" rx="1"/></svg>
+            </button>
+            <button class="caderno-tbtn" onclick="execCmd('justifyRight')" title="Direita">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="1" width="14" height="2" rx="1"/><rect x="4" y="5" width="10" height="2" rx="1"/><rect x="0" y="9" width="14" height="2" rx="1"/><rect x="6" y="13" width="8" height="2" rx="1"/></svg>
+            </button>
+          </div>
+          <div class="caderno-toolbar-sep"></div>
+          <div class="caderno-toolbar-group">
+            <button class="caderno-tbtn" onclick="execCmd('insertUnorderedList')" title="Lista">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><circle cx="1.5" cy="2" r="1.5"/><rect x="4" y="1" width="10" height="2" rx="1"/><circle cx="1.5" cy="7" r="1.5"/><rect x="4" y="6" width="10" height="2" rx="1"/><circle cx="1.5" cy="12" r="1.5"/><rect x="4" y="11" width="10" height="2" rx="1"/></svg>
+            </button>
+            <button class="caderno-tbtn" onclick="execCmd('insertOrderedList')" title="Lista numerada">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><text x="0" y="4" font-size="5" fill="currentColor">1.</text><rect x="5" y="1" width="9" height="2" rx="1"/><text x="0" y="9" font-size="5" fill="currentColor">2.</text><rect x="5" y="6" width="9" height="2" rx="1"/><text x="0" y="14" font-size="5" fill="currentColor">3.</text><rect x="5" y="11" width="9" height="2" rx="1"/></svg>
+            </button>
+          </div>
+          <div class="caderno-toolbar-sep"></div>
+          <div class="caderno-toolbar-group">
+            <label class="caderno-tbtn caderno-color-btn" title="Cor do texto">
+              <span style="font-weight:700;font-size:12px">A</span>
+              <div class="caderno-color-bar" id="textColorBar" style="background:#000"></div>
+              <input type="color" style="display:none" value="#000000"
+                oninput="document.getElementById('textColorBar').style.background=this.value;execCmd('foreColor',this.value)">
+            </label>
+            <label class="caderno-tbtn caderno-color-btn" title="Cor de destaque">
+              <span style="font-size:12px">M</span>
+              <div class="caderno-color-bar" id="bgColorBar" style="background:#ffeb3b"></div>
+              <input type="color" style="display:none" value="#ffeb3b"
+                oninput="document.getElementById('bgColorBar').style.background=this.value;execCmd('backColor',this.value)">
+            </label>
+          </div>
+          <div class="caderno-toolbar-sep"></div>
+          <button class="caderno-tbtn" onclick="execCmd('removeFormat')" title="Limpar formatação" style="font-size:11px;color:var(--ink-faint)">✕</button>
+          <span class="caderno-status" id="cadernoStatus"></span>
         </div>
         <input class="caderno-titulo" id="cadernoTitulo" placeholder="Sem título…"
           oninput="cadernoAutoSave()">
