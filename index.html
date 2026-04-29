@@ -953,6 +953,7 @@ body.theme-paper {
 }
 .mobile-overlay.visible { display: block; }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
 
@@ -1351,268 +1352,261 @@ async function carregarSeminariosDaPasta() {
 }
 
 // ══════════════════════════════════════════════════════
-//  SUPABASE — sincronização na nuvem
-//  Tabelas: progresso · highlights · comentarios · notas · trechos_salvos
+//  SUPABASE — cliente oficial + sync completo
 // ══════════════════════════════════════════════════════
 const SUPA_URL = 'https://hczrvpghrntbvsjqbgqm.supabase.co';
 const SUPA_KEY = 'sb_publishable_x8rZm5Bn1SXVSsJrReUOxg_Va4Gi3fH';
-let supaToken = null;
-let supaUserId = null;
 
-// Fetch autenticado ao Supabase REST API
-async function supaFetch(path, opts = {}) {
-  if (!supaToken) return null;
+// Cliente Supabase (via CDN)
+let supa = null;
+let supaUserId = null;
+let supaToken = null;
+
+function iniciarClienteSupabase() {
   try {
-    const resp = await fetch(SUPA_URL + path, {
-      ...opts,
-      headers: {
-        'apikey': SUPA_KEY,
-        'Authorization': 'Bearer ' + supaToken,
-        'Content-Type': 'application/json',
-        ...(opts.headers || {})
+    supa = window.supabase.createClient(SUPA_URL, SUPA_KEY, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: false,
+        storage: window.localStorage
       }
     });
-    if (resp.status === 204) return true;
-    if (!resp.ok) { console.warn('Supabase error:', resp.status, path); return null; }
-    const txt = await resp.text();
-    return txt ? JSON.parse(txt) : true;
-  } catch(e) { console.warn('Supabase fetch error:', e.message); return null; }
+  } catch(e) {
+    console.warn('Supabase CDN não disponível:', e.message);
+  }
 }
 
-// Iniciar sessão com token da URL ou localStorage
 async function iniciarSessaoSupabase() {
-  // 1. Tentar token da URL (vindo do login no Vercel)
+  iniciarClienteSupabase();
+  if (!supa) return;
+
+  // 1. Token da URL (vindo do login Vercel)
   const urlParams = new URLSearchParams(window.location.search);
   const tokenUrl = urlParams.get('token');
   if (tokenUrl) {
     supaToken = tokenUrl;
-    try { localStorage.setItem('lirelacan_token', tokenUrl); } catch(e) {}
+    // Definir sessão manualmente via token
+    try {
+      const { data, error } = await supa.auth.setSession({
+        access_token: tokenUrl,
+        refresh_token: tokenUrl
+      });
+      if (data?.user) supaUserId = data.user.id;
+    } catch(e) {}
+    // Limpar token da URL
     const url = new URL(window.location.href);
     url.searchParams.delete('token');
     window.history.replaceState({}, '', url.toString());
-  } else {
-    // 2. Tentar token salvo no localStorage
-    try { supaToken = localStorage.getItem('lirelacan_token'); } catch(e) {}
+    try { localStorage.setItem('lirelacan_token', tokenUrl); } catch(e) {}
   }
-  if (!supaToken) return; // Não logado
 
-  // 3. Verificar se token é válido e pegar userId
-  const user = await supaFetch('/auth/v1/user');
-  if (!user?.id) { supaToken = null; return; }
-  supaUserId = user.id;
-  console.log('Supabase: logado como', user.email);
+  // 2. Sessão salva pelo cliente Supabase
+  if (!supaUserId) {
+    try {
+      const { data } = await supa.auth.getSession();
+      if (data?.session?.user) {
+        supaUserId = data.session.user.id;
+        supaToken = data.session.access_token;
+      }
+    } catch(e) {}
+  }
 
-  // 4. Carregar todos os dados do usuário da nuvem
-  await carregarDadosNuvem();
+  // 3. Token do localStorage como fallback
+  if (!supaUserId) {
+    try {
+      const tok = localStorage.getItem('lirelacan_token');
+      if (tok) {
+        const { data } = await supa.auth.setSession({ access_token: tok, refresh_token: tok });
+        if (data?.user) { supaUserId = data.user.id; supaToken = tok; }
+      }
+    } catch(e) {}
+  }
+
+  if (supaUserId) {
+    console.log('✓ Supabase logado, userId:', supaUserId.slice(0,8) + '...');
+    await carregarDadosNuvem();
+  } else {
+    console.log('Supabase: não logado — usando localStorage');
+  }
 }
 
-// ── CARREGAR dados da nuvem ao iniciar ────────────────
+// ── CARREGAR dados da nuvem ────────────────────────────
 async function carregarDadosNuvem() {
-  if (!supaUserId) return;
-  const sem = S.semAtual || 0;
+  if (!supa || !supaUserId) return;
+  const sem = S.semAtual !== null ? S.semAtual : 0;
+  const semNum = S.seminarios[sem]?.numero || 0;
 
-  // Highlights
-  const hl = await supaFetch(
-    `/rest/v1/highlights?user_id=eq.${supaUserId}&seminario=eq.${sem}&select=*&order=criado_em.asc`
-  );
-  if (hl?.length) {
-    S.highlights = {};
-    hl.forEach(h => {
-      if (!S.highlights[h.seg_id]) S.highlights[h.seg_id] = [];
-      S.highlights[h.seg_id].push({ color: h.cor, text: h.texto, id: h.id });
-    });
-  }
-
-  // Comentários
-  const cmts = await supaFetch(
-    `/rest/v1/comentarios?user_id=eq.${supaUserId}&seminario=eq.${sem}&select=*`
-  );
-  if (cmts?.length) {
-    S.comments = {};
-    cmts.forEach(c => {
-      if (!S.comments[c.seg_id]) S.comments[c.seg_id] = [];
-      S.comments[c.seg_id].push(c.nota);
-    });
-  }
-
-  // Trechos salvos
-  const tr = await supaFetch(
-    `/rest/v1/trechos_salvos?user_id=eq.${supaUserId}&select=*&order=criado_em.desc`
-  );
-  if (tr?.length) {
-    S.saved = tr.map(t => ({
-      semNum: t.seminario, segId: t.seg_id,
-      texto: t.texto_fr, comentario: t.traducao || null,
-      date: new Date(t.criado_em).toLocaleDateString('pt-BR')
-    }));
-  }
-
-  // Vocabulário (trechos_salvos com tipo vocab — usando traducao como trad)
-  const voc = await supaFetch(
-    `/rest/v1/trechos_salvos?user_id=eq.${supaUserId}&seg_id=like.vocab_*&select=*&order=criado_em.desc`
-  );
-  if (voc?.length) {
-    vocabItems = voc.map(v => ({
-      word: v.texto_fr, trad: v.traducao || '', ctx: '',
-      data: new Date(v.criado_em).toLocaleDateString('pt-BR'),
-      supId: v.id
-    }));
-    try { localStorage.setItem('lirelacan_vocab', JSON.stringify(vocabItems)); } catch(e) {}
-  }
-
-  // Notas do caderno
-  const notas = await supaFetch(
-    `/rest/v1/notas?user_id=eq.${supaUserId}&select=*&order=atualizado_em.desc`
-  );
-  if (notas?.length) {
-    cadernoNotas = notas.map(n => ({
-      id: n.id, titulo: n.titulo || 'Sem título', conteudo: n.conteudo || '',
-      criado: new Date(n.criado_em).toLocaleDateString('pt-BR'),
-      atualizado: new Date(n.atualizado_em).toLocaleDateString('pt-BR') + ' ' +
-                  new Date(n.atualizado_em).toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'})
-    }));
-    try { localStorage.setItem('lirelacan_notas', JSON.stringify(cadernoNotas)); } catch(e) {}
-  }
-
-  // Posição de leitura
-  const prog = await supaFetch(
-    `/rest/v1/progresso?user_id=eq.${supaUserId}&select=*&order=atualizado_em.desc&limit=1`
-  );
-  if (prog?.[0]) {
-    const p = prog[0];
-    const segIds = p.segs_lidos || [];
-    if (segIds.length) {
-      S.lastSegId = segIds[segIds.length - 1]; // último segmento lido
-      try {
-        localStorage.setItem('lirelacan_pos', JSON.stringify({
-          sem: p.seminario, segId: S.lastSegId
-        }));
-      } catch(e) {}
+  try {
+    // Highlights
+    const { data: hl } = await supa.from('highlights')
+      .select('*').eq('user_id', supaUserId).eq('seminario', semNum);
+    if (hl?.length) {
+      S.highlights = {};
+      hl.forEach(h => {
+        if (!S.highlights[h.seg_id]) S.highlights[h.seg_id] = [];
+        S.highlights[h.seg_id].push({ color: h.cor, text: h.texto, id: h.id });
+      });
     }
-  }
+
+    // Trechos salvos
+    const { data: tr } = await supa.from('trechos_salvos')
+      .select('*').eq('user_id', supaUserId)
+      .not('seg_id', 'like', 'vocab_%')
+      .order('criado_em', { ascending: false });
+    if (tr?.length) {
+      S.saved = tr.map(t => ({
+        semNum: t.seminario, segId: t.seg_id,
+        texto: t.texto_fr, comentario: t.traducao || null,
+        date: new Date(t.criado_em).toLocaleDateString('pt-BR')
+      }));
+    }
+
+    // Vocabulário
+    const { data: voc } = await supa.from('trechos_salvos')
+      .select('*').eq('user_id', supaUserId)
+      .like('seg_id', 'vocab_%')
+      .order('criado_em', { ascending: false });
+    if (voc?.length) {
+      vocabItems = voc.map(v => ({
+        word: v.texto_fr, trad: v.traducao || '', ctx: '',
+        data: new Date(v.criado_em).toLocaleDateString('pt-BR'), supId: v.id
+      }));
+      try { localStorage.setItem('lirelacan_vocab', JSON.stringify(vocabItems)); } catch(e) {}
+    }
+
+    // Notas do caderno
+    const { data: notas } = await supa.from('notas')
+      .select('*').eq('user_id', supaUserId)
+      .order('atualizado_em', { ascending: false });
+    if (notas?.length) {
+      cadernoNotas = notas.map(n => ({
+        id: n.id, titulo: n.titulo || 'Sem título', conteudo: n.conteudo || '',
+        criado: new Date(n.criado_em).toLocaleDateString('pt-BR'),
+        atualizado: new Date(n.atualizado_em).toLocaleDateString('pt-BR') + ' ' +
+                    new Date(n.atualizado_em).toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'})
+      }));
+      try { localStorage.setItem('lirelacan_notas', JSON.stringify(cadernoNotas)); } catch(e) {}
+    }
+
+    // Posição de leitura
+    const { data: prog } = await supa.from('progresso')
+      .select('*').eq('user_id', supaUserId)
+      .order('atualizado_em', { ascending: false }).limit(1);
+    if (prog?.[0]) {
+      const p = prog[0];
+      const segs = p.segs_lidos || [];
+      if (segs.length) {
+        const ultimoSeg = segs[segs.length - 1];
+        S.lastSegId = ultimoSeg;
+        try {
+          localStorage.setItem('lirelacan_pos', JSON.stringify({ sem: 0, segId: ultimoSeg }));
+        } catch(e) {}
+      }
+    }
+  } catch(e) { console.warn('Erro ao carregar dados da nuvem:', e.message); }
+
+  // Re-renderizar leitor com highlights carregados
+  if (S.semAtual !== null) renderFullReader(S.seminarios[S.semAtual]);
 }
 
-// ── SALVAR na nuvem ───────────────────────────────────
-
-// Highlight: salvar destaque
+// ── SALVAR na nuvem ────────────────────────────────────
 async function nuvemSalvarHighlight(segId, texto, cor) {
-  if (!supaUserId) return;
-  await supaFetch('/rest/v1/highlights', {
-    method: 'POST',
-    headers: { 'Prefer': 'return=minimal' },
-    body: JSON.stringify({
+  if (!supa || !supaUserId) return;
+  try {
+    await supa.from('highlights').insert({
       user_id: supaUserId,
-      seminario: S.semAtual || 0,
+      seminario: S.seminarios[S.semAtual]?.numero || 0,
       seg_id: segId, texto, cor
-    })
-  });
-}
-
-// Highlight: remover destaque
-async function nuvemRemoverHighlight(segId, texto) {
-  if (!supaUserId) return;
-  await supaFetch(
-    `/rest/v1/highlights?user_id=eq.${supaUserId}&seg_id=eq.${encodeURIComponent(segId)}&texto=eq.${encodeURIComponent(texto)}`,
-    { method: 'DELETE' }
-  );
-}
-
-// Comentário: salvar
-async function nuvemSalvarComentario(segId, textoFr, nota) {
-  if (!supaUserId) return;
-  await supaFetch('/rest/v1/comentarios', {
-    method: 'POST',
-    headers: { 'Prefer': 'return=minimal' },
-    body: JSON.stringify({
-      user_id: supaUserId,
-      seminario: S.semAtual || 0,
-      seg_id: segId, texto_fr: textoFr, nota
-    })
-  });
-}
-
-// Trecho salvo
-async function nuvemSalvarTrecho(segId, textoFr, comentario) {
-  if (!supaUserId) return;
-  await supaFetch('/rest/v1/trechos_salvos', {
-    method: 'POST',
-    headers: { 'Prefer': 'return=minimal' },
-    body: JSON.stringify({
-      user_id: supaUserId,
-      seminario: S.semAtual || 0,
-      seg_id: segId, texto_fr: textoFr,
-      traducao: comentario || null
-    })
-  });
-}
-
-// Vocabulário: salvar
-async function nuvemSalvarVocab(word, trad) {
-  if (!supaUserId) return;
-  await supaFetch('/rest/v1/trechos_salvos', {
-    method: 'POST',
-    headers: { 'Prefer': 'return=minimal' },
-    body: JSON.stringify({
-      user_id: supaUserId,
-      seminario: 0, seg_id: 'vocab_' + Date.now(),
-      texto_fr: word, traducao: trad || null
-    })
-  });
-}
-
-// Nota do caderno: salvar ou atualizar
-async function nuvemSalvarNota(nota) {
-  if (!supaUserId) return;
-  if (nota.id && !nota.id.startsWith('local_')) {
-    // Atualizar nota existente
-    await supaFetch(`/rest/v1/notas?id=eq.${nota.id}&user_id=eq.${supaUserId}`, {
-      method: 'PATCH',
-      headers: { 'Prefer': 'return=minimal' },
-      body: JSON.stringify({
-        titulo: nota.titulo || 'Sem título',
-        conteudo: nota.conteudo || '',
-        atualizado_em: new Date().toISOString()
-      })
     });
-  } else {
-    // Criar nota nova e atualizar ID local
-    const r = await supaFetch('/rest/v1/notas', {
-      method: 'POST',
-      headers: { 'Prefer': 'return=representation' },
-      body: JSON.stringify({
+  } catch(e) { console.warn('Erro ao salvar highlight:', e.message); }
+}
+
+async function nuvemRemoverHighlight(segId, texto) {
+  if (!supa || !supaUserId) return;
+  try {
+    await supa.from('highlights')
+      .delete().eq('user_id', supaUserId).eq('seg_id', segId).eq('texto', texto);
+  } catch(e) {}
+}
+
+async function nuvemSalvarComentario(segId, textoFr, nota) {
+  if (!supa || !supaUserId) return;
+  try {
+    await supa.from('comentarios').insert({
+      user_id: supaUserId,
+      seminario: S.seminarios[S.semAtual]?.numero || 0,
+      seg_id: segId, texto_fr: textoFr, nota
+    });
+  } catch(e) { console.warn('Erro ao salvar comentário:', e.message); }
+}
+
+async function nuvemSalvarTrecho(segId, textoFr, comentario) {
+  if (!supa || !supaUserId) return;
+  try {
+    await supa.from('trechos_salvos').insert({
+      user_id: supaUserId,
+      seminario: S.seminarios[S.semAtual]?.numero || 0,
+      seg_id: segId, texto_fr: textoFr, traducao: comentario || null
+    });
+  } catch(e) { console.warn('Erro ao salvar trecho:', e.message); }
+}
+
+async function nuvemSalvarVocab(word, trad) {
+  if (!supa || !supaUserId) return;
+  try {
+    await supa.from('trechos_salvos').insert({
+      user_id: supaUserId, seminario: 0,
+      seg_id: 'vocab_' + Date.now(),
+      texto_fr: word, traducao: trad || null
+    });
+  } catch(e) { console.warn('Erro ao salvar vocab:', e.message); }
+}
+
+async function nuvemSalvarNota(nota) {
+  if (!supa || !supaUserId) return;
+  try {
+    const isLocal = !nota.id || String(nota.id).startsWith('local_');
+    if (isLocal) {
+      const { data } = await supa.from('notas').insert({
         user_id: supaUserId,
         titulo: nota.titulo || 'Sem título',
         conteudo: nota.conteudo || '',
         criado_em: new Date().toISOString(),
         atualizado_em: new Date().toISOString()
-      })
-    });
-    if (r?.[0]?.id) nota.id = r[0].id; // Atualizar ID na memória
-  }
+      }).select().single();
+      if (data?.id) nota.id = data.id; // Atualizar ID
+    } else {
+      await supa.from('notas')
+        .update({
+          titulo: nota.titulo || 'Sem título',
+          conteudo: nota.conteudo || '',
+          atualizado_em: new Date().toISOString()
+        })
+        .eq('id', nota.id).eq('user_id', supaUserId);
+    }
+  } catch(e) { console.warn('Erro ao salvar nota:', e.message); }
 }
 
-// Nota do caderno: deletar
 async function nuvemDeletarNota(notaId) {
-  if (!supaUserId || !notaId || notaId.startsWith('local_')) return;
-  await supaFetch(`/rest/v1/notas?id=eq.${notaId}&user_id=eq.${supaUserId}`, {
-    method: 'DELETE'
-  });
+  if (!supa || !supaUserId || !notaId || String(notaId).startsWith('local_')) return;
+  try {
+    await supa.from('notas').delete().eq('id', notaId).eq('user_id', supaUserId);
+  } catch(e) {}
 }
 
-// Posição de leitura: salvar
 async function nuvemSalvarPosicao(seminario, segId) {
-  if (!supaUserId || !segId) return;
-  // Usar upsert para atualizar registro existente
-  await supaFetch('/rest/v1/progresso', {
-    method: 'POST',
-    headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
-    body: JSON.stringify({
-      user_id: supaUserId,
-      seminario: seminario || 0,
-      segs_lidos: [...S.readSegs].slice(-50), // últimos 50 segmentos lidos
+  if (!supa || !supaUserId || !segId) return;
+  try {
+    const semNum = S.seminarios[seminario]?.numero || 0;
+    const segsLidos = [...S.readSegs].slice(-100);
+    // Upsert: atualiza se já existe, cria se não existe
+    await supa.from('progresso').upsert({
+      user_id: supaUserId, seminario: semNum,
+      segs_lidos: segsLidos,
       atualizado_em: new Date().toISOString()
-    })
-  });
+    }, { onConflict: 'user_id,seminario' });
+  } catch(e) { console.warn('Erro ao salvar posição:', e.message); }
 }
 
 // ══════════════════════════════════════════════════════
@@ -1632,6 +1626,13 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   renderSidebar();
   loadSeminario(0);
+
+  // Salvar posição ao fechar/sair da página
+  window.addEventListener('beforeunload', () => salvarPosicaoLeitura());
+  // Salvar posição a cada 30 segundos durante leitura
+  setInterval(() => {
+    if (S.activeTab === 'read') salvarPosicaoLeitura();
+  }, 30000);
 });
 
 // ══════════════════════════════════════════════════════
@@ -2395,28 +2396,30 @@ function salvarPosicaoLeitura() {
 
 function restaurarPosicaoLeitura() {
   if (!S.lastSegId) {
-    // Tentar do localStorage
     try {
       const saved = JSON.parse(localStorage.getItem('lirelacan_pos') || '{}');
-      if (saved.sem === S.semAtual && saved.segId) {
-        S.lastSegId = saved.segId;
-      }
+      if (saved.segId) S.lastSegId = saved.segId;
     } catch(e) {}
   }
   if (!S.lastSegId) return;
 
-  // Usar requestAnimationFrame + setTimeout para garantir renderização completa
-  requestAnimationFrame(() => {
-    setTimeout(() => {
-      const el = document.querySelector(`[data-seg="${S.lastSegId}"]`);
-      if (el) {
-        el.scrollIntoView({ behavior: 'instant', block: 'start' });
-        // Compensar o topbar fixo (~60px)
-        const main = document.querySelector('main');
-        if (main) main.scrollTop = Math.max(0, (main.scrollTop || 0) - 60);
-      }
-    }, 80);
-  });
+  const segId = S.lastSegId;
+  // Tentar múltiplas vezes — o leitor pode ainda estar renderizando
+  let tentativas = 0;
+  const tentar = () => {
+    const el = document.querySelector(`[data-seg="${segId}"]`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'instant', block: 'start' });
+      // Compensar topbar fixo
+      window.scrollBy(0, -80);
+      const main = document.querySelector('main');
+      if (main) main.scrollTop = Math.max(0, main.scrollTop - 80);
+      return;
+    }
+    tentativas++;
+    if (tentativas < 10) setTimeout(tentar, 200); // tentar por até 2 segundos
+  };
+  requestAnimationFrame(() => setTimeout(tentar, 100));
 }
 
 // ══════════════════════════════════════════════════════
@@ -4387,8 +4390,12 @@ function doHighlight(color) {
   }
 
   // Manter menu aberto — não fechar nem limpar currentSel
-  // O usuário pode querer fazer outras ações (comentar, salvar, etc.)
   window.getSelection().removeAllRanges();
+
+  // Salvar highlight na nuvem
+  if (currentSel?.segId && currentSel?.text) {
+    nuvemSalvarHighlight(currentSel.segId, currentSel.text, color);
+  }
 }
 
 // ══════════════════════════════════════════════════════
