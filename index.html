@@ -1102,6 +1102,22 @@ body.theme-paper {
       <div class="progress-bar"><div class="progress-fill" id="panelProgress"></div></div>
     </div>
 
+    <!-- Marcadores de página -->
+    <div class="panel-section">
+      <div class="panel-title" style="display:flex;align-items:center;justify-content:space-between">
+        Marcadores
+        <div style="display:flex;gap:4px">
+          <button onclick="adicionarMarcador('blue')"   title="Marcador azul"   style="width:16px;height:16px;border-radius:50%;background:#3b82f6;border:none;cursor:pointer"></button>
+          <button onclick="adicionarMarcador('green')"  title="Marcador verde"  style="width:16px;height:16px;border-radius:50%;background:#22c55e;border:none;cursor:pointer"></button>
+          <button onclick="adicionarMarcador('red')"    title="Marcador vermelho" style="width:16px;height:16px;border-radius:50%;background:#ef4444;border:none;cursor:pointer"></button>
+          <button onclick="adicionarMarcador('yellow')" title="Marcador amarelo" style="width:16px;height:16px;border-radius:50%;background:#eab308;border:none;cursor:pointer"></button>
+        </div>
+      </div>
+      <div id="panelMarcadores" style="margin-top:8px">
+        <span style="font-size:11px;color:var(--ink-faint);font-style:italic">Clique numa cor para marcar o ponto atual da leitura.</span>
+      </div>
+    </div>
+
     <!-- Nota linguística (termo sublinhado) -->
     <div class="panel-section" id="panelHomSection" style="display:none">
       <div class="panel-title">Nota de leitura</div>
@@ -1508,6 +1524,10 @@ async function carregarDadosNuvem() {
 
   // Re-renderizar leitor com highlights carregados
   if (S.semAtual !== null) renderFullReader(S.seminarios[S.semAtual]);
+
+  // Carregar marcadores
+  await carregarMarcadoresNuvem();
+  renderMarcadores();
 }
 
 // ── SALVAR na nuvem ────────────────────────────────────
@@ -2319,10 +2339,8 @@ function confirmComment() {
 //  ABA SALVOS
 // ══════════════════════════════════════════════════════
 function switchTab(tab) {
-  // Salvar segmento atual antes de sair da leitura
-  if (S.activeTab === 'read') {
-    salvarPosicaoLeitura();
-  }
+  // Salvar posição antes de sair da leitura
+  if (S.activeTab === 'read') salvarPosicaoLeitura();
 
   S.activeTab = tab;
   const allTabs = ['read','trad','conj','vocab','gram','caderno','saved'];
@@ -2333,7 +2351,8 @@ function switchTab(tab) {
 
   // Mostrar/ocultar views
   const inner = document.getElementById('readerInner');
-  inner.classList.toggle('hidden', tab !== 'read');
+  const isRead = tab === 'read';
+  inner.classList.toggle('hidden', !isRead);
   document.getElementById('savedView').classList.toggle('visible', tab === 'saved');
   document.getElementById('tradView').classList.toggle('visible', tab === 'trad');
   document.getElementById('conjView').classList.toggle('visible', tab === 'conj');
@@ -2341,9 +2360,10 @@ function switchTab(tab) {
   document.getElementById('gramView').classList.toggle('visible', tab === 'gram');
   document.getElementById('cadernoView').classList.toggle('visible', tab === 'caderno');
 
-  // Restaurar posição ao voltar para leitura
-  if (tab === 'read') {
-    restaurarPosicaoLeitura();
+  // Restaurar posição DEPOIS de mostrar o reader — elementos precisam ser visíveis
+  if (isRead) {
+    // Duplo requestAnimationFrame garante que o browser já pintou o conteúdo
+    requestAnimationFrame(() => requestAnimationFrame(() => restaurarPosicaoLeitura()));
   }
 
   if (tab === 'saved') renderSaved();
@@ -2422,9 +2442,134 @@ function restaurarPosicaoLeitura() {
   requestAnimationFrame(() => setTimeout(tentar, 100));
 }
 
-// ══════════════════════════════════════════════════════
-//  PERSONALIZAÇÃO — tema e fonte
-// ══════════════════════════════════════════════════════
+// ── Marcadores de página ────────────────────────────────────────────
+let marcadores = [];
+try { marcadores = JSON.parse(localStorage.getItem('lirelacan_marcadores') || '[]'); } catch(e) { marcadores = []; }
+
+function salvarMarcadores() {
+  try { localStorage.setItem('lirelacan_marcadores', JSON.stringify(marcadores)); } catch(e) {}
+  // Sync nuvem — salvar como trechos especiais
+  if (supa && supaUserId) {
+    marcadores.forEach(m => {
+      supa.from('trechos_salvos').upsert({
+        user_id: supaUserId,
+        seminario: S.seminarios[m.sem]?.numero || 0,
+        seg_id: 'marcador_' + m.id,
+        texto_fr: m.label || '',
+        traducao: m.cor
+      }, { onConflict: 'user_id,seg_id' }).catch(() => {});
+    });
+  }
+}
+
+function adicionarMarcador(cor) {
+  // Encontrar segmento atual visível
+  const segs = document.querySelectorAll('[data-seg]');
+  if (!segs.length) return;
+  let melhorSeg = null, melhorY = Infinity;
+  const main = document.querySelector('main') || document.body;
+  const mainRect = main.getBoundingClientRect();
+  segs.forEach(seg => {
+    const rect = seg.getBoundingClientRect();
+    if (rect.bottom > mainRect.top && rect.top < mainRect.bottom) {
+      const d = Math.abs(rect.top - mainRect.top);
+      if (d < melhorY) { melhorY = d; melhorSeg = seg; }
+    }
+  });
+  if (!melhorSeg) return;
+
+  const segId = melhorSeg.dataset.seg;
+  // Obter texto do segmento (primeiros 60 chars)
+  const textoEl = melhorSeg.querySelector('.seg-fr');
+  const label = (textoEl?.textContent || '').slice(0, 60).trim() + '…';
+  const sem = S.semAtual;
+  const id = Date.now();
+
+  // Remover marcador existente da mesma cor (só um por cor)
+  marcadores = marcadores.filter(m => !(m.cor === cor && m.sem === sem));
+  marcadores.unshift({ id, cor, segId, sem, label });
+  salvarMarcadores();
+  renderMarcadores();
+
+  // Feedback visual no segmento
+  melhorSeg.style.outline = `2px solid ${corMarcador(cor)}`;
+  setTimeout(() => { melhorSeg.style.outline = ''; }, 2000);
+}
+
+function irParaMarcador(marcador) {
+  // Se seminário diferente, carregar primeiro
+  if (marcador.sem !== S.semAtual) {
+    loadSeminario(marcador.sem);
+    setTimeout(() => irParaSegmento(marcador.segId), 500);
+  } else {
+    irParaSegmento(marcador.segId);
+  }
+}
+
+function irParaSegmento(segId) {
+  S.lastSegId = segId;
+  // Garantir que está na aba de leitura
+  if (S.activeTab !== 'read') switchTab('read');
+  const el = document.querySelector(`[data-seg="${segId}"]`);
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // Highlight temporário
+    el.style.background = 'var(--accent-pale)';
+    setTimeout(() => { el.style.background = ''; }, 1500);
+  }
+}
+
+function removerMarcador(id) {
+  marcadores = marcadores.filter(m => m.id !== id);
+  salvarMarcadores();
+  // Remover da nuvem
+  if (supa && supaUserId) {
+    supa.from('trechos_salvos')
+      .delete().eq('user_id', supaUserId).eq('seg_id', 'marcador_' + id).catch(() => {});
+  }
+  renderMarcadores();
+}
+
+function corMarcador(cor) {
+  return { blue: '#3b82f6', green: '#22c55e', red: '#ef4444', yellow: '#eab308' }[cor] || '#888';
+}
+
+function renderMarcadores() {
+  const el = document.getElementById('panelMarcadores');
+  if (!el) return;
+  const semMarcadores = marcadores.filter(m => m.sem === S.semAtual);
+  if (!semMarcadores.length) {
+    el.innerHTML = '<span style="font-size:11px;color:var(--ink-faint);font-style:italic">Clique numa cor para marcar o ponto atual da leitura.</span>';
+    return;
+  }
+  el.innerHTML = semMarcadores.map(m => `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;cursor:pointer"
+      onclick="irParaMarcador(${JSON.stringify(m).replace(/"/g,'&quot;')})">
+      <div style="width:12px;height:12px;border-radius:50%;background:${corMarcador(m.cor)};flex-shrink:0"></div>
+      <span style="font-size:11px;color:var(--ink-soft);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"
+        title="${escH(m.label)}">${escH(m.label)}</span>
+      <button onclick="event.stopPropagation();removerMarcador(${m.id})"
+        style="background:none;border:none;color:var(--ink-faint);cursor:pointer;font-size:13px;padding:0 2px">×</button>
+    </div>`).join('');
+}
+
+// Carregar marcadores da nuvem
+async function carregarMarcadoresNuvem() {
+  if (!supa || !supaUserId) return;
+  try {
+    const { data } = await supa.from('trechos_salvos')
+      .select('*').eq('user_id', supaUserId).like('seg_id', 'marcador_%');
+    if (data?.length) {
+      marcadores = data.map(d => ({
+        id: parseInt(d.seg_id.replace('marcador_', '')) || Date.now(),
+        cor: d.traducao || 'blue',
+        segId: d.texto_fr.startsWith('seg_') ? d.texto_fr : d.seg_id.replace('marcador_', ''),
+        sem: 0, label: d.texto_fr || ''
+      }));
+      try { localStorage.setItem('lirelacan_marcadores', JSON.stringify(marcadores)); } catch(e) {}
+    }
+  } catch(e) {}
+}
 function toggleThemePanel() {
   document.getElementById('themePanel').classList.toggle('visible');
 }
@@ -3929,7 +4074,7 @@ function renderCadernoView() {
           <button class="caderno-btn" onclick="execCmd('removeFormat')" title="Limpar">✕</button>
           <span class="caderno-status" id="cadernoStatus" style="margin-left:auto;font-size:11px;color:var(--ink-faint)"></span>
         </div>
-        <input class="caderno-titulo" id="cadernoTitulo" placeholder="Título…"
+        <input class="caderno-titulo" id="cadernoTitulo" placeholder="Sem título…"
           oninput="cadernoAutoSave()">
         <div class="caderno-editor" id="cadernoEditor"
           contenteditable="true"
@@ -4040,7 +4185,8 @@ function abrirNota(i) {
   const nota = cadernoNotas[i];
   const tit = document.getElementById('cadernoTitulo');
   const ed  = document.getElementById('cadernoEditor');
-  if (tit) tit.value = nota.titulo || '';
+  // Só preencher título se não for "Sem título" (deixar placeholder aparecer)
+  if (tit) tit.value = (nota.titulo && nota.titulo !== 'Sem título') ? nota.titulo : '';
   if (ed)  ed.innerHTML = nota.conteudo || '';
   renderListaNotas();
   setTimeout(() => ed?.focus(), 50);
