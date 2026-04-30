@@ -19,7 +19,7 @@
   --font-principal: 'Helvetica Neue', Arial, sans-serif;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: var(--paper); color: var(--ink); font-family: 'Karla', sans-serif;
+body { background: var(--paper); color: var(--ink); font-family: var(--font-principal, 'Helvetica Neue', Arial, sans-serif);
   font-weight: 300; line-height: 1.7; min-height: 100vh; overflow-x: hidden; }
 
 /* ── TOPBAR ── */
@@ -911,21 +911,26 @@ body.theme-sepia {
 
 /* ── MARCADORES INLINE ── */
 .segment { position: relative; }
+.seg-btn-group {
+  display: flex; align-items: center; gap: 4px;
+  position: absolute; right: -4px; top: 50%; transform: translateY(-50%);
+}
 .seg-bookmark-btn {
-  position: absolute; left: -24px; top: 8px;
   background: none; border: none; cursor: pointer;
-  font-size: 13px; opacity: 0; transition: opacity .15s; padding: 2px;
+  color: var(--ink-faint); padding: 4px 2px;
+  opacity: 0; transition: opacity .15s, color .15s;
+  display: flex; align-items: center;
 }
 .segment:hover .seg-bookmark-btn { opacity: 0.5; }
-.segment:hover .seg-bookmark-btn:hover { opacity: 1; }
-.seg-marcador-tag {
-  display: inline-flex; align-items: center; font-size: 9px; font-weight: 700;
-  color: white; padding: 1px 5px; border-radius: 10px; margin-left: 4px;
-  cursor: pointer; font-family: 'Karla', sans-serif; vertical-align: middle;
-  position: relative; top: -1px;
+.segment:hover .seg-bookmark-btn:hover { opacity: 1; color: var(--accent); }
+.seg-bookmark-btn.marcado { opacity: 1 !important; }
+.btn-audio {
+  background: none; border: none; cursor: pointer;
+  color: var(--ink-faint); font-size: 11px; padding: 4px;
+  opacity: 0; transition: opacity .15s;
 }
-.bookmark-menu { animation: fadeIn .1s ease; }
-@keyframes fadeIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:none; } }
+.segment:hover .btn-audio { opacity: 0.5; }
+.segment:hover .btn-audio:hover { opacity: 1; }
 
 .conj-explainer {
   border: 1px solid var(--border);
@@ -1844,21 +1849,6 @@ function buildSegEl(seg, idx, licaoNum) {
   // Div raiz
   const div = el('div', { cls: 'segment', id: 'seg_' + seg.id, 'data-seg': seg.id, 'data-licao': licaoNum });
 
-  // Botão de marcador inline — 🚩 aparece ao hover
-  const marcadorBtn = el('button', { cls: 'seg-bookmark-btn', title: 'Adicionar marcador de página' });
-  marcadorBtn.innerHTML = `<svg width="14" height="18" viewBox="0 0 14 18" fill="none">
-    <path d="M0 0h14v18l-7-5-7 5V0z" fill="currentColor" opacity=".7"/>
-  </svg>`;
-  marcadorBtn.addEventListener('click', e => {
-    e.stopPropagation();
-    mostrarMenuMarcadorInline(seg.id, marcadorBtn, idx);
-  });
-  marcadorBtn.addEventListener('mouseenter', e => {
-    e.stopPropagation();
-    // Mostrar tooltip na barra de funcionalidades se houver seleção
-  });
-  div.appendChild(marcadorBtn);
-
   // seg-body
   const body = el('div', { cls: 'seg-body' });
   body.appendChild(el('span', { cls: 'seg-num' }, String(idx)));
@@ -1866,7 +1856,7 @@ function buildSegEl(seg, idx, licaoNum) {
   // seg-content
   const content = el('div', { cls: 'seg-content' });
 
-  // seg-fr — construído por nós de texto + spans, nunca innerHTML
+  // seg-fr
   const frDiv = el('div', { cls: 'seg-fr', id: 'fr_' + seg.id });
   buildFRNodes(seg.texto_fr, seg.termos || [], seg.id).forEach(n => frDiv.appendChild(n));
   content.appendChild(frDiv);
@@ -1880,10 +1870,25 @@ function buildSegEl(seg, idx, licaoNum) {
   body.appendChild(el('div', { cls: 'seg-marker ' + marker }));
   div.appendChild(body);
 
+  // Botão de marcador — ao lado esquerdo do play
+  const marcadorBtn = el('button', { cls: 'seg-bookmark-btn', title: 'Adicionar marcador de página' });
+  marcadorBtn.innerHTML = `<svg width="12" height="16" viewBox="0 0 12 16" fill="none">
+    <path d="M0 0h12v16l-6-4-6 4V0z" fill="currentColor"/>
+  </svg>`;
+  marcadorBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    mostrarMenuMarcadorInline(seg.id, marcadorBtn, idx);
+  });
+
   // Botão de áudio
   const btn = el('button', { cls: 'btn-audio', id: 'btn_' + seg.id, title: 'Ouvir em francês' }, '▶');
   btn.addEventListener('click', e => { e.stopPropagation(); playAudio(seg.id); });
-  div.appendChild(btn);
+
+  // Grupo de botões lado a lado
+  const btnGroup = el('div', { cls: 'seg-btn-group' });
+  btnGroup.appendChild(marcadorBtn);
+  btnGroup.appendChild(btn);
+  div.appendChild(btnGroup);
 
   // Comentários
   div.appendChild(el('div', { id: 'cmts_' + seg.id }));
@@ -4414,8 +4419,12 @@ function novaNota() {
 }
 
 function salvarNotaAtual(silencioso = false) {
-  const titulo = document.getElementById('cadernoTitulo')?.value.trim() || 'Sem título';
-  const conteudo = document.getElementById('cadernoEditor')?.innerHTML || '';
+  const tituloEl = document.getElementById('cadernoTitulo');
+  const editorEl = document.getElementById('cadernoEditor');
+  const titulo = tituloEl?.value.trim() || '';
+  const conteudo = editorEl?.innerHTML || '';
+  // Não salvar se completamente vazia
+  if (!titulo && (!conteudo || conteudo === '<br>')) return;
   const agora = new Date().toLocaleDateString('pt-BR') + ' ' +
     new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
 
@@ -4453,7 +4462,7 @@ function abrirNota(i) {
   const nota = cadernoNotas[i];
   const tit = document.getElementById('cadernoTitulo');
   const ed  = document.getElementById('cadernoEditor');
-  // Só preencher título se não for "Sem título" (deixar placeholder aparecer)
+  // Só preencher título se não for placeholder
   if (tit) tit.value = (nota.titulo && nota.titulo !== 'Sem título') ? nota.titulo : '';
   if (ed)  ed.innerHTML = nota.conteudo || '';
   renderListaNotas();
@@ -4766,28 +4775,53 @@ function aplicarHighlightsNuvem() {
 
     itens.forEach(h => {
       const cor = h.color || h.cor || 'yellow';
-      const texto = h.text || h.texto || '';
-      if (!texto) return;
+      const textoOrig = (h.text || h.texto || '').trim();
+      if (!textoOrig) return;
+      // Normalizar texto para comparação
+      const textoNorm = textoOrig.replace(/\s+/g, ' ').trim();
 
-      // Buscar o texto no elemento usando TreeWalker
-      const walker = document.createTreeWalker(frEl, NodeFilter.SHOW_TEXT);
+      // Verificar se já está destacado
+      if (frEl.querySelector(`[data-hi="${cor}"]`)) {
+        // Verificar se tem o mesmo texto
+        const existente = frEl.querySelector(`[data-hi="${cor}"]`);
+        if (existente?.textContent?.includes(textoNorm.slice(0, 10))) return;
+      }
+
+      // Usar TreeWalker para encontrar o texto
+      const walker = document.createTreeWalker(frEl, NodeFilter.SHOW_TEXT, null);
       let node;
-      while ((node = walker.nextNode())) {
-        const idx = node.textContent.indexOf(texto);
-        if (idx === -1) continue;
-        // Verificar se já está destacado
+      let encontrou = false;
+      while ((node = walker.nextNode()) && !encontrou) {
+        // Pular nós já dentro de highlight
         if (node.parentElement?.dataset?.hi) continue;
+        const nodeText = node.textContent;
+        const idx = nodeText.indexOf(textoNorm);
+        if (idx === -1) continue;
 
         try {
           const range = document.createRange();
           range.setStart(node, idx);
-          range.setEnd(node, idx + texto.length);
+          range.setEnd(node, idx + textoNorm.length);
           const span = document.createElement('span');
           span.className = clsMap[cor] || 'hi-yellow';
           span.dataset.hi = cor;
           range.surroundContents(span);
-        } catch(e) {}
-        break; // Só aplicar uma vez por item
+          encontrou = true;
+          console.log('Highlight reaplicado:', segId, textoNorm.slice(0,20));
+        } catch(e) {
+          // Tentar sem surroundContents
+          try {
+            const frag = range.extractContents();
+            const span = document.createElement('span');
+            span.className = clsMap[cor] || 'hi-yellow';
+            span.dataset.hi = cor;
+            span.appendChild(frag);
+            range.insertNode(span);
+            encontrou = true;
+          } catch(e2) {
+            console.warn('Falha ao reaplicar highlight:', e2.message);
+          }
+        }
       }
     });
   });
@@ -4844,12 +4878,19 @@ function doHighlight(color) {
     console.warn('Highlight error:', e);
   }
 
-  // Manter menu aberto — não fechar nem limpar currentSel
+  // Manter menu aberto
   window.getSelection().removeAllRanges();
 
-  // Salvar highlight na nuvem
+  // Salvar highlight na nuvem e em S.highlights
   if (currentSel?.segId && currentSel?.text) {
-    nuvemSalvarHighlight(currentSel.segId, currentSel.text, color);
+    const segId = currentSel.segId;
+    const texto = currentSel.text;
+    // Atualizar estado local
+    if (!S.highlights[segId]) S.highlights[segId] = [];
+    S.highlights[segId].push({ color, text: texto });
+    // Salvar na nuvem
+    nuvemSalvarHighlight(segId, texto, color);
+    console.log('Highlight salvo:', { segId, texto: texto.slice(0,30), color });
   }
 }
 
