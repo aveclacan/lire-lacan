@@ -8,14 +8,15 @@
 <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&family=Karla:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
 <style>
 :root {
-  --ink: #1a1712; --ink-soft: #4a4640; --ink-faint: #8a857e;
-  --paper: #f5f0e8; --paper-warm: #ede7d8; --paper-dark: #ddd5c5;
-  --accent: #6b3a2a; --accent-light: #c4785a; --accent-pale: #f0e0d6;
+  --ink: #1a1a1a; --ink-soft: #444; --ink-faint: #999;
+  --paper: #ffffff; --paper-warm: #f8f8f8; --paper-dark: #eeeeee;
+  --accent: #1a1a1a; --accent-light: #444; --accent-pale: #f0f0f0;
   --gold: #9a7a3a; --gold-pale: #f4ecda; --gold-hi: rgba(196,178,80,0.32);
   --violet: #3d2d5c; --violet-pale: #e8e0f0;
   --teal: #1d4a45; --teal-pale: #d8edeb;
   --hi-yellow: rgba(255,220,60,0.38); --hi-green: rgba(80,200,120,0.38); --hi-blue: rgba(80,150,255,0.38);
-  --border: rgba(26,23,18,0.12); --border-strong: rgba(26,23,18,0.25);
+  --border: rgba(0,0,0,0.10); --border-strong: rgba(0,0,0,0.22);
+  --font-principal: 'Helvetica Neue', Arial, sans-serif;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: var(--paper); color: var(--ink); font-family: 'Karla', sans-serif;
@@ -451,23 +452,25 @@ body { background: var(--paper); color: var(--ink); font-family: 'Karla', sans-s
 .font-btn.active { background:var(--accent-pale); border-color:var(--accent-light);
   color:var(--accent); }
 
-/* ── TEMA NOTURNO ── */
+/* ── TEMA NOTURNO — azul espacial ── */
 body.theme-night {
-  --ink:#e8e4dc; --ink-soft:#b0a898; --ink-faint:#706860;
-  --paper:#1a1a2e; --paper-warm:#16213e; --paper-dark:#0f3460;
-  --accent:#7b8cde; --accent-light:#a0aff0; --accent-pale:#1e2a5e;
-  --border:rgba(232,228,220,0.1); --border-strong:rgba(232,228,220,0.2);
+  --ink:#c8d0e0; --ink-soft:#8a9ab8; --ink-faint:#4a5878;
+  --paper:#0d1117; --paper-warm:#161b22; --paper-dark:#21262d;
+  --accent:#58a6ff; --accent-light:#79c0ff; --accent-pale:#1f3a5f;
+  --border:rgba(200,208,224,0.08); --border-strong:rgba(200,208,224,0.15);
+  --hi-yellow:rgba(255,220,60,0.25); --hi-green:rgba(80,200,120,0.25); --hi-blue:rgba(80,150,255,0.25);
 }
 body.theme-sage {
   --ink:#1a2a20; --ink-soft:#3d5a45; --ink-faint:#7a9a82;
   --paper:#f0f4f0; --paper-warm:#e4ece5; --paper-dark:#ccddd0;
   --accent:#3d6b5a; --accent-light:#5a9e80; --accent-pale:#d4ebe0;
 }
-body.theme-paper {
-  --ink:#2d2d2d; --ink-soft:#555; --ink-faint:#999;
-  --paper:#ffffff; --paper-warm:#f8f8f8; --paper-dark:#eee;
-  --accent:#2d2d2d; --accent-light:#555; --accent-pale:#f0f0f0;
+body.theme-sepia {
+  --ink:#2c2416; --ink-soft:#6b5a3e; --ink-faint:#a08060;
+  --paper:#f5f0e8; --paper-warm:#ede8de; --paper-dark:#e0d9cc;
+  --accent:#7a2c1e; --accent-light:#a03d2e; --accent-pale:#f5ece9;
 }
+/* Tema padrão: branco/preto (paper) — sem classe body extra */
 
 /* ── ABA TRADUÇÃO ── */
 .trad-view {
@@ -1062,24 +1065,24 @@ body.theme-paper {
 <div class="theme-panel" id="themePanel">
   <div class="theme-section">Paleta</div>
   <div class="theme-palettes">
-    <button class="palette-btn active" data-theme="sepia" onclick="setTheme('sepia')" title="Sépia (padrão)">
-      <span style="background:#f5f0e8"></span><span style="background:#6b3a2a"></span>
+    <button class="palette-btn active" data-theme="paper" onclick="setTheme('paper')" title="Branco (padrão)">
+      <span style="background:#ffffff"></span><span style="background:#1a1a1a"></span>
     </button>
-    <button class="palette-btn" data-theme="night" onclick="setTheme('night')" title="Noturno">
-      <span style="background:#1a1a2e"></span><span style="background:#7b8cde"></span>
+    <button class="palette-btn" data-theme="sepia" onclick="setTheme('sepia')" title="Sépia">
+      <span style="background:#f5f0e8"></span><span style="background:#6b3a2a"></span>
     </button>
     <button class="palette-btn" data-theme="sage" onclick="setTheme('sage')" title="Sálvia">
       <span style="background:#f0f4f0"></span><span style="background:#3d6b5a"></span>
     </button>
-    <button class="palette-btn" data-theme="paper" onclick="setTheme('paper')" title="Branco">
-      <span style="background:#ffffff"></span><span style="background:#2d2d2d"></span>
+    <button class="palette-btn" data-theme="night" onclick="setTheme('night')" title="Noturno 🌙">
+      <span style="background:#0d1117"></span><span style="background:#58a6ff"></span>
     </button>
   </div>
   <div class="theme-section">Fonte do texto</div>
   <div class="theme-fonts">
-    <button class="font-btn active" onclick="setFont('fell')" data-font="fell">IM Fell</button>
+    <button class="font-btn" onclick="setFont('fell')" data-font="fell">IM Fell</button>
     <button class="font-btn" onclick="setFont('serif')" data-font="serif">Georgia</button>
-    <button class="font-btn" onclick="setFont('sans')" data-font="sans">Sans-serif</button>
+    <button class="font-btn active" onclick="setFont('sans')" data-font="sans">Sans-serif</button>
     <button class="font-btn" onclick="setFont('mono')" data-font="mono">Monospace</button>
   </div>
   <div class="theme-section">Tamanho</div>
@@ -1167,18 +1170,8 @@ body.theme-paper {
 
     <!-- Marcadores de página -->
     <div class="panel-section">
-      <div class="panel-title" style="display:flex;align-items:center;justify-content:space-between">
-        Marcadores
-        <div style="display:flex;gap:4px">
-          <button onclick="adicionarMarcador('blue')"   title="Marcador azul"   style="width:16px;height:16px;border-radius:50%;background:#3b82f6;border:none;cursor:pointer"></button>
-          <button onclick="adicionarMarcador('green')"  title="Marcador verde"  style="width:16px;height:16px;border-radius:50%;background:#22c55e;border:none;cursor:pointer"></button>
-          <button onclick="adicionarMarcador('red')"    title="Marcador vermelho" style="width:16px;height:16px;border-radius:50%;background:#ef4444;border:none;cursor:pointer"></button>
-          <button onclick="adicionarMarcador('yellow')" title="Marcador amarelo" style="width:16px;height:16px;border-radius:50%;background:#eab308;border:none;cursor:pointer"></button>
-        </div>
-      </div>
-      <div id="panelMarcadores" style="margin-top:8px">
-        <span style="font-size:11px;color:var(--ink-faint);font-style:italic">Clique numa cor para marcar o ponto atual da leitura.</span>
-      </div>
+      <div class="panel-title">Marcadores de página</div>
+      <div id="panelMarcadores" style="margin-top:8px"></div>
     </div>
 
     <!-- Nota linguística (termo sublinhado) -->
@@ -1505,6 +1498,7 @@ async function iniciarSessaoSupabase() {
   if (supaUserId) {
     console.log('✓ Supabase logado, userId:', supaUserId.slice(0,8) + '...');
     await carregarDadosNuvem();
+    await carregarPreferenciasNuvem();
   } else {
     console.log('Supabase: não logado — usando localStorage');
   }
@@ -1586,7 +1580,10 @@ async function carregarDadosNuvem() {
   } catch(e) { console.warn('Erro ao carregar dados da nuvem:', e.message); }
 
   // Re-renderizar leitor com highlights carregados
-  if (S.semAtual !== null) renderFullReader(S.seminarios[S.semAtual]);
+  if (S.semAtual !== null) {
+    renderFullReader(S.seminarios[S.semAtual]);
+    setTimeout(() => { aplicarHighlightsNuvem(); aplicarMarcadoresVisuais(); renderMarcadores(); }, 200);
+  }
 
   // Carregar marcadores e aplicar visuais
   await carregarMarcadoresNuvem();
@@ -1698,6 +1695,9 @@ window.addEventListener('DOMContentLoaded', async () => {
   if ('speechSynthesis' in window) speechSynthesis.getVoices();
   setupScrollObserver();
   setupSelectionMenu();
+
+  // Carregar preferências de tema/fonte imediatamente (antes de qualquer outra coisa)
+  carregarPreferencias();
 
   // Iniciar sessão Supabase (token da URL ou localStorage)
   await iniciarSessaoSupabase();
@@ -1844,11 +1844,18 @@ function buildSegEl(seg, idx, licaoNum) {
   // Div raiz
   const div = el('div', { cls: 'segment', id: 'seg_' + seg.id, 'data-seg': seg.id, 'data-licao': licaoNum });
 
-  // Botão de marcador inline (aparece ao hover, à esquerda do número)
-  const marcadorBtn = el('button', { cls: 'seg-bookmark-btn', title: 'Adicionar marcador de página' }, '🔖');
+  // Botão de marcador inline — 🚩 aparece ao hover
+  const marcadorBtn = el('button', { cls: 'seg-bookmark-btn', title: 'Adicionar marcador de página' });
+  marcadorBtn.innerHTML = `<svg width="14" height="18" viewBox="0 0 14 18" fill="none">
+    <path d="M0 0h14v18l-7-5-7 5V0z" fill="currentColor" opacity=".7"/>
+  </svg>`;
   marcadorBtn.addEventListener('click', e => {
     e.stopPropagation();
-    mostrarMenuMarcador(seg.id, marcadorBtn);
+    mostrarMenuMarcadorInline(seg.id, marcadorBtn, idx);
+  });
+  marcadorBtn.addEventListener('mouseenter', e => {
+    e.stopPropagation();
+    // Mostrar tooltip na barra de funcionalidades se houver seleção
   });
   div.appendChild(marcadorBtn);
 
@@ -2413,8 +2420,9 @@ function confirmComment() {
 //  ABA SALVOS
 // ══════════════════════════════════════════════════════
 function switchTab(tab) {
-  // Salvar posição antes de sair da leitura
+  // Salvar antes de sair da aba atual
   if (S.activeTab === 'read') salvarPosicaoLeitura();
+  if (S.activeTab === 'caderno') salvarNotaAtual(true);
 
   S.activeTab = tab;
   const allTabs = ['read','trad','conj','vocab','gram','caderno','saved'];
@@ -2541,37 +2549,37 @@ function salvarMarcadores() {
   }
 }
 
-function mostrarMenuMarcador(segId, btnEl) {
-  // Remover menu existente
+function mostrarMenuMarcadorInline(segId, btnEl, numSeg) {
   document.querySelectorAll('.bookmark-menu').forEach(e => e.remove());
   const cores = [
-    { cor: 'blue',   hex: '#3b82f6', nome: 'Azul' },
-    { cor: 'green',  hex: '#22c55e', nome: 'Verde' },
-    { cor: 'red',    hex: '#ef4444', nome: 'Vermelho' },
-    { cor: 'yellow', hex: '#eab308', nome: 'Amarelo' },
-    { cor: 'purple', hex: '#a855f7', nome: 'Roxo' },
+    { cor:'blue',   hex:'#3b82f6', nome:'Azul' },
+    { cor:'green',  hex:'#22c55e', nome:'Verde' },
+    { cor:'red',    hex:'#ef4444', nome:'Vermelho' },
+    { cor:'yellow', hex:'#eab308', nome:'Amarelo' },
+    { cor:'purple', hex:'#a855f7', nome:'Roxo' },
   ];
   const menu = document.createElement('div');
   menu.className = 'bookmark-menu';
   menu.innerHTML = `
-    <div style="font-size:11px;color:var(--ink-faint);margin-bottom:8px;font-family:'Karla',sans-serif">Escolha a cor do marcador:</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <div style="font-size:11px;color:var(--ink-faint);margin-bottom:10px;font-family:'Karla',sans-serif;font-weight:500">
+      + Marcador de página
+    </div>
+    <div style="display:flex;gap:10px;align-items:center">
       ${cores.map(c => `
-        <button onclick="adicionarMarcadorNoSeg('${segId}','${c.cor}')"
-          style="width:28px;height:28px;border-radius:50%;background:${c.hex};border:2px solid white;
-          box-shadow:0 0 0 1px ${c.hex};cursor:pointer" title="${c.nome}"></button>
-      `).join('')}
+        <button onclick="adicionarMarcadorNoSeg('${segId}','${c.cor}',${numSeg})"
+          title="${c.nome}"
+          style="width:24px;height:24px;border-radius:50%;background:${c.hex};
+          border:2px solid white;box-shadow:0 0 0 1.5px ${c.hex};
+          cursor:pointer;transition:transform .15s"
+          onmouseenter="this.style.transform='scale(1.2)'"
+          onmouseleave="this.style.transform=''">
+        </button>`).join('')}
     </div>`;
-
-  // Posicionar próximo ao botão
   const rect = btnEl.getBoundingClientRect();
-  menu.style.cssText = `position:fixed;top:${rect.bottom+4}px;left:${rect.left}px;
-    background:var(--paper-warm);border:1px solid var(--border);border-radius:8px;
-    padding:12px;z-index:300;box-shadow:0 4px 16px rgba(0,0,0,.15);min-width:180px`;
-
+  menu.style.cssText = `position:fixed;top:${rect.bottom+6}px;left:${Math.max(8,rect.left-20)}px;
+    background:var(--paper-warm);border:1px solid var(--border);border-radius:10px;
+    padding:12px 14px;z-index:400;box-shadow:0 6px 24px rgba(0,0,0,.18);`;
   document.body.appendChild(menu);
-
-  // Fechar ao clicar fora
   setTimeout(() => {
     document.addEventListener('click', function fechar(e) {
       if (!menu.contains(e.target) && e.target !== btnEl) {
@@ -2582,11 +2590,8 @@ function mostrarMenuMarcador(segId, btnEl) {
   }, 10);
 }
 
-function adicionarMarcadorNoSeg(segId, cor) {
-  // Fechar menu
+function adicionarMarcadorNoSeg(segId, cor, numSeg) {
   document.querySelectorAll('.bookmark-menu').forEach(e => e.remove());
-
-  // Pegar texto do segmento
   const el = document.querySelector(`[data-seg="${segId}"]`);
   const textoEl = el?.querySelector('.seg-fr');
   const label = (textoEl?.textContent || '').slice(0, 60).trim() + '…';
@@ -2598,17 +2603,33 @@ function adicionarMarcadorNoSeg(segId, cor) {
   salvarMarcadores();
   renderMarcadores();
 
-  // Marcar visualmente no segmento
+  // Feedback visual claro — faixa colorida + badge animado
   if (el) {
-    el.dataset.marcador = cor;
-    const indicador = document.createElement('div');
-    indicador.className = 'seg-marcador-tag';
-    indicador.style.cssText = `background:${corMarcador(cor)};`;
-    indicador.title = `Marcador #${num}`;
-    indicador.textContent = '#' + num;
-    indicador.onclick = (e) => { e.stopPropagation(); irParaSegmento(segId); };
-    el.appendChild(indicador);
+    // Remover tag antiga do mesmo seg se existir
+    el.querySelectorAll('.seg-marcador-tag').forEach(t => t.remove());
+    const tag = document.createElement('div');
+    tag.className = 'seg-marcador-tag';
+    tag.style.cssText = `background:${corMarcador(cor)};`;
+    tag.title = `Marcador #${num} — clique para navegar`;
+    tag.innerHTML = `🚩 #${num}`;
+    tag.onclick = (e) => { e.stopPropagation(); irParaSegmento(segId); };
+    el.querySelector('.seg-body')?.prepend(tag);
+    // Animação de entrada
+    tag.style.opacity = '0';
+    tag.style.transform = 'scale(0.5)';
+    requestAnimationFrame(() => {
+      tag.style.transition = 'all .3s cubic-bezier(.34,1.56,.64,1)';
+      tag.style.opacity = '1';
+      tag.style.transform = 'scale(1)';
+    });
+    // Highlight temporário do segmento
+    el.style.outline = `2px solid ${corMarcador(cor)}`;
+    el.style.borderRadius = '4px';
+    setTimeout(() => { el.style.outline = ''; el.style.borderRadius = ''; }, 2500);
   }
+
+  // Toast de confirmação
+  mostrarToast(`Marcador #${num} adicionado`, corMarcador(cor));
 }
 
 function corMarcador(cor) {
@@ -2670,19 +2691,36 @@ function renderMarcadores() {
     </div>`).join('');
 }
 
+function mostrarToast(msg, cor) {
+  const t = document.createElement('div');
+  t.style.cssText = `position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:${cor||'var(--accent)'};color:white;padding:8px 18px;border-radius:20px;
+    font-size:13px;font-family:'Karla',sans-serif;font-weight:500;z-index:500;
+    opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;
+    box-shadow:0 4px 16px rgba(0,0,0,.2)`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  requestAnimationFrame(() => { t.style.opacity='1'; t.style.transform='translateX(-50%) translateY(0)'; });
+  setTimeout(() => {
+    t.style.opacity='0'; t.style.transform='translateX(-50%) translateY(20px)';
+    setTimeout(() => t.remove(), 300);
+  }, 2500);
+}
+
 // Aplicar indicadores visuais após renderizar o leitor
 function aplicarMarcadoresVisuais() {
   marcadores.filter(m => m.sem === S.semAtual).forEach(m => {
     const el = document.querySelector(`[data-seg="${m.segId}"]`);
-    if (el && !el.querySelector('.seg-marcador-tag')) {
-      const indicador = document.createElement('div');
-      indicador.className = 'seg-marcador-tag';
-      indicador.style.cssText = `background:${corMarcador(m.cor)};`;
-      indicador.title = `Marcador #${m.num}`;
-      indicador.textContent = '#' + m.num;
-      indicador.onclick = (e) => { e.stopPropagation(); irParaSegmento(m.segId); };
-      el.appendChild(indicador);
-    }
+    if (!el) return;
+    // Remover tags antigas e recriar
+    el.querySelectorAll('.seg-marcador-tag').forEach(t => t.remove());
+    const tag = document.createElement('div');
+    tag.className = 'seg-marcador-tag';
+    tag.style.cssText = `background:${corMarcador(m.cor)};`;
+    tag.title = `Marcador #${m.num} — clique para ver no painel`;
+    tag.innerHTML = `🚩 #${m.num}`;
+    tag.onclick = (e) => { e.stopPropagation(); irParaSegmento(m.segId); };
+    el.querySelector('.seg-body')?.prepend(tag);
   });
 }
 
@@ -2713,32 +2751,85 @@ function toggleThemePanel() {
 }
 
 function setTheme(theme) {
-  document.body.className = document.body.className
-    .replace(/theme-\w+/g, '').trim();
-  if (theme !== 'sepia') document.body.classList.add('theme-' + theme);
+  document.body.className = document.body.className.replace(/theme-\w+/g, '').trim();
+  if (theme !== 'paper') document.body.classList.add('theme-' + theme);
   document.querySelectorAll('.palette-btn').forEach(b =>
     b.classList.toggle('active', b.dataset.theme === theme));
+  // Salvar preferência
+  try { localStorage.setItem('lirelacan_tema', theme); } catch(e) {}
+  if (supa && supaUserId) {
+    supa.from('progresso').upsert({
+      user_id: supaUserId, seminario: -1, // -1 = preferências globais
+      segs_lidos: [], atualizado_em: new Date().toISOString(),
+    }, { onConflict: 'user_id,seminario' }).catch(() => {});
+    // Salvar em trechos_salvos como preferência
+    supa.from('trechos_salvos').upsert({
+      user_id: supaUserId, seminario: 0,
+      seg_id: 'pref_tema', texto_fr: theme, traducao: currentFont || 'sans'
+    }, { onConflict: 'user_id,seg_id' }).catch(() => {});
+  }
 }
 
+let currentFont = 'sans'; // padrão sans-serif
+
 const fontMap = {
-  fell: "'IM Fell English', serif",
+  fell:  "'IM Fell English', serif",
   serif: "Georgia, 'Times New Roman', serif",
-  sans: "'Helvetica Neue', Arial, sans-serif",
-  mono: "'Courier New', monospace",
+  sans:  "'Helvetica Neue', Arial, sans-serif",
+  mono:  "'Courier New', monospace",
 };
 
 function setFont(font) {
+  currentFont = font;
+  const ff = fontMap[font] || fontMap.sans;
+  // Aplicar em TODAS as abas — não só no leitor
+  document.body.style.setProperty('--font-principal', ff);
+  // Elementos específicos de leitura
   document.querySelectorAll('.seg-fr, .lecon-date, .sem-header-title').forEach(el => {
-    el.style.fontFamily = fontMap[font] || fontMap.fell;
+    el.style.fontFamily = ff;
+  });
+  // Também aplicar em abas de ferramentas
+  document.querySelectorAll('.caderno-editor, .tool-header, .gram-card, .vocab-item').forEach(el => {
+    el.style.fontFamily = ff;
   });
   document.querySelectorAll('.font-btn').forEach(b =>
     b.classList.toggle('active', b.dataset.font === font));
+  // Salvar preferência
+  try { localStorage.setItem('lirelacan_fonte', font); } catch(e) {}
+  if (supa && supaUserId) {
+    supa.from('trechos_salvos').upsert({
+      user_id: supaUserId, seminario: 0,
+      seg_id: 'pref_tema', texto_fr: document.body.className.match(/theme-(\w+)/)?.[1] || 'paper', traducao: font
+    }, { onConflict: 'user_id,seg_id' }).catch(() => {});
+  }
 }
 
 function setFontSize(size) {
   document.querySelectorAll('.seg-fr').forEach(el => {
     el.style.fontSize = size + 'px';
   });
+}
+
+// Carregar preferências salvas
+function carregarPreferencias() {
+  try {
+    const tema = localStorage.getItem('lirelacan_tema') || 'paper';
+    const fonte = localStorage.getItem('lirelacan_fonte') || 'sans';
+    setTheme(tema);
+    setFont(fonte);
+  } catch(e) {}
+}
+
+async function carregarPreferenciasNuvem() {
+  if (!supa || !supaUserId) return;
+  try {
+    const { data } = await supa.from('trechos_salvos')
+      .select('*').eq('user_id', supaUserId).eq('seg_id', 'pref_tema').single();
+    if (data) {
+      setTheme(data.texto_fr || 'paper');
+      setFont(data.traducao || 'sans');
+    }
+  } catch(e) {}
 }
 
 const DICT_LOCAL = {
@@ -4297,6 +4388,12 @@ function cadernoKeydown(e) {
   if ((e.ctrlKey || e.metaKey) && e.key === 's') {
     e.preventDefault();
     salvarNotaAtual();
+    return;
+  }
+  // Corrigir aspas tipográficas do Safari ("" → "")
+  if (e.key === '"') {
+    e.preventDefault();
+    document.execCommand('insertText', false, '"');
   }
 }
 
@@ -4653,6 +4750,47 @@ function startAudioUI(segId) {
 function stopAudioUI() {
   document.querySelectorAll('.btn-audio.playing').forEach(b => { b.classList.remove('playing'); b.textContent = '▶'; });
   document.getElementById('globalWave').classList.remove('visible');
+}
+
+
+// ══════════════════════════════════════════════════════
+//  REAPLICAR HIGHLIGHTS NO DOM após carregar da nuvem
+// ══════════════════════════════════════════════════════
+function aplicarHighlightsNuvem() {
+  if (!S.highlights || !Object.keys(S.highlights).length) return;
+  const clsMap = { yellow:'hi-yellow', green:'hi-green', blue:'hi-blue' };
+
+  Object.entries(S.highlights).forEach(([segId, itens]) => {
+    const frEl = document.getElementById('fr_' + segId);
+    if (!frEl) return;
+
+    itens.forEach(h => {
+      const cor = h.color || h.cor || 'yellow';
+      const texto = h.text || h.texto || '';
+      if (!texto) return;
+
+      // Buscar o texto no elemento usando TreeWalker
+      const walker = document.createTreeWalker(frEl, NodeFilter.SHOW_TEXT);
+      let node;
+      while ((node = walker.nextNode())) {
+        const idx = node.textContent.indexOf(texto);
+        if (idx === -1) continue;
+        // Verificar se já está destacado
+        if (node.parentElement?.dataset?.hi) continue;
+
+        try {
+          const range = document.createRange();
+          range.setStart(node, idx);
+          range.setEnd(node, idx + texto.length);
+          const span = document.createElement('span');
+          span.className = clsMap[cor] || 'hi-yellow';
+          span.dataset.hi = cor;
+          range.surroundContents(span);
+        } catch(e) {}
+        break; // Só aplicar uma vez por item
+      }
+    });
+  });
 }
 
 
