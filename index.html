@@ -19,8 +19,8 @@
   --font-ui: 'Lora', serif;
   --font-size: 14px;
 }
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: var(--paper); color: var(--ink); font-family: var(--font-ui, 'IM Fell English', serif);
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: inherit; }
+body { background: var(--paper); color: var(--ink); font-family: var(--font-ui, 'Lora', serif);
   font-size: var(--font-size, 14px); font-weight: 300; line-height: 1.7; min-height: 100vh; overflow-x: hidden; }
 
 /* ── TOPBAR ── */
@@ -131,7 +131,7 @@ body { background: var(--paper); color: var(--ink); font-family: var(--font-ui, 
 .sem-header { margin-bottom: 40px; padding-bottom: 28px; border-bottom: 1px solid var(--border); }
 .sem-header-label { font-family:'IM Fell English SC',serif; font-size:11px;
   letter-spacing:.12em; color:var(--ink-faint); text-transform:uppercase; margin-bottom:8px; }
-.sem-header-title { font-family:'IM Fell English',serif; font-size:26px;
+.sem-header-title { font-family: var(--font-ui); font-size:26px;
   line-height:1.3; color:var(--ink); }
 
 /* Cabeçalho de lição (inline no scroll) */
@@ -142,7 +142,7 @@ body { background: var(--paper); color: var(--ink); font-family: var(--font-ui, 
 .lecon-header:first-of-type { margin-top: 0; }
 .lecon-num { font-family:'IM Fell English SC',serif; font-size:10px;
   letter-spacing:.12em; color:var(--ink-faint); text-transform:uppercase; margin-bottom:4px; }
-.lecon-date { font-family:'IM Fell English',serif; font-style:italic;
+.lecon-date { font-family: var(--font-ui); font-style:italic;
   font-size:17px; color:var(--ink-soft); }
 
 /* Segmento */
@@ -151,7 +151,7 @@ body { background: var(--paper); color: var(--ink); font-family: var(--font-ui, 
 .seg-num { font-family:'IM Fell English',serif; font-size:10px; color:var(--ink-faint);
   min-width:24px; text-align:right; padding-top:5px; flex-shrink:0; user-select:none; }
 .seg-content { flex:1; }
-.seg-fr { font-family:'IM Fell English',serif; font-size:var(--font-size,14px); line-height:1.75;
+.seg-fr { font-family: var(--font-ui); font-size:var(--font-size,14px); line-height:1.75;
   color:var(--ink); position:relative; }
 .seg-marker { flex-shrink:0; width:5px; height:5px; border-radius:50%;
   margin-top:9px; background:transparent; }
@@ -446,15 +446,15 @@ body { background: var(--paper); color: var(--ink); font-family: var(--font-ui, 
 .theme-panel.visible { display:flex; }
 .theme-section { font-family:'IM Fell English SC',serif; font-size:10px;
   letter-spacing:.12em; color:var(--ink-faint); text-transform:uppercase; }
-.theme-palettes { display:flex; gap:8px; }
+.theme-palettes { display:flex; flex-direction:column; gap:2px; }
 .palette-btn {
-  width:36px; height:24px; border-radius:6px; border:2px solid transparent;
-  cursor:pointer; display:flex; overflow:hidden; padding:0;
-  transition:border-color .15s;
+  background: none; border: none; cursor: pointer;
+  padding: 6px 12px; border-radius: 8px; font-size: 13px;
+  color: var(--ink-soft); display: flex; align-items: center; gap: 6px;
+  width: 100%; text-align: left; transition: background .15s;
 }
-.palette-btn span { flex:1; display:block; }
-.palette-btn.active { border-color:var(--accent); }
-.palette-btn:hover { border-color:var(--accent-light); }
+.palette-btn:hover { background: var(--paper-dark); }
+.palette-btn.active { background: var(--paper-dark); color: var(--ink); font-weight: 500; }
 .theme-fonts { display:flex; gap:6px; flex-wrap:wrap; }
 .font-btn {
   padding:4px 10px; font-size:12.5px; border-radius:5px;
@@ -720,7 +720,7 @@ body.theme-night {
   border: 1px solid var(--border); border-top: none;
   border-radius: 0 0 8px 8px;
   background: var(--paper); color: var(--ink);
-  font-family: 'IM Fell English', serif; font-size: 16px; line-height: 1.8;
+  font-family: var(--font-ui); font-size: 16px; line-height: 1.8;
   outline: none; overflow-y: auto;
 }
 .caderno-editor:empty:before {
@@ -806,12 +806,26 @@ body.theme-night {
 .caderno-save-btn { padding:8px 20px; border-radius:8px; border:none; background:var(--accent); color:white; cursor:pointer; font-size:13px; font-weight:500; }
 .caderno-status { font-size:12px; color:var(--ink-faint); }
 .caderno-notas-lista { margin-top:28px; }
-.caderno-nota-item { display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:8px; cursor:pointer; border:1px solid var(--border); margin-bottom:8px; background:var(--paper-warm); transition:all .15s; }
-.caderno-nota-item:hover, .caderno-nota-item.active { border-color:var(--accent-light); background:var(--accent-pale); }
-.caderno-nota-titulo { font-size:14px; color:var(--ink); flex:1; }
-.caderno-nota-data { font-size:11px; color:var(--ink-faint); white-space:nowrap; }
+.caderno-nota-item { padding:10px 14px; border-bottom:1px solid var(--border); cursor:pointer; transition:background .1s; }
+.caderno-nota-item:hover { background:var(--paper-dark); }
+.caderno-nota-item.active { background:var(--accent-pale); border-left:3px solid var(--accent); }
+.caderno-nota-titulo { font-size:13px; font-weight:500; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.caderno-nota-data { font-size:11px; color:var(--ink-faint); margin-top:2px; }
 .caderno-nota-del { background:none; border:none; color:var(--ink-faint); cursor:pointer; font-size:16px; padding:2px 6px; border-radius:4px; }
 .caderno-nota-del:hover { color:var(--accent); background:var(--paper-dark); }
+/* Layout duas colunas do Caderno */
+.caderno-layout { display:flex; height:calc(100vh - 160px); overflow:hidden; margin:-36px -48px; }
+.caderno-sidebar { width:240px; flex-shrink:0; border-right:1px solid var(--border); display:flex; flex-direction:column; overflow:hidden; background:var(--paper-warm); }
+.caderno-sidebar-head { padding:12px 14px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+.caderno-sidebar-label { font-family:'IM Fell English SC',serif; font-size:11px; letter-spacing:.1em; color:var(--ink-faint); text-transform:uppercase; }
+.caderno-nova-btn { background:none; border:none; cursor:pointer; color:var(--accent); font-size:20px; line-height:1; padding:0 4px; border-radius:4px; }
+.caderno-nova-btn:hover { background:var(--paper-dark); }
+#cadernoListaNotas { flex:1; overflow-y:auto; }
+.caderno-main { flex:1; display:flex; flex-direction:column; overflow:hidden; padding:0; }
+.caderno-main .caderno-toolbar { border-radius:0; border-left:none; border-right:none; border-top:none; }
+.caderno-main .caderno-titulo { border-radius:0; border-left:none; border-right:none; border-top:none; border-bottom:1px solid var(--border); padding:14px 24px; font-size:18px; }
+.caderno-main .caderno-editor { border-radius:0; border-left:none; border-right:none; border-bottom:none; flex:1; min-height:0; }
+.caderno-main .caderno-actions { padding:8px 24px; border-top:1px solid var(--border); }
 .select-font, .select-size { font-size:12px; padding:4px 6px; border:1px solid var(--border); border-radius:5px; background:var(--paper); color:var(--ink); cursor:pointer; font-family:'Karla',sans-serif; }
 .select-size { width:55px; }
 .conj-verb-header { font-family:'IM Fell English',serif; font-size:26px; color:var(--ink); margin-bottom:6px; }
@@ -956,11 +970,11 @@ body.theme-night {
 <div class="theme-panel" id="themePanel">
   <div class="theme-section">Paleta</div>
   <div class="theme-palettes">
-    <button class="palette-btn active" data-theme="day" onclick="setTheme('day')" title="Modo diurno">
-      ☀️
+    <button class="palette-btn active" data-theme="day" onclick="setTheme('day')">
+      ☀️ Modo diurno
     </button>
-    <button class="palette-btn" data-theme="night" onclick="setTheme('night')" title="Modo noturno">
-      🌙
+    <button class="palette-btn" data-theme="night" onclick="setTheme('night')">
+      🌙 Modo noturno
     </button>
   </div>
   <div class="theme-section">Fonte do texto</div>
@@ -3884,81 +3898,64 @@ function renderCadernoView() {
   const v = document.getElementById('cadernoView');
   if (!v) return;
   v.innerHTML = `
-    <div class="tool-header">Caderno Pessoal</div>
-    <div class="caderno-header">
-      <input class="caderno-titulo" id="cadernoTitulo" placeholder="Título da nota…">
-      <button class="conj-btn" onclick="novaNota()" title="Nova nota">+ Nova nota</button>
-    </div>
-
-    <!-- Barra de ferramentas de formatação -->
-    <div class="caderno-toolbar">
-      <!-- Fonte -->
-      <select class="select-font" onchange="execCmd('fontName',this.value)" title="Fonte">
-        <option value="'IM Fell English',serif">IM Fell</option>
-        <option value="Georgia,serif">Georgia</option>
-        <option value="'Helvetica Neue',Arial,sans-serif">Sans-serif</option>
-        <option value="'Courier New',monospace">Monospace</option>
-      </select>
-      <!-- Tamanho -->
-      <select class="select-size" onchange="execCmdSize(this.value)" title="Tamanho">
-        <option value="1">10px</option>
-        <option value="2">12px</option>
-        <option value="3" selected>14px</option>
-        <option value="4">16px</option>
-        <option value="5">18px</option>
-        <option value="6">22px</option>
-        <option value="7">26px</option>
-      </select>
-      <div class="caderno-sep"></div>
-      <!-- Formatação básica -->
-      <button class="caderno-btn" onclick="execCmd('bold')" title="Negrito"><strong>N</strong></button>
-      <button class="caderno-btn" onclick="execCmd('italic')" title="Itálico"><em>I</em></button>
-      <button class="caderno-btn" onclick="execCmd('underline')" title="Sublinhado"><u>S</u></button>
-      <button class="caderno-btn" onclick="execCmd('strikeThrough')" title="Tachado"><s>T</s></button>
-      <div class="caderno-sep"></div>
-      <!-- Alinhamento -->
-      <button class="caderno-btn" onclick="execCmd('justifyLeft')" title="Alinhar à esquerda">⬅</button>
-      <button class="caderno-btn" onclick="execCmd('justifyCenter')" title="Centralizar">↔</button>
-      <button class="caderno-btn" onclick="execCmd('justifyRight')" title="Alinhar à direita">➡</button>
-      <button class="caderno-btn" onclick="execCmd('justifyFull')" title="Justificar">≡</button>
-      <div class="caderno-sep"></div>
-      <!-- Listas -->
-      <button class="caderno-btn" onclick="execCmd('insertUnorderedList')" title="Lista com marcadores">•—</button>
-      <button class="caderno-btn" onclick="execCmd('insertOrderedList')" title="Lista numerada">1.</button>
-      <div class="caderno-sep"></div>
-      <!-- Cores -->
-      <label class="caderno-btn" title="Cor do texto">
-        A <input type="color" style="display:none" oninput="execCmd('foreColor',this.value)">
-      </label>
-      <label class="caderno-btn" title="Cor de fundo">
-        <span style="background:#ffeb3b;padding:0 3px">M</span>
-        <input type="color" style="display:none" value="#ffeb3b" oninput="execCmd('backColor',this.value)">
-      </label>
-      <div class="caderno-sep"></div>
-      <!-- Limpar -->
-      <button class="caderno-btn" onclick="execCmd('removeFormat')" title="Limpar formatação">✕</button>
-    </div>
-
-    <!-- Editor -->
-    <div class="caderno-editor" id="cadernoEditor"
-      contenteditable="true"
-      onkeydown="cadernoKeydown(event)"
-      oninput="cadernoAutoSave()"></div>
-
-    <div class="caderno-actions">
-      <button class="caderno-save-btn" onclick="salvarNotaAtual()">💾 Salvar nota</button>
-      <span class="caderno-status" id="cadernoStatus"></span>
-    </div>
-
-    <!-- Lista de notas -->
-    <div class="caderno-notas-lista">
-      <div style="font-family:'IM Fell English SC',serif;font-size:11px;letter-spacing:.1em;color:var(--ink-faint);text-transform:uppercase;margin-bottom:12px">
-        Notas salvas
+    <div class="caderno-layout">
+      <!-- Coluna esquerda: lista de notas -->
+      <div class="caderno-sidebar">
+        <div class="caderno-sidebar-head">
+          <span class="caderno-sidebar-label">Notas</span>
+          <button class="caderno-nova-btn" onclick="novaNota()" title="Nova nota">＋</button>
+        </div>
+        <div id="cadernoListaNotas"></div>
       </div>
-      <div id="cadernoListaNotas"></div>
+      <!-- Coluna direita: editor -->
+      <div class="caderno-main">
+        <div class="caderno-toolbar">
+          <select class="select-font" onchange="execCmd('fontName',this.value)" title="Fonte">
+            <option value="'IM Fell English',serif">IM Fell</option>
+            <option value="Georgia,serif">Georgia</option>
+            <option value="'Helvetica Neue',Arial,sans-serif">Sans-serif</option>
+            <option value="'Courier New',monospace">Monospace</option>
+          </select>
+          <select class="select-size" onchange="execCmdSize(this.value)" title="Tamanho">
+            <option value="1">10px</option>
+            <option value="2">12px</option>
+            <option value="3" selected>14px</option>
+            <option value="4">16px</option>
+            <option value="5">18px</option>
+            <option value="6">22px</option>
+            <option value="7">26px</option>
+          </select>
+          <div class="caderno-sep"></div>
+          <button class="caderno-btn" onclick="execCmd('bold')" title="Negrito"><strong>N</strong></button>
+          <button class="caderno-btn" onclick="execCmd('italic')" title="Itálico"><em>I</em></button>
+          <button class="caderno-btn" onclick="execCmd('underline')" title="Sublinhado"><u>S</u></button>
+          <button class="caderno-btn" onclick="execCmd('strikeThrough')" title="Tachado"><s>T</s></button>
+          <div class="caderno-sep"></div>
+          <button class="caderno-btn" onclick="execCmd('justifyLeft')" title="Esquerda">⬅</button>
+          <button class="caderno-btn" onclick="execCmd('justifyCenter')" title="Centralizar">↔</button>
+          <button class="caderno-btn" onclick="execCmd('justifyRight')" title="Direita">➡</button>
+          <button class="caderno-btn" onclick="execCmd('justifyFull')" title="Justificar">≡</button>
+          <div class="caderno-sep"></div>
+          <button class="caderno-btn" onclick="execCmd('insertUnorderedList')" title="Lista">•—</button>
+          <button class="caderno-btn" onclick="execCmd('insertOrderedList')" title="Numerada">1.</button>
+          <div class="caderno-sep"></div>
+          <label class="caderno-btn" title="Cor do texto">A <input type="color" style="display:none" oninput="execCmd('foreColor',this.value)"></label>
+          <label class="caderno-btn" title="Cor de fundo"><span style="background:#ffeb3b;padding:0 3px">M</span><input type="color" style="display:none" value="#ffeb3b" oninput="execCmd('backColor',this.value)"></label>
+          <div class="caderno-sep"></div>
+          <button class="caderno-btn" onclick="execCmd('removeFormat')" title="Limpar">✕</button>
+        </div>
+        <input class="caderno-titulo" id="cadernoTitulo" placeholder="Título da nota…" oninput="cadernoAutoSave()">
+        <div class="caderno-editor" id="cadernoEditor"
+          contenteditable="true"
+          onkeydown="cadernoKeydown(event)"
+          oninput="cadernoAutoSave()"></div>
+        <div class="caderno-actions">
+          <button class="caderno-save-btn" onclick="salvarNotaAtual()">💾 Salvar nota</button>
+          <span class="caderno-status" id="cadernoStatus"></span>
+        </div>
+      </div>
     </div>`;
 
-  // Carregar nota atual se existir
   if (cadernoNotaAtual !== null) {
     const nota = cadernoNotas[cadernoNotaAtual];
     if (nota) {
@@ -3982,9 +3979,7 @@ function execCmdSize(val) {
 let cadernoAutoSaveTimer = null;
 function cadernoAutoSave() {
   clearTimeout(cadernoAutoSaveTimer);
-  cadernoAutoSaveTimer = setTimeout(() => {
-    if (cadernoNotaAtual !== null) salvarNotaAtual(true);
-  }, 2000);
+  cadernoAutoSaveTimer = setTimeout(() => salvarNotaAtual(true), 1500);
 }
 
 function cadernoKeydown(e) {
@@ -3994,57 +3989,74 @@ function cadernoKeydown(e) {
   }
 }
 
-function novaNota() {
-  salvarNotaAtual(true);
-  const titulo = document.getElementById('cadernoTitulo');
-  const editor = document.getElementById('cadernoEditor');
-  if (titulo) titulo.value = '';
-  if (editor) editor.innerHTML = '';
-  cadernoNotaAtual = null;
-  document.getElementById('cadernoStatus').textContent = '';
+async function novaNota() {
+  if (cadernoNotaAtual !== null && cadernoNotas[cadernoNotaAtual]) {
+    await salvarNotaAtual(true);
+  }
+  const agora = new Date().toLocaleDateString('pt-BR') + ' ' +
+    new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+  const novaId = 'local_' + Date.now();
+  cadernoNotas.unshift({
+    id: novaId, titulo: '', conteudo: '',
+    criado: agora, atualizado: agora
+  });
+  cadernoNotaAtual = 0;
+  const tit = document.getElementById('cadernoTitulo');
+  const ed = document.getElementById('cadernoEditor');
+  if (tit) { tit.value = ''; tit.focus(); }
+  if (ed) ed.innerHTML = '';
+  salvarCaderno();
+  renderListaNotas();
 }
 
 async function salvarNotaAtual(silencioso = false) {
-  const titulo = document.getElementById('cadernoTitulo')?.value.trim() || 'Sem título';
-  const conteudo = document.getElementById('cadernoEditor')?.innerHTML || '';
-  const agora = new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
+  const tituloEl = document.getElementById('cadernoTitulo');
+  const editorEl = document.getElementById('cadernoEditor');
+  const titulo = tituloEl?.value.trim() || '';
+  const conteudo = editorEl?.innerHTML || '';
+  if (!titulo && (!conteudo || conteudo === '<br>')) return;
+
+  const agora = new Date().toLocaleDateString('pt-BR') + ' ' +
+    new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
 
   if (cadernoNotaAtual !== null && cadernoNotas[cadernoNotaAtual]) {
-    cadernoNotas[cadernoNotaAtual] = { ...cadernoNotas[cadernoNotaAtual], titulo, conteudo, atualizado: agora };
+    cadernoNotas[cadernoNotaAtual] = {
+      ...cadernoNotas[cadernoNotaAtual], titulo, conteudo, atualizado: agora
+    };
   } else {
-    cadernoNotas.unshift({ titulo, conteudo, criado: agora, atualizado: agora });
+    const novaId = 'local_' + Date.now();
+    cadernoNotas.unshift({ id: novaId, titulo, conteudo, criado: agora, atualizado: agora });
     cadernoNotaAtual = 0;
   }
   salvarCaderno();
+  renderListaNotas();
 
-  // Salvar no Supabase
-  if (supa && supaUserId && cadernoNotaAtual !== null) {
+  if (supa && supaUserId) {
     const nota = cadernoNotas[cadernoNotaAtual];
-    if (nota) {
-      const agoraIso = new Date().toISOString();
-      if (nota.id) {
-        try { await supa.from('notas').update({
-          titulo: nota.titulo, conteudo: nota.conteudo, atualizado_em: agoraIso
-        }).eq('id', nota.id).eq('user_id', supaUserId); } catch(e) {}
+    const isLocal = !nota.id || String(nota.id).startsWith('local_');
+    try {
+      if (isLocal) {
+        const { data } = await supa.from('notas').insert({
+          user_id: supaUserId,
+          titulo: titulo || 'Sem título',
+          conteudo: conteudo || '',
+          criado_em: new Date().toISOString(),
+          atualizado_em: new Date().toISOString()
+        }).select().single();
+        if (data?.id) nota.id = data.id;
       } else {
-        try {
-          const { data } = await supa.from('notas').insert({
-            user_id: supaUserId, titulo: nota.titulo, conteudo: nota.conteudo,
-            criado_em: agoraIso, atualizado_em: agoraIso
-          }).select('id').single();
-          if (data?.id && cadernoNotaAtual !== null && cadernoNotas[cadernoNotaAtual]) {
-            cadernoNotas[cadernoNotaAtual].id = data.id;
-            salvarCaderno();
-          }
-        } catch(e) {}
+        await supa.from('notas').update({
+          titulo: titulo || 'Sem título',
+          conteudo: conteudo || '',
+          atualizado_em: new Date().toISOString()
+        }).eq('id', nota.id).eq('user_id', supaUserId);
       }
-    }
+    } catch(e) { console.warn('Erro ao salvar nota:', e.message); }
   }
 
-  renderListaNotas();
   if (!silencioso) {
     const status = document.getElementById('cadernoStatus');
-    if (status) { status.textContent = 'Nota salva ✓'; setTimeout(() => { status.textContent = ''; }, 2000); }
+    if (status) { status.textContent = '✓ Salvo'; setTimeout(() => { status.textContent = ''; }, 2000); }
   }
 }
 
@@ -4075,9 +4087,8 @@ function renderListaNotas() {
   }
   lista.innerHTML = cadernoNotas.map((n, i) => `
     <div class="caderno-nota-item ${i === cadernoNotaAtual ? 'active' : ''}" onclick="abrirNota(${i})">
-      <span class="caderno-nota-titulo">${escH(n.titulo || 'Sem título')}</span>
-      <span class="caderno-nota-data">${escH(n.atualizado || n.criado || '')}</span>
-      <button class="caderno-nota-del" onclick="event.stopPropagation();deletarNota(${i})" title="Deletar">×</button>
+      <div class="caderno-nota-titulo">${escH(n.titulo || 'Sem título')}</div>
+      <div class="caderno-nota-data">${escH(n.atualizado || n.criado || '')}</div>
     </div>`).join('');
 }
 
