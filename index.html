@@ -4012,6 +4012,7 @@ function cadernoKeydown(e) {
 }
 
 function novaNota() {
+  salvarNotaAtual(true);
   const titulo = document.getElementById('cadernoTitulo');
   const editor = document.getElementById('cadernoEditor');
   if (titulo) titulo.value = '';
@@ -4032,6 +4033,30 @@ function salvarNotaAtual(silencioso = false) {
     cadernoNotaAtual = 0;
   }
   salvarCaderno();
+
+  // Salvar no Supabase
+  if (supa && supaUserId && cadernoNotaAtual !== null) {
+    const nota = cadernoNotas[cadernoNotaAtual];
+    if (nota) {
+      const agoraIso = new Date().toISOString();
+      if (nota.id) {
+        supa.from('notas').update({
+          titulo: nota.titulo, conteudo: nota.conteudo, atualizado_em: agoraIso
+        }).eq('id', nota.id).eq('user_id', supaUserId).catch(() => {});
+      } else {
+        supa.from('notas').insert({
+          user_id: supaUserId, titulo: nota.titulo, conteudo: nota.conteudo,
+          criado_em: agoraIso, atualizado_em: agoraIso
+        }).select('id').single().then(({ data }) => {
+          if (data?.id && cadernoNotaAtual !== null && cadernoNotas[cadernoNotaAtual]) {
+            cadernoNotas[cadernoNotaAtual].id = data.id;
+            salvarCaderno();
+          }
+        }).catch(() => {});
+      }
+    }
+  }
+
   renderListaNotas();
   if (!silencioso) {
     const status = document.getElementById('cadernoStatus');
