@@ -2107,60 +2107,43 @@ let selSegAtual = null;
 function setupSelectionMenu() {
   const menu = document.getElementById('selMenu');
 
-  // mousedown no menu: prevenir desfazer seleção e marcar flag
+  // mousedown no menu: prevenir desfazer seleção
   menu.addEventListener('mousedown', e => {
     menuClickando = true;
     e.preventDefault();
   });
-  menu.addEventListener('touchstart', () => {
-    menuClickando = true;
-  }, { passive: true });
+  menu.addEventListener('touchstart', () => { menuClickando = true; }, { passive: true });
 
-  // Clique dentro do menu — parar propagação SEMPRE
-  // Isso impede que o click listener do documento feche o menu
+  // Clique dentro do menu — nunca fechar
   menu.addEventListener('click', e => {
     e.stopPropagation();
-    menuClickando = false;
+    e.preventDefault();
     const btnRemover = e.target.closest('.sel-btn-remove');
-    if (btnRemover) {
-      // Pequeno delay para garantir que hiSpanAlvo está definido
-      setTimeout(() => removeHighlight(), 10);
-    }
+    if (btnRemover) removeHighlight();
   });
 
-  // Clique fora do menu → fechar
+  // Clique no documento
   document.addEventListener('click', e => {
-    // Clique em highlight existente → abrir menu de remoção
+    // Clique em destaque existente → menu de remoção
     const hiSpan = e.target.closest('[data-hi]');
     if (hiSpan && !e.target.closest('#selMenu')) {
-      // Marcar que estamos abrindo menu — previne fechamento imediato
-      menuClickando = true;
       hiSpanAlvo = hiSpan;
-      const corLabel = { yellow: 'amarelo', green: 'verde', blue: 'azul' };
-      const cor = corLabel[hiSpan.dataset.hi] || 'destaque';
+      const cores = { yellow:'amarelo', green:'verde', blue:'azul' };
       menu.innerHTML = `
-        <div class="sel-section-label">Destaque ${escH(cor)}</div>
+        <div class="sel-section-label">Destaque ${escH(cores[hiSpan.dataset.hi]||'')}</div>
         <button class="sel-btn sel-btn-remove">
           <svg class="sel-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
             <polyline points="3,6 17,6"/><path d="M8,6V4h4v2"/><path d="M5,6l1,11h8l1-11"/>
-          </svg>
-          Remover destaque
-        </button>`;
+          </svg>Remover destaque</button>`;
       posicionarMenu(hiSpan.getBoundingClientRect());
       menu.classList.add('visible');
       menuAberto = true;
-      // Resetar flag após ciclo de eventos
-      setTimeout(() => { menuClickando = false; }, 50);
-      return;
+      return; // não fechar
     }
 
-    // Se menuClickando, ignorar este clique
-    if (menuClickando) { menuClickando = false; return; }
-
-    // Clique fora → fechar
-    if (!e.target.closest('#selMenu')) {
-      hideMenu();
-    }
+    // Clique fora → fechar apenas se não foi dentro do menu
+    if (!e.target.closest('#selMenu') && !menuClickando) hideMenu();
+    menuClickando = false;
   });
 
   // Mostrar menu ao soltar após seleção
@@ -2612,205 +2595,210 @@ function mostrarMenuMarcadorInline(segId, btnEl, numSeg) {
   const cores = [
     { cor:'blue',   hex:'#3b82f6', nome:'Azul' },
     { cor:'green',  hex:'#22c55e', nome:'Verde' },
+function salvarMarcadores() {
+  try { localStorage.setItem('lirelacan_marcadores', JSON.stringify(marcadores)); } catch(e) {}
+  if (!supa || !supaUserId) return;
+  // Deletar todos e reinserir para garantir consistência
+  supa.from('trechos_salvos')
+    .delete().eq('user_id', supaUserId).like('seg_id', 'marcador_%')
+    .then(() => {
+      marcadores.forEach(m => {
+        supa.from('trechos_salvos').insert({
+          user_id: supaUserId,
+          seminario: S.seminarios[m.sem] ? S.seminarios[m.sem].numero : 0,
+          seg_id: 'marcador_' + m.id,
+          texto_fr: m.segId,
+          traducao: m.cor + '|' + m.num + '|' + (m.label || '')
+        }).catch(() => {});
+      });
+    }).catch(() => {});
+}
+
+function mostrarMenuMarcadorInline(segId, btnEl) {
+  document.querySelectorAll('.bookmark-menu').forEach(e => e.remove());
+  const cores = [
+    { cor:'blue',   hex:'#3b82f6', nome:'Azul'     },
+    { cor:'green',  hex:'#22c55e', nome:'Verde'    },
     { cor:'red',    hex:'#ef4444', nome:'Vermelho' },
-    { cor:'yellow', hex:'#eab308', nome:'Amarelo' },
-    { cor:'purple', hex:'#a855f7', nome:'Roxo' },
+    { cor:'yellow', hex:'#eab308', nome:'Amarelo'  },
+    { cor:'purple', hex:'#a855f7', nome:'Roxo'     },
   ];
   const menu = document.createElement('div');
   menu.className = 'bookmark-menu';
-  menu.innerHTML = `
-    <div style="font-size:11px;color:var(--ink-faint);margin-bottom:10px;font-family:'Karla',sans-serif;font-weight:500">
-      + Marcador de página
-    </div>
-    <div style="display:flex;gap:10px;align-items:center">
-      ${cores.map(c => `
-        <button onclick="adicionarMarcadorNoSeg('${segId}','${c.cor}',${numSeg})"
-          title="${c.nome}"
-          style="width:24px;height:24px;border-radius:50%;background:${c.hex};
-          border:2px solid white;box-shadow:0 0 0 1.5px ${c.hex};
-          cursor:pointer;transition:transform .15s"
-          onmouseenter="this.style.transform='scale(1.2)'"
-          onmouseleave="this.style.transform=''">
-        </button>`).join('')}
-    </div>`;
+  menu.style.cssText = 'position:fixed;background:var(--paper-warm);border:1px solid var(--border);' +
+    'border-radius:10px;padding:12px 14px;z-index:400;box-shadow:0 6px 24px rgba(0,0,0,.18);';
+  menu.innerHTML = '<div style="font-size:11px;color:var(--ink-faint);margin-bottom:10px;font-family:Karla,sans-serif;font-weight:500">+ Marcador de página</div>' +
+    '<div style="display:flex;gap:10px;align-items:center">' +
+    cores.map(c =>
+      '<button data-cor="' + c.cor + '" title="' + c.nome + '" ' +
+      'style="width:24px;height:24px;border-radius:50%;background:' + c.hex + ';' +
+      'border:2px solid white;box-shadow:0 0 0 1.5px ' + c.hex + ';cursor:pointer"></button>'
+    ).join('') + '</div>';
+
+  // Posicionar
   const rect = btnEl.getBoundingClientRect();
-  menu.style.cssText = `position:fixed;top:${rect.bottom+6}px;left:${Math.max(8,rect.left-20)}px;
-    background:var(--paper-warm);border:1px solid var(--border);border-radius:10px;
-    padding:12px 14px;z-index:400;box-shadow:0 6px 24px rgba(0,0,0,.18);`;
+  menu.style.top  = (rect.bottom + 6) + 'px';
+  menu.style.left = Math.max(8, rect.left - 20) + 'px';
   document.body.appendChild(menu);
+
+  // Clique nas cores
+  menu.addEventListener('click', e => {
+    const btn = e.target.closest('[data-cor]');
+    if (!btn) return;
+    e.stopPropagation();
+    menu.remove();
+    adicionarMarcadorNoSeg(segId, btn.dataset.cor);
+  });
+
+  // Fechar ao clicar fora
   setTimeout(() => {
     document.addEventListener('click', function fechar(e) {
-      if (!menu.contains(e.target) && e.target !== btnEl) {
-        menu.remove();
-        document.removeEventListener('click', fechar);
-      }
+      if (!menu.contains(e.target)) { menu.remove(); document.removeEventListener('click', fechar); }
     });
   }, 10);
 }
 
-function adicionarMarcadorNoSeg(segId, cor, numSeg) {
-  document.querySelectorAll('.bookmark-menu').forEach(e => e.remove());
+function adicionarMarcadorNoSeg(segId, cor) {
   const segEl = document.querySelector('[data-seg="' + segId + '"]');
 
   // Toggle: se já existe marcador neste segmento, remover
-  const existente = marcadores.find(m => m.segId === segId);
+  const existente = marcadores.find(function(m) { return m.segId === segId; });
   if (existente) {
     removerMarcador(existente.id);
     mostrarToast('Marcador removido', '#888');
     return;
   }
 
+  // Criar novo marcador
   const textoEl = segEl && segEl.querySelector('.seg-fr');
-  const label = ((textoEl && textoEl.textContent) || '').slice(0, 60).trim() + '…';
-  const id = String(Date.now());
-  const sem = S.semAtual;
-  const num = marcadores.length ? Math.max.apply(null, marcadores.map(function(m){return m.num;})) + 1 : 1;
-  proxNumMarcador = num + 1;
+  const label   = ((textoEl && textoEl.textContent) || '').slice(0, 60).trim() + '…';
+  const id      = String(Date.now());
+  const sem     = S.semAtual;
+  const num     = marcadores.length
+    ? Math.max.apply(null, marcadores.map(function(m){ return m.num; })) + 1
+    : 1;
 
   marcadores.push({ id: id, num: num, cor: cor, segId: segId, sem: sem, label: label });
+  proxNumMarcador = num + 1;
+
+  // Visual no segmento
+  _aplicarTagMarcador(segId, cor, num);
+
   salvarMarcadores();
   renderMarcadores();
-
-  if (segEl) {
-    const btn = segEl.querySelector('.seg-bookmark-btn');
-    if (btn) { btn.classList.add('tem-marcador'); btn.style.color = corMarcador(cor); btn.style.opacity = '1'; }
-    segEl.querySelectorAll('.seg-marcador-tag').forEach(function(t){ t.remove(); });
-    const tag = document.createElement('div');
-    tag.className = 'seg-marcador-tag';
-    tag.style.cssText = 'position:absolute;left:0;top:0;background:' + corMarcador(cor) + ';color:white;' +
-      'font-size:9px;font-weight:700;padding:2px 5px;border-radius:0 0 5px 0;' +
-      'font-family:Karla,sans-serif;cursor:pointer;display:flex;align-items:center;gap:2px;z-index:2;white-space:nowrap;';
-    tag.textContent = corEmoji(cor) + ' #' + num;
-    tag.onclick = function(e) { e.stopPropagation(); irParaSegmento(segId); };
-    segEl.appendChild(tag);
-    segEl.style.outline = '2px solid ' + corMarcador(cor);
-    setTimeout(function(){ segEl.style.outline = ''; }, 2000);
-  }
   mostrarToast('Marcador #' + num + ' adicionado', corMarcador(cor));
+}
+
+function removerMarcador(id) {
+  const idStr = String(id);
+  const m = marcadores.find(function(x){ return String(x.id) === idStr; });
+
+  if (m) {
+    // Limpar visual no segmento
+    const segEl = document.querySelector('[data-seg="' + m.segId + '"]');
+    if (segEl) {
+      segEl.querySelectorAll('.seg-marcador-tag').forEach(function(t){ t.remove(); });
+      const btn = segEl.querySelector('.seg-bookmark-btn');
+      if (btn) { btn.classList.remove('tem-marcador'); btn.style.color = ''; btn.style.opacity = ''; }
+    }
+  }
+
+  marcadores = marcadores.filter(function(x){ return String(x.id) !== idStr; });
+
+  // Renumerar por ordem crescente
+  marcadores.sort(function(a,b){ return a.num - b.num; });
+  marcadores.forEach(function(m, i){ m.num = i + 1; });
+  proxNumMarcador = marcadores.length + 1;
+
+  // Atualizar tags dos restantes
+  marcadores.forEach(function(m) {
+    const tag = document.querySelector('[data-seg="' + m.segId + '"] .seg-marcador-tag');
+    if (tag) tag.textContent = corEmoji(m.cor) + ' #' + m.num;
+  });
+
+  salvarMarcadores();
+  renderMarcadores();
 }
 
 function corMarcador(cor) {
   return { blue:'#3b82f6', green:'#22c55e', red:'#ef4444', yellow:'#eab308', purple:'#a855f7' }[cor] || '#888';
 }
 
-function irParaMarcador(m) {
-  if (m.sem !== S.semAtual) { loadSeminario(m.sem); setTimeout(() => irParaSegmento(m.segId), 600); }
-  else irParaSegmento(m.segId);
-}
-
-function irParaSegmento(segId) {
-  S.lastSegId = segId;
-  if (S.activeTab !== 'read') switchTab('read');
-  setTimeout(() => {
-    const el = document.querySelector(`[data-seg="${segId}"]`);
-    if (el) {
-      const rect = el.getBoundingClientRect();
-      const target = window.scrollY + rect.top - 100;
-      window.scrollTo({ top: target, behavior: 'smooth' });
-      el.style.outline = '2px solid var(--accent-light)';
-      setTimeout(() => { el.style.outline = ''; }, 2000);
-    }
-  }, 100);
-}
-
-function removerMarcador(id) {
-  const idStr = String(id);
-  const m = marcadores.find(x => String(x.id) === idStr);
-  if (m) {
-    const segEl = document.querySelector(`[data-seg="${m.segId}"]`);
-    if (segEl) {
-      segEl.querySelectorAll('.seg-marcador-tag').forEach(t => t.remove());
-      const btn = segEl.querySelector('.seg-bookmark-btn');
-      if (btn) { btn.classList.remove('tem-marcador'); btn.style.removeProperty('color'); btn.style.opacity = ''; }
-    }
-    if (supa && supaUserId) {
-      supa.from('trechos_salvos').delete()
-        .eq('user_id', supaUserId).eq('seg_id', 'marcador_' + idStr).catch(() => {});
-    }
-  }
-  marcadores = marcadores.filter(x => String(x.id) !== idStr);
-  marcadores.sort((a,b) => a.num - b.num).forEach((m,i) => { m.num = i+1; });
-  proxNumMarcador = marcadores.length + 1;
-  marcadores.forEach(m => {
-    const tag = document.querySelector('[data-seg="' + m.segId + '"] .seg-marcador-tag');
-    if (tag) tag.textContent = corEmoji(m.cor) + ' #' + m.num;
-  });
-  salvarMarcadores();
-  renderMarcadores();
-}
-
 function corEmoji(cor) {
   return { blue:'🔵', green:'🟢', red:'🔴', yellow:'🟡', purple:'🟣' }[cor] || '⚫';
+}
+
+function _aplicarTagMarcador(segId, cor, num) {
+  const segEl = document.querySelector('[data-seg="' + segId + '"]');
+  if (!segEl) return;
+  // Botão
+  const btn = segEl.querySelector('.seg-bookmark-btn');
+  if (btn) { btn.classList.add('tem-marcador'); btn.style.color = corMarcador(cor); btn.style.opacity = '1'; }
+  // Tag
+  segEl.querySelectorAll('.seg-marcador-tag').forEach(function(t){ t.remove(); });
+  const tag = document.createElement('div');
+  tag.className = 'seg-marcador-tag';
+  tag.style.cssText = 'position:absolute;left:0;top:0;background:' + corMarcador(cor) + ';color:white;' +
+    'font-size:9px;font-weight:700;padding:2px 5px;border-radius:0 0 5px 0;' +
+    'font-family:Karla,sans-serif;cursor:pointer;display:flex;align-items:center;gap:2px;z-index:2;white-space:nowrap;';
+  tag.textContent = corEmoji(cor) + ' #' + num;
+  tag.onclick = function(e) { e.stopPropagation(); irParaSegmento(segId); };
+  segEl.appendChild(tag);
+  // Outline temporário
+  segEl.style.outline = '2px solid ' + corMarcador(cor);
+  setTimeout(function(){ segEl.style.outline = ''; }, 2000);
 }
 
 function renderMarcadores() {
   const el = document.getElementById('panelMarcadores');
   if (!el) return;
 
-  // Limpar marcadores corrompidos (undefined)
-  marcadores = marcadores.filter(m => m.segId && m.cor && m.num && m.num !== undefined);
+  // Filtrar corrompidos
+  marcadores = marcadores.filter(function(m) {
+    return m && m.segId && m.cor && typeof m.num === 'number' && !isNaN(m.num);
+  });
 
   const semMarcadores = marcadores
-    .filter(m => m.sem === S.semAtual)
-    .sort((a, b) => a.num - b.num);
+    .filter(function(m){ return m.sem === S.semAtual; })
+    .sort(function(a,b){ return a.num - b.num; });
 
   if (!semMarcadores.length) {
-    el.innerHTML = '<span style="font-size:11px;color:var(--ink-faint);font-style:italic">Clique em 🔖 num segmento para adicionar.</span>';
+    el.innerHTML = '<span style="font-size:11px;color:var(--ink-faint);font-style:italic">Clique em 🔖 ao lado de um parágrafo para adicionar.</span>';
     return;
   }
 
-  el.innerHTML = semMarcadores.map(m => `
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;
-      padding:5px 8px;border-radius:6px;cursor:pointer;
-      border-left:3px solid ${corMarcador(m.cor)};background:var(--paper-warm)"
-      onclick="irParaMarcador(${JSON.stringify(m).replace(/"/g,'&quot;')})">
-      <span style="font-size:12px;line-height:1">${corEmoji(m.cor)}</span>
-      <span style="font-size:10px;font-weight:700;color:white;
-        background:${corMarcador(m.cor)};padding:1px 5px;border-radius:10px;flex-shrink:0">
-        #${m.num}
-      </span>
-      <span style="font-size:11px;color:var(--ink-soft);flex:1;
-        white-space:nowrap;overflow:hidden;text-overflow:ellipsis"
-        title="${escH(m.label)}">${escH(m.label)}</span>
-      <button class="btn-remover-marcador" data-marcador-id="${m.id}"
-        style="background:none;border:none;color:var(--ink-faint);cursor:pointer;
-        font-size:16px;padding:0 4px;flex-shrink:0;line-height:1"
-        title="Remover marcador">×</button>
-    </div>`).join('');
+  el.innerHTML = semMarcadores.map(function(m) {
+    return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;' +
+      'padding:5px 8px;border-radius:6px;cursor:pointer;' +
+      'border-left:3px solid ' + corMarcador(m.cor) + ';background:var(--paper-warm)"' +
+      ' data-seg-id="' + m.segId + '">' +
+      '<span style="font-size:12px">' + corEmoji(m.cor) + '</span>' +
+      '<span style="font-size:10px;font-weight:700;color:white;background:' + corMarcador(m.cor) + ';padding:1px 5px;border-radius:10px;flex-shrink:0">#' + m.num + '</span>' +
+      '<span style="font-size:11px;color:var(--ink-soft);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="' + escH(m.label) + '">' + escH(m.label) + '</span>' +
+      '<button class="btn-rm-marc" data-id="' + m.id + '" style="background:none;border:none;color:var(--ink-faint);cursor:pointer;font-size:16px;padding:0 4px;flex-shrink:0;line-height:1" title="Remover">×</button>' +
+      '</div>';
+  }).join('');
 
-  // Usar addEventListener em vez de onclick inline — evita problemas com IDs grandes
-  el.querySelectorAll('.btn-remover-marcador').forEach(btn => {
-    btn.addEventListener('click', e => {
+  // Clique na linha → ir para marcador
+  el.querySelectorAll('[data-seg-id]').forEach(function(div) {
+    div.addEventListener('click', function(e) {
+      if (e.target.closest('.btn-rm-marc')) return;
+      irParaSegmento(div.dataset.segId);
+    });
+  });
+
+  // Clique no X → remover
+  el.querySelectorAll('.btn-rm-marc').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
       e.stopPropagation();
-      e.preventDefault();
-      const id = btn.dataset.marcadorId; // manter como string
-      if (id) removerMarcador(id);
+      removerMarcador(btn.dataset.id);
     });
   });
 }
 
 function aplicarMarcadoresVisuais() {
-  marcadores.filter(m => m.sem === S.semAtual).forEach(m => {
-    const segEl = document.querySelector(`[data-seg="${m.segId}"]`);
-    if (!segEl) return;
-    const btn = segEl.querySelector('.seg-bookmark-btn');
-    if (btn) {
-      btn.classList.add('tem-marcador');
-      btn.style.color = corMarcador(m.cor);
-      btn.style.opacity = '1';
-    }
-    segEl.querySelectorAll('.seg-marcador-tag').forEach(t => t.remove());
-    const tag = document.createElement('div');
-    tag.className = 'seg-marcador-tag';
-    tag.style.cssText = `
-      position:absolute;left:0;top:0;
-      background:${corMarcador(m.cor)};color:white;
-      font-size:9px;font-weight:700;padding:2px 5px;
-      border-radius:0 0 5px 0;font-family:'Karla',sans-serif;
-      cursor:pointer;display:flex;align-items:center;gap:2px;z-index:2;`;
-    tag.innerHTML = `${corEmoji(m.cor)} #${m.num}`;
-    tag.onclick = e => { e.stopPropagation(); irParaSegmento(m.segId); };
-    segEl.appendChild(tag);
+  marcadores.filter(function(m){ return m.sem === S.semAtual; }).forEach(function(m) {
+    _aplicarTagMarcador(m.segId, m.cor, m.num);
   });
 }
 
@@ -2819,40 +2807,26 @@ async function carregarMarcadoresNuvem() {
   try {
     const { data } = await supa.from('trechos_salvos')
       .select('*').eq('user_id', supaUserId).like('seg_id', 'marcador_%');
-    if (data?.length) {
-      marcadores = data.map(d => {
-        const parts = (d.traducao || '').split('|');
-        return {
-          id: parseInt(d.seg_id.replace('marcador_', '')) || Date.now(),
-          cor: parts[0] || 'blue',
-          num: parseInt(parts[1]) || 1,
-          segId: d.texto_fr || '',
-          sem: 0,
-          label: parts.slice(2).join('|') || ''
-        };
-      });
-      proxNumMarcador = marcadores.length ? Math.max(...marcadores.map(m => m.num)) + 1 : 1;
+    if (!data || !data.length) return;
+    const carregados = [];
+    data.forEach(function(d) {
+      const parts = (d.traducao || '').split('|');
+      const cor   = parts[0] || 'blue';
+      const num   = parseInt(parts[1], 10);
+      const label = parts.slice(2).join('|') || '';
+      const segId = d.texto_fr || '';
+      const id    = d.seg_id.replace('marcador_', '');
+      // Validar: segId deve ser id de segmento real, num deve ser número válido
+      if (!segId || isNaN(num) || num <= 0) return;
+      carregados.push({ id: id, num: num, cor: cor, segId: segId, sem: 0, label: label });
+    });
+    if (carregados.length) {
+      marcadores = carregados;
+      proxNumMarcador = Math.max.apply(null, marcadores.map(function(m){return m.num;})) + 1;
       try { localStorage.setItem('lirelacan_marcadores', JSON.stringify(marcadores)); } catch(e) {}
     }
-  } catch(e) {}
+  } catch(e) { console.warn('Erro ao carregar marcadores:', e); }
 }
-function toggleThemePanel() {
-  document.getElementById('themePanel').classList.toggle('visible');
-}
-
-function setTheme(theme) {
-  document.body.className = document.body.className.replace(/theme-\w+/g, '').trim();
-  if (theme !== 'paper') document.body.classList.add('theme-' + theme);
-  document.querySelectorAll('.palette-btn').forEach(b =>
-    b.classList.toggle('active', b.dataset.theme === theme));
-  // Salvar preferência
-  try { localStorage.setItem('lirelacan_tema', theme); } catch(e) {}
-  if (supa && supaUserId) {
-    supa.from('progresso').upsert({
-      user_id: supaUserId, seminario: -1, // -1 = preferências globais
-      segs_lidos: [], atualizado_em: new Date().toISOString(),
-    }, { onConflict: 'user_id,seminario' }).catch(() => {});
-    // Salvar em trechos_salvos como preferência
     supa.from('trechos_salvos').upsert({
       user_id: supaUserId, seminario: 0,
       seg_id: 'pref_tema', texto_fr: theme, traducao: currentFont || 'sans'
