@@ -1637,20 +1637,23 @@ function renderMarcadores() {
         }
       }
     }
-    return '<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;' +
+    return '<div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:5px;' +
       'padding:5px 8px;border-radius:6px;cursor:pointer;' +
       'border-left:3px solid ' + corMarcador(m.cor) + ';background:var(--paper-warm)" ' +
       'data-seg-id="' + m.segId + '">' +
       // Ícone colorido com número
-      '<div style="display:flex;align-items:center;gap:3px;flex-shrink:0">' +
+      '<div style="display:flex;align-items:center;gap:3px;flex-shrink:0;margin-top:1px">' +
       '<span style="font-size:11px">' + corEmoji(m.cor) + '</span>' +
       '<span style="font-size:9px;font-weight:700;color:white;background:' + corMarcador(m.cor) + ';padding:1px 5px;border-radius:10px">#' + m.num + '</span>' +
       '</div>' +
-      // Lição
-      (licaoNum ? '<span style="font-size:10px;color:var(--ink-faint);flex-shrink:0">' + escH(licaoNum) + '</span>' : '') +
+      // Texto do segmento + lição
+      '<div style="flex:1;min-width:0">' +
+      (m.label ? '<div style="font-size:10px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-style:italic">' + escH(m.label) + '</div>' : '') +
+      (licaoNum ? '<div style="font-size:9px;color:var(--ink-faint)">' + escH(licaoNum) + '</div>' : '') +
+      '</div>' +
       // X remover
       '<button class="btn-rm-marc" data-id="' + m.id + '" ' +
-      'style="background:none;border:none;color:var(--ink-faint);cursor:pointer;font-size:15px;padding:0 2px;margin-left:auto;flex-shrink:0;line-height:1" ' +
+      'style="background:none;border:none;color:var(--ink-faint);cursor:pointer;font-size:15px;padding:0 2px;flex-shrink:0;line-height:1;margin-top:-1px" ' +
       'title="Remover marcador">×</button>' +
       '</div>';
   }).join('');
