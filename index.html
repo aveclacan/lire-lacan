@@ -17,10 +17,11 @@
   --hi-yellow: rgba(255,220,60,0.45); --hi-green: rgba(80,200,120,0.45); --hi-blue: rgba(80,150,255,0.45);
   --border: rgba(0,0,0,0.10); --border-strong: rgba(0,0,0,0.22);
   --font-ui: 'IM Fell English', serif;
+  --font-size: 14px;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: var(--paper); color: var(--ink); font-family: var(--font-ui, 'IM Fell English', serif);
-  font-weight: 300; line-height: 1.7; min-height: 100vh; overflow-x: hidden; }
+  font-size: var(--font-size, 14px); font-weight: 300; line-height: 1.7; min-height: 100vh; overflow-x: hidden; }
 
 /* ── TOPBAR ── */
 .topbar {
@@ -150,7 +151,7 @@ body { background: var(--paper); color: var(--ink); font-family: var(--font-ui, 
 .seg-num { font-family:'IM Fell English',serif; font-size:10px; color:var(--ink-faint);
   min-width:24px; text-align:right; padding-top:5px; flex-shrink:0; user-select:none; }
 .seg-content { flex:1; }
-.seg-fr { font-family:'IM Fell English',serif; font-size:16.5px; line-height:1.75;
+.seg-fr { font-family:'IM Fell English',serif; font-size:var(--font-size,14px); line-height:1.75;
   color:var(--ink); position:relative; }
 .seg-marker { flex-shrink:0; width:5px; height:5px; border-radius:50%;
   margin-top:9px; background:transparent; }
@@ -988,9 +989,9 @@ body.theme-sage {
   </div>
   <div class="theme-section">Tamanho</div>
   <div class="theme-fonts">
-    <button class="font-btn active" onclick="setFontSize(14)">P</button>
-    <button class="font-btn" onclick="setFontSize(16.5)">M</button>
-    <button class="font-btn" onclick="setFontSize(19)">G</button>
+    <button class="font-btn active" data-size="14" onclick="setFontSize(14)">P</button>
+    <button class="font-btn" data-size="16.5" onclick="setFontSize(16.5)">M</button>
+    <button class="font-btn" data-size="19" onclick="setFontSize(19)">G</button>
   </div>
 </div>
 
@@ -2563,9 +2564,9 @@ function setFont(font) {
 }
 
 function setFontSize(size) {
-  document.querySelectorAll('.seg-fr').forEach(el => {
-    el.style.fontSize = size + 'px';
-  });
+  document.documentElement.style.setProperty('--font-size', size + 'px');
+  document.querySelectorAll('[data-size]').forEach(b =>
+    b.classList.toggle('active', parseFloat(b.dataset.size) === size));
 }
 
 // ══════════════════════════════════════════════════════
