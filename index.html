@@ -158,16 +158,8 @@ body { background: var(--paper); color: var(--ink); font-family: var(--font-prin
 .seg-marker.has-termo { background:var(--gold); }
 
 /* Botão áudio (aparece no hover) */
-.btn-audio {
-  position:absolute; left:-34px; top:3px;
-  width:22px; height:22px; border-radius:50%;
-  border:1px solid var(--border-strong); background:var(--paper);
-  color:var(--ink-faint); cursor:pointer; font-size:7px;
-  display:flex; align-items:center; justify-content:center;
-  opacity:0; transition:opacity .15s, background .15s;
-}
-.segment:hover .btn-audio { opacity:1; }
-.btn-audio:hover, .btn-audio.playing { background:var(--accent); border-color:var(--accent); color:#fff; }
+/* btn-audio gerenciado pelo .seg-btn-group — ver CSS de marcadores abaixo */
+
 
 /* Tradução */
 .seg-pt {
@@ -909,28 +901,29 @@ body.theme-sepia {
 .caderno-color-bar { width: 18px; height: 3px; border-radius: 2px; }
 .caderno-status { margin-left: auto; font-size: 11px; color: var(--accent); font-family: 'Karla', sans-serif; }
 
-/* ── MARCADORES INLINE ── */
-.segment { position: relative; }
+/* ── BOTÕES LATERAIS DO SEGMENTO ── */
+.segment { position: relative; padding-left: 48px; }
 .seg-btn-group {
-  display: flex; align-items: center; gap: 4px;
-  position: absolute; right: -4px; top: 50%; transform: translateY(-50%);
+  position: absolute; left: 0; top: 8px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
 }
 .seg-bookmark-btn {
   background: none; border: none; cursor: pointer;
-  color: var(--ink-faint); padding: 4px 2px;
-  opacity: 0; transition: opacity .15s, color .15s;
-  display: flex; align-items: center;
+  color: var(--ink-faint); padding: 3px 4px;
+  opacity: 0.25; transition: opacity .15s, color .15s;
+  display: flex; align-items: center; line-height: 1;
 }
-.segment:hover .seg-bookmark-btn { opacity: 0.5; }
-.segment:hover .seg-bookmark-btn:hover { opacity: 1; color: var(--accent); }
-.seg-bookmark-btn.marcado { opacity: 1 !important; }
-.btn-audio {
+.segment:hover .seg-bookmark-btn { opacity: 0.6; }
+.seg-bookmark-btn:hover { opacity: 1 !important; color: var(--accent) !important; }
+.seg-bookmark-btn.tem-marcador { opacity: 1; color: var(--accent); }
+.seg-btn-group .btn-audio {
   background: none; border: none; cursor: pointer;
-  color: var(--ink-faint); font-size: 11px; padding: 4px;
-  opacity: 0; transition: opacity .15s;
+  color: var(--ink-faint); font-size: 10px; padding: 3px 4px;
+  opacity: 0.25; transition: opacity .15s; line-height: 1;
+  border-radius: 0;
 }
-.segment:hover .btn-audio { opacity: 0.5; }
-.segment:hover .btn-audio:hover { opacity: 1; }
+.segment:hover .seg-btn-group .btn-audio { opacity: 0.6; }
+.seg-btn-group .btn-audio:hover { opacity: 1 !important; }
 
 .conj-explainer {
   border: 1px solid var(--border);
@@ -1587,13 +1580,20 @@ async function carregarDadosNuvem() {
   // Re-renderizar leitor com highlights carregados
   if (S.semAtual !== null) {
     renderFullReader(S.seminarios[S.semAtual]);
-    setTimeout(() => { aplicarHighlightsNuvem(); aplicarMarcadoresVisuais(); renderMarcadores(); }, 200);
+    // Aguardar DOM estar pronto antes de aplicar highlights e marcadores
+    setTimeout(() => {
+      aplicarHighlightsNuvem();
+      aplicarMarcadoresVisuais();
+      renderMarcadores();
+      // Restaurar posição após aplicar destaques
+      restaurarPosicaoLeitura();
+    }, 300);
   }
 
-  // Carregar marcadores e aplicar visuais
+  // Carregar marcadores da nuvem
   await carregarMarcadoresNuvem();
   renderMarcadores();
-  aplicarMarcadoresVisuais();
+  if (S.semAtual !== null) setTimeout(() => aplicarMarcadoresVisuais(), 400);
 }
 
 // ── SALVAR na nuvem ────────────────────────────────────
@@ -1716,12 +1716,16 @@ window.addEventListener('DOMContentLoaded', async () => {
   renderSidebar();
   loadSeminario(0);
 
-  // Salvar posição ao fechar/sair da página
+  // Carregar dados da nuvem APÓS seminário estar carregado
+  if (supaUserId) {
+    setTimeout(async () => {
+      await carregarDadosNuvem();
+    }, 300);
+  }
+
+  // Salvar posição ao fechar
   window.addEventListener('beforeunload', () => salvarPosicaoLeitura());
-  // Salvar posição a cada 30 segundos durante leitura
-  setInterval(() => {
-    if (S.activeTab === 'read') salvarPosicaoLeitura();
-  }, 30000);
+  setInterval(() => { if (S.activeTab === 'read') salvarPosicaoLeitura(); }, 30000);
 });
 
 // ══════════════════════════════════════════════════════
@@ -2597,44 +2601,62 @@ function mostrarMenuMarcadorInline(segId, btnEl, numSeg) {
 
 function adicionarMarcadorNoSeg(segId, cor, numSeg) {
   document.querySelectorAll('.bookmark-menu').forEach(e => e.remove());
+
   const el = document.querySelector(`[data-seg="${segId}"]`);
   const textoEl = el?.querySelector('.seg-fr');
   const label = (textoEl?.textContent || '').slice(0, 60).trim() + '…';
-  const num = proxNumMarcador++;
+
+  // Calcular número: o mais antigo tem #1
+  const num = marcadores.length + 1; // será renumerado na ordem correta
   const id = Date.now();
   const sem = S.semAtual;
 
   marcadores.unshift({ id, num, cor, segId, sem, label });
+
+  // Renumerar todos corretamente (mais antigo = #1)
+  const ordenados = [...marcadores].reverse();
+  ordenados.forEach((m, i) => { m.num = i + 1; });
+  marcadores = ordenados.reverse();
+
+  proxNumMarcador = marcadores.length + 1;
   salvarMarcadores();
   renderMarcadores();
 
-  // Feedback visual claro — faixa colorida + badge animado
+  // Feedback visual permanente no botão e tag
   if (el) {
-    // Remover tag antiga do mesmo seg se existir
+    // Colorir o botão de marcador
+    const btn = el.querySelector('.seg-bookmark-btn');
+    if (btn) {
+      btn.classList.add('tem-marcador');
+      btn.style.color = corMarcador(cor);
+      btn.style.opacity = '1';
+    }
+
+    // Remover tag antiga
     el.querySelectorAll('.seg-marcador-tag').forEach(t => t.remove());
+
+    // Criar tag colorida permanente
     const tag = document.createElement('div');
     tag.className = 'seg-marcador-tag';
-    tag.style.cssText = `background:${corMarcador(cor)};`;
-    tag.title = `Marcador #${num} — clique para navegar`;
-    tag.innerHTML = `🚩 #${num}`;
+    tag.style.cssText = `
+      position:absolute; left:0; top:0;
+      background:${corMarcador(cor)};
+      color:white; font-size:9px; font-weight:700;
+      padding:2px 6px; border-radius:0 0 6px 0;
+      font-family:'Karla',sans-serif; cursor:pointer;
+      display:flex; align-items:center; gap:3px;
+      box-shadow:1px 1px 3px rgba(0,0,0,.15);
+    `;
+    tag.innerHTML = `<span>${corEmoji(cor)}</span><span>#${marcadores.find(m=>m.segId===segId)?.num||num}</span>`;
     tag.onclick = (e) => { e.stopPropagation(); irParaSegmento(segId); };
-    el.querySelector('.seg-body')?.prepend(tag);
-    // Animação de entrada
-    tag.style.opacity = '0';
-    tag.style.transform = 'scale(0.5)';
-    requestAnimationFrame(() => {
-      tag.style.transition = 'all .3s cubic-bezier(.34,1.56,.64,1)';
-      tag.style.opacity = '1';
-      tag.style.transform = 'scale(1)';
-    });
+    el.appendChild(tag);
+
     // Highlight temporário do segmento
     el.style.outline = `2px solid ${corMarcador(cor)}`;
-    el.style.borderRadius = '4px';
-    setTimeout(() => { el.style.outline = ''; el.style.borderRadius = ''; }, 2500);
+    setTimeout(() => { el.style.outline = ''; }, 2500);
   }
 
-  // Toast de confirmação
-  mostrarToast(`Marcador #${num} adicionado`, corMarcador(cor));
+  mostrarToast(`Marcador #${marcadores.find(m=>m.segId===segId)?.num||num} adicionado`, corMarcador(cor));
 }
 
 function corMarcador(cor) {
@@ -2664,68 +2686,100 @@ function irParaSegmento(segId) {
 function removerMarcador(id) {
   const m = marcadores.find(x => x.id === id);
   if (m) {
-    // Remover indicador visual
+    // Remover tag visual do segmento
     const el = document.querySelector(`[data-seg="${m.segId}"]`);
-    el?.querySelectorAll('.seg-marcador-tag').forEach(t => t.remove());
+    if (el) {
+      el.querySelectorAll('.seg-marcador-tag').forEach(t => t.remove());
+      el.querySelector('.seg-bookmark-btn')?.classList.remove('tem-marcador');
+      el.querySelector('.seg-bookmark-btn')?.style.removeProperty('color');
+    }
   }
-  marcadores = marcadores.filter(m => m.id !== id);
+  // Remover da lista
+  marcadores = marcadores.filter(x => x.id !== id);
+
+  // Renumerar em ordem crescente (ordem na lista = ordem de inserção invertida)
+  // Os marcadores estão em ordem decrescente (mais novo primeiro)
+  // Renumerar de forma que o mais antigo seja #1
+  const ordenados = [...marcadores].reverse();
+  ordenados.forEach((m, i) => { m.num = i + 1; });
+  marcadores = ordenados.reverse(); // voltar à ordem original (mais novo primeiro)
+
+  // Atualizar badges visuais
+  marcadores.forEach(m => {
+    const el = document.querySelector(`[data-seg="${m.segId}"]`);
+    if (!el) return;
+    const tag = el.querySelector('.seg-marcador-tag');
+    if (tag) tag.innerHTML = `<span style="margin-right:3px">${corEmoji(m.cor)}</span>#${m.num}`;
+  });
+
   salvarMarcadores();
-  if (supa && supaUserId) {
-    supa.from('trechos_salvos').delete().eq('user_id', supaUserId).eq('seg_id', 'marcador_' + id).catch(() => {});
-  }
   renderMarcadores();
+
+  // Remover da nuvem
+  if (supa && supaUserId) {
+    supa.from('trechos_salvos').delete()
+      .eq('user_id', supaUserId).eq('seg_id', 'marcador_' + id).catch(() => {});
+    // Re-salvar todos com números atualizados
+    salvarMarcadores();
+  }
+}
+
+function corEmoji(cor) {
+  return { blue:'🔵', green:'🟢', red:'🔴', yellow:'🟡', purple:'🟣' }[cor] || '⚫';
 }
 
 function renderMarcadores() {
   const el = document.getElementById('panelMarcadores');
   if (!el) return;
-  const semMarcadores = marcadores.filter(m => m.sem === S.semAtual);
+  const semMarcadores = marcadores
+    .filter(m => m.sem === S.semAtual)
+    .sort((a, b) => a.num - b.num);
   if (!semMarcadores.length) {
-    el.innerHTML = '<span style="font-size:11px;color:var(--ink-faint);font-style:italic">Clique em 🔖 num trecho para adicionar um marcador.</span>';
+    el.innerHTML = '<span style="font-size:11px;color:var(--ink-faint);font-style:italic">Clique em 🔖 num segmento para adicionar.</span>';
     return;
   }
   el.innerHTML = semMarcadores.map(m => `
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;cursor:pointer;padding:4px 0"
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;
+      padding:5px 8px;border-radius:6px;cursor:pointer;
+      border-left:3px solid ${corMarcador(m.cor)};background:var(--paper-warm)"
       onclick="irParaMarcador(${JSON.stringify(m).replace(/"/g,'&quot;')})">
-      <div style="width:12px;height:12px;border-radius:50%;background:${corMarcador(m.cor)};flex-shrink:0"></div>
-      <span style="font-size:11px;font-weight:600;color:var(--ink-soft);flex-shrink:0">#${m.num}</span>
-      <span style="font-size:11px;color:var(--ink-soft);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"
+      <span style="font-size:12px;line-height:1">${corEmoji(m.cor)}</span>
+      <span style="font-size:10px;font-weight:700;color:white;
+        background:${corMarcador(m.cor)};padding:1px 5px;border-radius:10px;flex-shrink:0">
+        #${m.num}
+      </span>
+      <span style="font-size:11px;color:var(--ink-soft);flex:1;
+        white-space:nowrap;overflow:hidden;text-overflow:ellipsis"
         title="${escH(m.label)}">${escH(m.label)}</span>
       <button onclick="event.stopPropagation();removerMarcador(${m.id})"
-        style="background:none;border:none;color:var(--ink-faint);cursor:pointer;font-size:13px;padding:0 2px;flex-shrink:0">×</button>
+        style="background:none;border:none;color:var(--ink-faint);cursor:pointer;
+        font-size:14px;padding:0 2px;flex-shrink:0;line-height:1"
+        title="Remover">×</button>
     </div>`).join('');
 }
 
-function mostrarToast(msg, cor) {
-  const t = document.createElement('div');
-  t.style.cssText = `position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);
-    background:${cor||'var(--accent)'};color:white;padding:8px 18px;border-radius:20px;
-    font-size:13px;font-family:'Karla',sans-serif;font-weight:500;z-index:500;
-    opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;
-    box-shadow:0 4px 16px rgba(0,0,0,.2)`;
-  t.textContent = msg;
-  document.body.appendChild(t);
-  requestAnimationFrame(() => { t.style.opacity='1'; t.style.transform='translateX(-50%) translateY(0)'; });
-  setTimeout(() => {
-    t.style.opacity='0'; t.style.transform='translateX(-50%) translateY(20px)';
-    setTimeout(() => t.remove(), 300);
-  }, 2500);
-}
-
-// Aplicar indicadores visuais após renderizar o leitor
 function aplicarMarcadoresVisuais() {
   marcadores.filter(m => m.sem === S.semAtual).forEach(m => {
-    const el = document.querySelector(`[data-seg="${m.segId}"]`);
-    if (!el) return;
-    // Remover tags antigas e recriar
-    el.querySelectorAll('.seg-marcador-tag').forEach(t => t.remove());
+    const segEl = document.querySelector(`[data-seg="${m.segId}"]`);
+    if (!segEl) return;
+    const btn = segEl.querySelector('.seg-bookmark-btn');
+    if (btn) {
+      btn.classList.add('tem-marcador');
+      btn.style.color = corMarcador(m.cor);
+      btn.style.opacity = '1';
+    }
+    segEl.querySelectorAll('.seg-marcador-tag').forEach(t => t.remove());
     const tag = document.createElement('div');
     tag.className = 'seg-marcador-tag';
-    tag.style.cssText = `background:${corMarcador(m.cor)};`;
-    tag.title = `Marcador #${m.num} — clique para ver no painel`;
-    tag.innerHTML = `🚩 #${m.num}`;
-    tag.onclick = (e) => { e.stopPropagation(); irParaSegmento(m.segId); };
-    el.querySelector('.seg-body')?.prepend(tag);
+    tag.style.cssText = `
+      position:absolute;left:0;top:0;
+      background:${corMarcador(m.cor)};color:white;
+      font-size:9px;font-weight:700;padding:2px 5px;
+      border-radius:0 0 5px 0;font-family:'Karla',sans-serif;
+      cursor:pointer;display:flex;align-items:center;gap:2px;z-index:2;`;
+    tag.innerHTML = `${corEmoji(m.cor)} #${m.num}`;
+    tag.onclick = e => { e.stopPropagation(); irParaSegmento(m.segId); };
+    segEl.appendChild(tag);
   });
 }
 
