@@ -1876,12 +1876,20 @@ function buildSegEl(seg, idx, licaoNum) {
 
   // Botão de marcador — ao lado esquerdo do play
   const marcadorBtn = el('button', { cls: 'seg-bookmark-btn', title: 'Adicionar marcador de página' });
-  marcadorBtn.innerHTML = `<svg width="12" height="16" viewBox="0 0 12 16" fill="none">
-    <path d="M0 0h12v16l-6-4-6 4V0z" fill="currentColor"/>
+  marcadorBtn.innerHTML = `<svg width="11" height="15" viewBox="0 0 11 15" fill="none">
+    <path d="M0 0h11v15l-5.5-3.5L0 15V0z" fill="currentColor"/>
   </svg>`;
   marcadorBtn.addEventListener('click', e => {
     e.stopPropagation();
-    mostrarMenuMarcadorInline(seg.id, marcadorBtn, idx);
+    // Verificar se já tem marcador neste segmento
+    const marcadorExistente = marcadores.find(m => m.segId === seg.id && m.sem === S.semAtual);
+    if (marcadorExistente) {
+      // Toggle: remover marcador existente
+      removerMarcador(marcadorExistente.id);
+    } else {
+      // Adicionar novo marcador
+      mostrarMenuMarcadorInline(seg.id, marcadorBtn, idx);
+    }
   });
 
   // Botão de áudio
@@ -2099,7 +2107,7 @@ let selSegAtual = null;
 function setupSelectionMenu() {
   const menu = document.getElementById('selMenu');
 
-  // Proteger menu: mousedown previne desfazer seleção
+  // mousedown no menu: prevenir desfazer seleção e marcar flag
   menu.addEventListener('mousedown', e => {
     menuClickando = true;
     e.preventDefault();
@@ -2108,27 +2116,30 @@ function setupSelectionMenu() {
     menuClickando = true;
   }, { passive: true });
 
-  // Clique dentro do menu — não fechar nunca
+  // Clique dentro do menu — parar propagação SEMPRE
+  // Isso impede que o click listener do documento feche o menu
   menu.addEventListener('click', e => {
     e.stopPropagation();
-    // Processar botão de remover highlight
+    menuClickando = false;
     const btnRemover = e.target.closest('.sel-btn-remove');
     if (btnRemover) {
-      removeHighlight();
-      return;
+      // Pequeno delay para garantir que hiSpanAlvo está definido
+      setTimeout(() => removeHighlight(), 10);
     }
   });
 
   // Clique fora do menu → fechar
   document.addEventListener('click', e => {
-    // Clique em highlight existente → menu de remoção
+    // Clique em highlight existente → abrir menu de remoção
     const hiSpan = e.target.closest('[data-hi]');
     if (hiSpan && !e.target.closest('#selMenu')) {
+      // Marcar que estamos abrindo menu — previne fechamento imediato
+      menuClickando = true;
       hiSpanAlvo = hiSpan;
       const corLabel = { yellow: 'amarelo', green: 'verde', blue: 'azul' };
       const cor = corLabel[hiSpan.dataset.hi] || 'destaque';
       menu.innerHTML = `
-        <div class="sel-section-label">Destaque ${cor}</div>
+        <div class="sel-section-label">Destaque ${escH(cor)}</div>
         <button class="sel-btn sel-btn-remove">
           <svg class="sel-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
             <polyline points="3,6 17,6"/><path d="M8,6V4h4v2"/><path d="M5,6l1,11h8l1-11"/>
@@ -2138,8 +2149,14 @@ function setupSelectionMenu() {
       posicionarMenu(hiSpan.getBoundingClientRect());
       menu.classList.add('visible');
       menuAberto = true;
+      // Resetar flag após ciclo de eventos
+      setTimeout(() => { menuClickando = false; }, 50);
       return;
     }
+
+    // Se menuClickando, ignorar este clique
+    if (menuClickando) { menuClickando = false; return; }
+
     // Clique fora → fechar
     if (!e.target.closest('#selMenu')) {
       hideMenu();
@@ -2321,12 +2338,40 @@ function posicionarMenu(rect) {
 
 function removeHighlight() {
   if (!hiSpanAlvo) { hideMenu(); return; }
+
+  // Guardar info antes de remover
+  const cor = hiSpanAlvo.dataset.hi;
+  const texto = hiSpanAlvo.textContent;
+  const segEl = hiSpanAlvo.closest('[data-seg]');
+  const segId = segEl?.dataset?.seg;
+
+  // Remover do DOM
   const parent = hiSpanAlvo.parentNode;
   if (parent) {
     while (hiSpanAlvo.firstChild) parent.insertBefore(hiSpanAlvo.firstChild, hiSpanAlvo);
     parent.removeChild(hiSpanAlvo);
     parent.normalize();
   }
+
+  // Atualizar S.highlights
+  if (segId && S.highlights[segId]) {
+    S.highlights[segId] = S.highlights[segId].filter(h =>
+      (h.text || h.texto || '').trim() !== texto.trim() ||
+      (h.color || h.cor) !== cor
+    );
+    if (!S.highlights[segId].length) delete S.highlights[segId];
+  }
+
+  // Remover da nuvem
+  if (supa && supaUserId && segId) {
+    supa.from('highlights').delete()
+      .eq('user_id', supaUserId)
+      .eq('seg_id', segId)
+      .eq('cor', cor)
+      .eq('texto', texto)
+      .catch(e => console.warn('Erro ao remover highlight:', e.message));
+  }
+
   hiSpanAlvo = null;
   hideMenu();
 }
@@ -2543,8 +2588,12 @@ function restaurarPosicaoLeitura() {
 
 // ── Marcadores de página ─────────────────────────────────────────
 let marcadores = [];
-try { marcadores = JSON.parse(localStorage.getItem('lirelacan_marcadores') || '[]'); } catch(e) { marcadores = []; }
-let proxNumMarcador = marcadores.length ? Math.max(...marcadores.map(m => m.num || 0)) + 1 : 1;
+try {
+  const raw = JSON.parse(localStorage.getItem('lirelacan_marcadores') || '[]');
+  // Filtrar marcadores corrompidos (sem num, sem segId, etc.)
+  marcadores = raw.filter(m => m && m.segId && m.cor && typeof m.num === 'number' && !isNaN(m.num));
+} catch(e) { marcadores = []; }
+let proxNumMarcador = marcadores.length ? Math.max(...marcadores.map(m => m.num), 0) + 1 : 1;
 
 function salvarMarcadores() {
   try { localStorage.setItem('lirelacan_marcadores', JSON.stringify(marcadores)); } catch(e) {}
@@ -2601,62 +2650,43 @@ function mostrarMenuMarcadorInline(segId, btnEl, numSeg) {
 
 function adicionarMarcadorNoSeg(segId, cor, numSeg) {
   document.querySelectorAll('.bookmark-menu').forEach(e => e.remove());
+  const segEl = document.querySelector('[data-seg="' + segId + '"]');
 
-  const el = document.querySelector(`[data-seg="${segId}"]`);
-  const textoEl = el?.querySelector('.seg-fr');
-  const label = (textoEl?.textContent || '').slice(0, 60).trim() + '…';
+  // Toggle: se já existe marcador neste segmento, remover
+  const existente = marcadores.find(m => m.segId === segId);
+  if (existente) {
+    removerMarcador(existente.id);
+    mostrarToast('Marcador removido', '#888');
+    return;
+  }
 
-  // Calcular número: o mais antigo tem #1
-  const num = marcadores.length + 1; // será renumerado na ordem correta
-  const id = Date.now();
+  const textoEl = segEl && segEl.querySelector('.seg-fr');
+  const label = ((textoEl && textoEl.textContent) || '').slice(0, 60).trim() + '…';
+  const id = String(Date.now());
   const sem = S.semAtual;
+  const num = marcadores.length ? Math.max.apply(null, marcadores.map(function(m){return m.num;})) + 1 : 1;
+  proxNumMarcador = num + 1;
 
-  marcadores.unshift({ id, num, cor, segId, sem, label });
-
-  // Renumerar todos corretamente (mais antigo = #1)
-  const ordenados = [...marcadores].reverse();
-  ordenados.forEach((m, i) => { m.num = i + 1; });
-  marcadores = ordenados.reverse();
-
-  proxNumMarcador = marcadores.length + 1;
+  marcadores.push({ id: id, num: num, cor: cor, segId: segId, sem: sem, label: label });
   salvarMarcadores();
   renderMarcadores();
 
-  // Feedback visual permanente no botão e tag
-  if (el) {
-    // Colorir o botão de marcador
-    const btn = el.querySelector('.seg-bookmark-btn');
-    if (btn) {
-      btn.classList.add('tem-marcador');
-      btn.style.color = corMarcador(cor);
-      btn.style.opacity = '1';
-    }
-
-    // Remover tag antiga
-    el.querySelectorAll('.seg-marcador-tag').forEach(t => t.remove());
-
-    // Criar tag colorida permanente
+  if (segEl) {
+    const btn = segEl.querySelector('.seg-bookmark-btn');
+    if (btn) { btn.classList.add('tem-marcador'); btn.style.color = corMarcador(cor); btn.style.opacity = '1'; }
+    segEl.querySelectorAll('.seg-marcador-tag').forEach(function(t){ t.remove(); });
     const tag = document.createElement('div');
     tag.className = 'seg-marcador-tag';
-    tag.style.cssText = `
-      position:absolute; left:0; top:0;
-      background:${corMarcador(cor)};
-      color:white; font-size:9px; font-weight:700;
-      padding:2px 6px; border-radius:0 0 6px 0;
-      font-family:'Karla',sans-serif; cursor:pointer;
-      display:flex; align-items:center; gap:3px;
-      box-shadow:1px 1px 3px rgba(0,0,0,.15);
-    `;
-    tag.innerHTML = `<span>${corEmoji(cor)}</span><span>#${marcadores.find(m=>m.segId===segId)?.num||num}</span>`;
-    tag.onclick = (e) => { e.stopPropagation(); irParaSegmento(segId); };
-    el.appendChild(tag);
-
-    // Highlight temporário do segmento
-    el.style.outline = `2px solid ${corMarcador(cor)}`;
-    setTimeout(() => { el.style.outline = ''; }, 2500);
+    tag.style.cssText = 'position:absolute;left:0;top:0;background:' + corMarcador(cor) + ';color:white;' +
+      'font-size:9px;font-weight:700;padding:2px 5px;border-radius:0 0 5px 0;' +
+      'font-family:Karla,sans-serif;cursor:pointer;display:flex;align-items:center;gap:2px;z-index:2;white-space:nowrap;';
+    tag.textContent = corEmoji(cor) + ' #' + num;
+    tag.onclick = function(e) { e.stopPropagation(); irParaSegmento(segId); };
+    segEl.appendChild(tag);
+    segEl.style.outline = '2px solid ' + corMarcador(cor);
+    setTimeout(function(){ segEl.style.outline = ''; }, 2000);
   }
-
-  mostrarToast(`Marcador #${marcadores.find(m=>m.segId===segId)?.num||num} adicionado`, corMarcador(cor));
+  mostrarToast('Marcador #' + num + ' adicionado', corMarcador(cor));
 }
 
 function corMarcador(cor) {
@@ -2684,44 +2714,29 @@ function irParaSegmento(segId) {
 }
 
 function removerMarcador(id) {
-  const m = marcadores.find(x => x.id === id);
+  const idStr = String(id);
+  const m = marcadores.find(x => String(x.id) === idStr);
   if (m) {
-    // Remover tag visual do segmento
-    const el = document.querySelector(`[data-seg="${m.segId}"]`);
-    if (el) {
-      el.querySelectorAll('.seg-marcador-tag').forEach(t => t.remove());
-      el.querySelector('.seg-bookmark-btn')?.classList.remove('tem-marcador');
-      el.querySelector('.seg-bookmark-btn')?.style.removeProperty('color');
+    const segEl = document.querySelector(`[data-seg="${m.segId}"]`);
+    if (segEl) {
+      segEl.querySelectorAll('.seg-marcador-tag').forEach(t => t.remove());
+      const btn = segEl.querySelector('.seg-bookmark-btn');
+      if (btn) { btn.classList.remove('tem-marcador'); btn.style.removeProperty('color'); btn.style.opacity = ''; }
+    }
+    if (supa && supaUserId) {
+      supa.from('trechos_salvos').delete()
+        .eq('user_id', supaUserId).eq('seg_id', 'marcador_' + idStr).catch(() => {});
     }
   }
-  // Remover da lista
-  marcadores = marcadores.filter(x => x.id !== id);
-
-  // Renumerar em ordem crescente (ordem na lista = ordem de inserção invertida)
-  // Os marcadores estão em ordem decrescente (mais novo primeiro)
-  // Renumerar de forma que o mais antigo seja #1
-  const ordenados = [...marcadores].reverse();
-  ordenados.forEach((m, i) => { m.num = i + 1; });
-  marcadores = ordenados.reverse(); // voltar à ordem original (mais novo primeiro)
-
-  // Atualizar badges visuais
+  marcadores = marcadores.filter(x => String(x.id) !== idStr);
+  marcadores.sort((a,b) => a.num - b.num).forEach((m,i) => { m.num = i+1; });
+  proxNumMarcador = marcadores.length + 1;
   marcadores.forEach(m => {
-    const el = document.querySelector(`[data-seg="${m.segId}"]`);
-    if (!el) return;
-    const tag = el.querySelector('.seg-marcador-tag');
-    if (tag) tag.innerHTML = `<span style="margin-right:3px">${corEmoji(m.cor)}</span>#${m.num}`;
+    const tag = document.querySelector('[data-seg="' + m.segId + '"] .seg-marcador-tag');
+    if (tag) tag.textContent = corEmoji(m.cor) + ' #' + m.num;
   });
-
   salvarMarcadores();
   renderMarcadores();
-
-  // Remover da nuvem
-  if (supa && supaUserId) {
-    supa.from('trechos_salvos').delete()
-      .eq('user_id', supaUserId).eq('seg_id', 'marcador_' + id).catch(() => {});
-    // Re-salvar todos com números atualizados
-    salvarMarcadores();
-  }
 }
 
 function corEmoji(cor) {
@@ -2731,13 +2746,19 @@ function corEmoji(cor) {
 function renderMarcadores() {
   const el = document.getElementById('panelMarcadores');
   if (!el) return;
+
+  // Limpar marcadores corrompidos (undefined)
+  marcadores = marcadores.filter(m => m.segId && m.cor && m.num && m.num !== undefined);
+
   const semMarcadores = marcadores
     .filter(m => m.sem === S.semAtual)
     .sort((a, b) => a.num - b.num);
+
   if (!semMarcadores.length) {
     el.innerHTML = '<span style="font-size:11px;color:var(--ink-faint);font-style:italic">Clique em 🔖 num segmento para adicionar.</span>';
     return;
   }
+
   el.innerHTML = semMarcadores.map(m => `
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;
       padding:5px 8px;border-radius:6px;cursor:pointer;
@@ -2751,11 +2772,21 @@ function renderMarcadores() {
       <span style="font-size:11px;color:var(--ink-soft);flex:1;
         white-space:nowrap;overflow:hidden;text-overflow:ellipsis"
         title="${escH(m.label)}">${escH(m.label)}</span>
-      <button onclick="event.stopPropagation();removerMarcador(${m.id})"
+      <button class="btn-remover-marcador" data-marcador-id="${m.id}"
         style="background:none;border:none;color:var(--ink-faint);cursor:pointer;
-        font-size:14px;padding:0 2px;flex-shrink:0;line-height:1"
-        title="Remover">×</button>
+        font-size:16px;padding:0 4px;flex-shrink:0;line-height:1"
+        title="Remover marcador">×</button>
     </div>`).join('');
+
+  // Usar addEventListener em vez de onclick inline — evita problemas com IDs grandes
+  el.querySelectorAll('.btn-remover-marcador').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      e.preventDefault();
+      const id = btn.dataset.marcadorId; // manter como string
+      if (id) removerMarcador(id);
+    });
+  });
 }
 
 function aplicarMarcadoresVisuais() {
