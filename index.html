@@ -2586,30 +2586,6 @@ function salvarMarcadores() {
   }
 }
 
-function mostrarMenuMarcadorInline(segId, btnEl, numSeg) {
-  document.querySelectorAll('.bookmark-menu').forEach(e => e.remove());
-  const cores = [
-    { cor:'blue',   hex:'#3b82f6', nome:'Azul' },
-    { cor:'green',  hex:'#22c55e', nome:'Verde' },
-function salvarMarcadores() {
-  try { localStorage.setItem('lirelacan_marcadores', JSON.stringify(marcadores)); } catch(e) {}
-  if (!supa || !supaUserId) return;
-  // Deletar todos e reinserir para garantir consistência
-  supa.from('trechos_salvos')
-    .delete().eq('user_id', supaUserId).like('seg_id', 'marcador_%')
-    .then(() => {
-      marcadores.forEach(m => {
-        supa.from('trechos_salvos').insert({
-          user_id: supaUserId,
-          seminario: S.seminarios[m.sem] ? S.seminarios[m.sem].numero : 0,
-          seg_id: 'marcador_' + m.id,
-          texto_fr: m.segId,
-          traducao: m.cor + '|' + m.num + '|' + (m.label || '')
-        }).catch(() => {});
-      });
-    }).catch(() => {});
-}
-
 function mostrarMenuMarcadorInline(segId, btnEl) {
   document.querySelectorAll('.bookmark-menu').forEach(e => e.remove());
   const cores = [
