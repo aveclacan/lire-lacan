@@ -1804,9 +1804,13 @@ function loadSeminario(idx) {
   const sem = S.seminarios[idx];
   document.getElementById('topSem').textContent = `Séminaire ${sem.numero} — ${sem.titulo_fr}`;
   document.getElementById('mainTabs').style.display = 'flex';
+  // Resetar todas as abas e views antes de mostrar o leitor
+  ['trad','conj','vocab','gram','caderno','saved'].forEach(t => {
+    document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1))?.classList.remove('active');
+    document.getElementById(t + 'View')?.classList.remove('visible');
+  });
   S.activeTab = 'read';
   document.getElementById('tabRead').classList.add('active');
-  document.getElementById('tabSaved').classList.remove('active');
   renderSideIndex(sem);
   renderFullReader(sem);
   setTimeout(() => { aplicarMarcadoresVisuais(); renderMarcadores(); }, 200);
@@ -2488,10 +2492,9 @@ function confirmComment() {
 //  ABA SALVOS
 // ══════════════════════════════════════════════════════
 function switchTab(tab) {
-  // Salvar segmento atual antes de sair da leitura
-  if (S.activeTab === 'read') {
-    salvarPosicaoLeitura();
-  }
+  // Salvar estado da aba atual ANTES de sair
+  if (S.activeTab === 'read') salvarPosicaoLeitura();
+  if (S.activeTab === 'caderno') salvarNotaAtual(true);
 
   S.activeTab = tab;
   const allTabs = ['read','trad','conj','vocab','gram','caderno','saved'];
