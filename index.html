@@ -8,14 +8,14 @@
 <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&family=Karla:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
 <style>
 :root {
-  --ink: #1a1712; --ink-soft: #4a4640; --ink-faint: #8a857e;
-  --paper: #f5f0e8; --paper-warm: #ede7d8; --paper-dark: #ddd5c5;
-  --accent: #6b3a2a; --accent-light: #c4785a; --accent-pale: #f0e0d6;
+  --ink: #1a1a1a; --ink-soft: #444444; --ink-faint: #999999;
+  --paper: #ffffff; --paper-warm: #f8f8f8; --paper-dark: #eeeeee;
+  --accent: #1a1a1a; --accent-light: #444444; --accent-pale: #f0f0f0;
   --gold: #9a7a3a; --gold-pale: #f4ecda; --gold-hi: rgba(196,178,80,0.32);
   --violet: #3d2d5c; --violet-pale: #e8e0f0;
   --teal: #1d4a45; --teal-pale: #d8edeb;
-  --hi-yellow: rgba(255,220,60,0.38); --hi-green: rgba(80,200,120,0.38); --hi-blue: rgba(80,150,255,0.38);
-  --border: rgba(26,23,18,0.12); --border-strong: rgba(26,23,18,0.25);
+  --hi-yellow: rgba(255,220,60,0.45); --hi-green: rgba(80,200,120,0.45); --hi-blue: rgba(80,150,255,0.45);
+  --border: rgba(0,0,0,0.10); --border-strong: rgba(0,0,0,0.22);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: var(--paper); color: var(--ink); font-family: 'Karla', sans-serif;
@@ -463,23 +463,26 @@ body { background: var(--paper); color: var(--ink); font-family: 'Karla', sans-s
 .font-btn.active { background:var(--accent-pale); border-color:var(--accent-light);
   color:var(--accent); }
 
-/* ── TEMA NOTURNO ── */
+/* ── TEMAS — o padrão branco/preto já está no :root, sem classe body ── */
+body.theme-sepia {
+  --ink:#2c2416; --ink-soft:#6b5a3e; --ink-faint:#a08060;
+  --paper:#f5f0e8; --paper-warm:#ede8de; --paper-dark:#e0d9cc;
+  --accent:#7a2c1e; --accent-light:#a03d2e; --accent-pale:#f5ece9;
+  --border:rgba(26,23,18,0.12); --border-strong:rgba(26,23,18,0.25);
+}
 body.theme-night {
-  --ink:#e8e4dc; --ink-soft:#b0a898; --ink-faint:#706860;
-  --paper:#1a1a2e; --paper-warm:#16213e; --paper-dark:#0f3460;
-  --accent:#7b8cde; --accent-light:#a0aff0; --accent-pale:#1e2a5e;
-  --border:rgba(232,228,220,0.1); --border-strong:rgba(232,228,220,0.2);
+  --ink:#c8d0e0; --ink-soft:#8a9ab8; --ink-faint:#4a5878;
+  --paper:#0d1117; --paper-warm:#161b22; --paper-dark:#21262d;
+  --accent:#58a6ff; --accent-light:#79c0ff; --accent-pale:#1f3a5f;
+  --border:rgba(200,208,224,0.08); --border-strong:rgba(200,208,224,0.15);
+  --hi-yellow:rgba(255,220,60,0.25); --hi-green:rgba(80,200,120,0.25); --hi-blue:rgba(80,150,255,0.25);
 }
 body.theme-sage {
   --ink:#1a2a20; --ink-soft:#3d5a45; --ink-faint:#7a9a82;
   --paper:#f0f4f0; --paper-warm:#e4ece5; --paper-dark:#ccddd0;
   --accent:#3d6b5a; --accent-light:#5a9e80; --accent-pale:#d4ebe0;
 }
-body.theme-paper {
-  --ink:#2d2d2d; --ink-soft:#555; --ink-faint:#999;
-  --paper:#ffffff; --paper-warm:#f8f8f8; --paper-dark:#eee;
-  --accent:#2d2d2d; --accent-light:#555; --accent-pale:#f0f0f0;
-}
+
 
 /* ── ABA TRADUÇÃO ── */
 .trad-view {
@@ -962,17 +965,17 @@ body.theme-paper {
 <div class="theme-panel" id="themePanel">
   <div class="theme-section">Paleta</div>
   <div class="theme-palettes">
-    <button class="palette-btn active" data-theme="sepia" onclick="setTheme('sepia')" title="Sépia (padrão)">
-      <span style="background:#f5f0e8"></span><span style="background:#6b3a2a"></span>
+    <button class="palette-btn active" data-theme="paper" onclick="setTheme('paper')" title="Branco (padrão)">
+      <span style="background:#ffffff"></span><span style="background:#1a1a1a"></span>
     </button>
-    <button class="palette-btn" data-theme="night" onclick="setTheme('night')" title="Noturno">
-      <span style="background:#1a1a2e"></span><span style="background:#7b8cde"></span>
+    <button class="palette-btn" data-theme="sepia" onclick="setTheme('sepia')" title="Sépia">
+      <span style="background:#f5f0e8"></span><span style="background:#7a2c1e"></span>
     </button>
     <button class="palette-btn" data-theme="sage" onclick="setTheme('sage')" title="Sálvia">
       <span style="background:#f0f4f0"></span><span style="background:#3d6b5a"></span>
     </button>
-    <button class="palette-btn" data-theme="paper" onclick="setTheme('paper')" title="Branco">
-      <span style="background:#ffffff"></span><span style="background:#2d2d2d"></span>
+    <button class="palette-btn" data-theme="night" onclick="setTheme('night')" title="Noturno 🌙">
+      <span style="background:#0d1117"></span><span style="background:#58a6ff"></span>
     </button>
   </div>
   <div class="theme-section">Fonte do texto</div>
@@ -984,8 +987,8 @@ body.theme-paper {
   </div>
   <div class="theme-section">Tamanho</div>
   <div class="theme-fonts">
-    <button class="font-btn" onclick="setFontSize(14)">P</button>
-    <button class="font-btn active" onclick="setFontSize(16.5)">M</button>
+    <button class="font-btn active" onclick="setFontSize(14)">P</button>
+    <button class="font-btn" onclick="setFontSize(16.5)">M</button>
     <button class="font-btn" onclick="setFontSize(19)">G</button>
   </div>
 </div>
@@ -1614,25 +1617,52 @@ function aplicarMarcadoresVisuais() {
 function renderMarcadores() {
   const el = document.getElementById('panelMarcadores');
   if (!el) return;
-  marcadores = marcadores.filter(m=>m&&m.segId&&m.cor&&typeof m.num==='number'&&!isNaN(m.num));
-  const lista = marcadores.filter(m=>m.sem===S.semAtual).sort((a,b)=>a.num-b.num);
+  marcadores = marcadores.filter(m => m && m.segId && m.cor && typeof m.num === 'number' && !isNaN(m.num));
+  const lista = marcadores.filter(m => m.sem === S.semAtual).sort((a, b) => a.num - b.num);
   if (!lista.length) {
     el.innerHTML = '<span style="font-size:11px;color:var(--ink-faint);font-style:italic">Clique em 🔖 num segmento para adicionar.</span>';
     return;
   }
-  el.innerHTML = lista.map(m =>
-    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;padding:5px 8px;border-radius:6px;cursor:pointer;border-left:3px solid '+corMarcador(m.cor)+';background:var(--paper-warm)" data-seg-id="'+m.segId+'">'+
-    '<span>'+corEmoji(m.cor)+'</span>'+
-    '<span style="font-size:10px;font-weight:700;color:white;background:'+corMarcador(m.cor)+';padding:1px 5px;border-radius:10px">#'+m.num+'</span>'+
-    '<span style="font-size:11px;color:var(--ink-soft);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+escH(m.label)+'</span>'+
-    '<button class="btn-rm-marc" data-id="'+m.id+'" style="background:none;border:none;color:var(--ink-faint);cursor:pointer;font-size:16px;padding:0 4px">×</button>'+
-    '</div>'
-  ).join('');
+  el.innerHTML = lista.map(m => {
+    // Encontrar número da lição pelo segId
+    const semObj = S.seminarios[S.semAtual];
+    let licaoNum = '';
+    if (semObj) {
+      for (const licao of semObj.licoes) {
+        if (licao.segmentos.find(s => s.id === m.segId)) {
+          licaoNum = 'Lição ' + licao.numero;
+          break;
+        }
+      }
+    }
+    return '<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;' +
+      'padding:5px 8px;border-radius:6px;cursor:pointer;' +
+      'border-left:3px solid ' + corMarcador(m.cor) + ';background:var(--paper-warm)" ' +
+      'data-seg-id="' + m.segId + '">' +
+      // Ícone colorido com número
+      '<div style="display:flex;align-items:center;gap:3px;flex-shrink:0">' +
+      '<span style="font-size:11px">' + corEmoji(m.cor) + '</span>' +
+      '<span style="font-size:9px;font-weight:700;color:white;background:' + corMarcador(m.cor) + ';padding:1px 5px;border-radius:10px">#' + m.num + '</span>' +
+      '</div>' +
+      // Lição
+      (licaoNum ? '<span style="font-size:10px;color:var(--ink-faint);flex-shrink:0">' + escH(licaoNum) + '</span>' : '') +
+      // X remover
+      '<button class="btn-rm-marc" data-id="' + m.id + '" ' +
+      'style="background:none;border:none;color:var(--ink-faint);cursor:pointer;font-size:15px;padding:0 2px;margin-left:auto;flex-shrink:0;line-height:1" ' +
+      'title="Remover marcador">×</button>' +
+      '</div>';
+  }).join('');
+
   el.querySelectorAll('[data-seg-id]').forEach(div => {
-    div.addEventListener('click', e => { if(!e.target.closest('.btn-rm-marc')) irParaSegmento(div.dataset.segId); });
+    div.addEventListener('click', e => {
+      if (!e.target.closest('.btn-rm-marc')) irParaSegmento(div.dataset.segId);
+    });
   });
   el.querySelectorAll('.btn-rm-marc').forEach(btn => {
-    btn.addEventListener('click', e => { e.stopPropagation(); removerMarcador(btn.dataset.id); });
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      removerMarcador(btn.dataset.id);
+    });
   });
 }
 
@@ -2092,28 +2122,34 @@ let selSegAtual = null;
 function setupSelectionMenu() {
   const menu = document.getElementById('selMenu');
 
-  // ── Proteger o menu: mousedown/touchstart no menu não fecha e não desfaz seleção
+  // mousedown no menu: prevenir perda de seleção, marcar flag
   menu.addEventListener('mousedown', e => {
     menuClickando = true;
-    e.preventDefault(); // impede desfazer seleção ao clicar no menu
+    e.preventDefault();
   });
-  menu.addEventListener('touchstart', e => {
-    menuClickando = true;
-    // NÃO preventDefault no touch para não bloquear scroll
-  }, { passive: true });
+  menu.addEventListener('touchstart', () => { menuClickando = true; }, { passive: true });
 
-  // ── Clique fora do menu → fechar
+  // Clique DENTRO do menu — nunca fechar, processar ação
+  menu.addEventListener('click', e => {
+    e.stopPropagation(); // impede chegar ao document listener
+    // Botão de remover highlight
+    if (e.target.closest('.sel-btn-remove')) {
+      removeHighlight();
+    }
+    menuClickando = false;
+  });
+
+  // Clique no documento
   document.addEventListener('click', e => {
-    // Clique em highlight existente
+    // Clique em highlight existente → abrir menu de remoção
     const hiSpan = e.target.closest('[data-hi]');
     if (hiSpan && !e.target.closest('#selMenu')) {
-      e.stopPropagation();
       hiSpanAlvo = hiSpan;
       const corLabel = { yellow: 'amarelo', green: 'verde', blue: 'azul' };
       const cor = corLabel[hiSpan.dataset.hi] || 'destaque';
       menu.innerHTML = `
-        <div class="sel-section-label">Destaque ${cor}</div>
-        <button class="sel-btn sel-btn-remove" onclick="removeHighlight()">
+        <div class="sel-section-label">Destaque ${escH(cor)}</div>
+        <button class="sel-btn sel-btn-remove">
           <svg class="sel-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
             <polyline points="3,6 17,6"/><path d="M8,6V4h4v2"/><path d="M5,6l1,11h8l1-11"/>
           </svg>
@@ -2122,40 +2158,36 @@ function setupSelectionMenu() {
       posicionarMenu(hiSpan.getBoundingClientRect());
       menu.classList.add('visible');
       menuAberto = true;
-      menuClickando = false;
+      // NÃO resetar menuClickando aqui — manter true para bloquear fechamento
+      menuClickando = true;
+      // Resetar após ciclo de eventos completo
+      setTimeout(() => { menuClickando = false; }, 100);
       return;
     }
 
-    // Clique fora do menu (e não foi clique em botão do menu)
+    // Clique fora → fechar (se não foi no menu e não estamos clicando nele)
     if (!e.target.closest('#selMenu') && !menuClickando) {
       hideMenu();
     }
     menuClickando = false;
   });
 
-  // ── Mostrar menu ao soltar o mouse/touch após seleção
-  // Usar pointerup em vez de selectionchange — mais confiável
+  // Mostrar menu ao soltar após seleção
   document.addEventListener('pointerup', e => {
     if (e.target.closest('#selMenu')) return;
-    // Pequeno delay para a seleção estabilizar
     clearTimeout(selTimer);
     selTimer = setTimeout(() => verificarSelecao(), 80);
   });
 
-  // ── selectionchange: só usar para detectar quando seleção é ZERADA pelo usuário
-  // (ex: clicar em área vazia), não para fechar durante arraste
+  // selectionchange: fechar apenas se seleção zerada E menu sem interação
   document.addEventListener('selectionchange', () => {
+    if (!menuAberto || menuClickando) return;
     const sel = window.getSelection();
-    // Se seleção foi zerada E menu está aberto E não estamos clicando no menu
-    if (menuAberto && !menuClickando && sel && sel.isCollapsed) {
+    if (sel && sel.isCollapsed) {
       clearTimeout(selTimer);
-      // Aguardar para ver se foi apenas transição durante arraste
       selTimer = setTimeout(() => {
-        const s = window.getSelection();
-        if (s && s.isCollapsed && !menuClickando) {
-          hideMenu();
-        }
-      }, 300);
+        if (!menuClickando && window.getSelection()?.isCollapsed) hideMenu();
+      }, 400);
     }
   });
 }
