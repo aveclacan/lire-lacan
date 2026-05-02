@@ -5,18 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lire Lacan</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&family=Karla:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&family=Karla:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
 <style>
 :root {
   --ink: #1a1a1a; --ink-soft: #444444; --ink-faint: #999999;
-  --paper: #ffffff; --paper-warm: #f8f8f8; --paper-dark: #eeeeee;
-  --accent: #1a1a1a; --accent-light: #444444; --accent-pale: #f0f0f0;
+  --paper: #ffffff; --paper-warm: #f7f7f7; --paper-dark: #eeeeee;
+  --accent: #2c2c2c; --accent-light: #444444; --accent-pale: #f0f0f0;
   --gold: #9a7a3a; --gold-pale: #f4ecda; --gold-hi: rgba(196,178,80,0.32);
   --violet: #3d2d5c; --violet-pale: #e8e0f0;
   --teal: #1d4a45; --teal-pale: #d8edeb;
   --hi-yellow: rgba(255,220,60,0.45); --hi-green: rgba(80,200,120,0.45); --hi-blue: rgba(80,150,255,0.45);
   --border: rgba(0,0,0,0.10); --border-strong: rgba(0,0,0,0.22);
-  --font-ui: 'IM Fell English', serif;
+  --font-ui: 'Lora', serif;
   --font-size: 14px;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -466,23 +466,12 @@ body { background: var(--paper); color: var(--ink); font-family: var(--font-ui, 
   color:var(--accent); }
 
 /* ── TEMAS — o padrão branco/preto já está no :root, sem classe body ── */
-body.theme-sepia {
-  --ink:#2c2416; --ink-soft:#6b5a3e; --ink-faint:#a08060;
-  --paper:#f5f0e8; --paper-warm:#ede8de; --paper-dark:#e0d9cc;
-  --accent:#7a2c1e; --accent-light:#a03d2e; --accent-pale:#f5ece9;
-  --border:rgba(26,23,18,0.12); --border-strong:rgba(26,23,18,0.25);
-}
 body.theme-night {
-  --ink:#c8d0e0; --ink-soft:#8a9ab8; --ink-faint:#4a5878;
-  --paper:#0d1117; --paper-warm:#161b22; --paper-dark:#21262d;
-  --accent:#58a6ff; --accent-light:#79c0ff; --accent-pale:#1f3a5f;
-  --border:rgba(200,208,224,0.08); --border-strong:rgba(200,208,224,0.15);
-  --hi-yellow:rgba(255,220,60,0.25); --hi-green:rgba(80,200,120,0.25); --hi-blue:rgba(80,150,255,0.25);
-}
-body.theme-sage {
-  --ink:#1a2a20; --ink-soft:#3d5a45; --ink-faint:#7a9a82;
-  --paper:#f0f4f0; --paper-warm:#e4ece5; --paper-dark:#ccddd0;
-  --accent:#3d6b5a; --accent-light:#5a9e80; --accent-pale:#d4ebe0;
+  --paper:#0f1b2d; --paper-warm:#162236; --paper-dark:#1e2d42;
+  --ink:#d4dce8; --ink-soft:#96aac0; --ink-faint:#4a6070;
+  --accent:#5b9bd5; --accent-light:#7ab3e0; --accent-pale:#1a3050;
+  --border:rgba(180,200,220,0.10); --border-strong:rgba(180,200,220,0.20);
+  --hi-yellow:rgba(255,220,60,0.22); --hi-green:rgba(80,200,120,0.22); --hi-blue:rgba(80,150,255,0.22);
 }
 
 
@@ -967,25 +956,19 @@ body.theme-sage {
 <div class="theme-panel" id="themePanel">
   <div class="theme-section">Paleta</div>
   <div class="theme-palettes">
-    <button class="palette-btn active" data-theme="paper" onclick="setTheme('paper')" title="Branco (padrão)">
-      <span style="background:#ffffff"></span><span style="background:#1a1a1a"></span>
+    <button class="palette-btn active" data-theme="day" onclick="setTheme('day')" title="Modo diurno">
+      ☀️
     </button>
-    <button class="palette-btn" data-theme="sepia" onclick="setTheme('sepia')" title="Sépia">
-      <span style="background:#f5f0e8"></span><span style="background:#7a2c1e"></span>
-    </button>
-    <button class="palette-btn" data-theme="sage" onclick="setTheme('sage')" title="Sálvia">
-      <span style="background:#f0f4f0"></span><span style="background:#3d6b5a"></span>
-    </button>
-    <button class="palette-btn" data-theme="night" onclick="setTheme('night')" title="Noturno 🌙">
-      <span style="background:#0d1117"></span><span style="background:#58a6ff"></span>
+    <button class="palette-btn" data-theme="night" onclick="setTheme('night')" title="Modo noturno">
+      🌙
     </button>
   </div>
   <div class="theme-section">Fonte do texto</div>
   <div class="theme-fonts">
-    <button class="font-btn active" onclick="setFont('fell')" data-font="fell">IM Fell</button>
+    <button class="font-btn active" onclick="setFont('lora')" data-font="lora">Lora</button>
+    <button class="font-btn" onclick="setFont('arial')" data-font="arial">Arial</button>
     <button class="font-btn" onclick="setFont('serif')" data-font="serif">Georgia</button>
-    <button class="font-btn" onclick="setFont('sans')" data-font="sans">Sans-serif</button>
-    <button class="font-btn" onclick="setFont('mono')" data-font="mono">Monospace</button>
+    <button class="font-btn" onclick="setFont('fell')" data-font="fell">IM Fell</button>
   </div>
   <div class="theme-section">Tamanho</div>
   <div class="theme-fonts">
@@ -1308,9 +1291,9 @@ const SEMINARIOS_DISPONIVEIS = [11, 23];
 async function carregarSeminariosDaPasta() {
   // Carregar todos em paralelo — muito mais rápido que em série
   const resultados = await Promise.allSettled(
-    SEMINARIOS_DISPONIVEIS.map(num => {
+    SEMINARIOS_DISPONIVEIS.map(async num => {
       const nome = 'seminarios/seminario_' + String(num).padStart(2, '0') + '.json';
-      return fetch(nome).then(r => r.ok ? r.json() : null).catch(() => null);
+      try { const r = await fetch(nome); return r.ok ? await r.json() : null; } catch(e) { return null; }
     })
   );
   return resultados
@@ -1447,7 +1430,7 @@ async function carregarDadosNuvem() {
     // Preferências tema/fonte
     const { data: pref } = await supa.from('trechos_salvos')
       .select('*').eq('user_id', supaUserId).eq('seg_id', 'pref_tema').limit(1);
-    if (pref?.[0]) { setTheme(pref[0].texto_fr || 'paper'); setFont(pref[0].traducao || 'sans'); }
+    if (pref?.[0]) { setTheme(pref[0].texto_fr || 'day'); setFont(pref[0].traducao || 'lora'); }
   } catch(e) { console.warn('Erro ao carregar dados:', e.message); }
 }
 
@@ -1741,13 +1724,13 @@ function restaurarPosicaoLeitura() {
 }
 
 // ── Preferências ───────────────────────────────────────
-let currentFont = 'sans';
-const fontMap = { fell:"'IM Fell English',serif", serif:"Georgia,serif", sans:"'Helvetica Neue',Arial,sans-serif", mono:"'Courier New',monospace" };
+let currentFont = 'lora';
+const fontMap = { fell:"'IM Fell English',serif", lora:"'Lora',serif", arial:"Arial,sans-serif", serif:"Georgia,serif" };
 
 function carregarPreferencias() {
   try {
-    const tema = localStorage.getItem('lirelacan_tema') || 'paper';
-    const fonte = localStorage.getItem('lirelacan_fonte') || 'sans';
+    const tema = localStorage.getItem('lirelacan_tema') || 'day';
+    const fonte = localStorage.getItem('lirelacan_fonte') || 'lora';
     setTheme(tema); setFont(fonte);
   } catch(e) {}
 }
@@ -2539,13 +2522,13 @@ function toggleThemePanel() {
 async function setTheme(theme) {
   document.body.className = document.body.className
     .replace(/theme-\w+/g, '').trim();
-  if (theme !== 'paper') document.body.classList.add('theme-' + theme);
+  if (theme !== 'day') document.body.classList.add('theme-' + theme);
   document.querySelectorAll('.palette-btn').forEach(b =>
     b.classList.toggle('active', b.dataset.theme === theme));
   try { localStorage.setItem('lirelacan_tema', theme); } catch(e) {}
   if (supa && supaUserId) {
     try { await supa.from('trechos_salvos').upsert({ user_id: supaUserId, seminario: 0,
-      seg_id: 'pref_tema', texto_fr: theme, traducao: currentFont || 'sans'
+      seg_id: 'pref_tema', texto_fr: theme, traducao: currentFont || 'lora'
     }, { onConflict: 'user_id,seg_id' }); } catch(e) {}
   }
 }
@@ -2561,7 +2544,7 @@ async function setFont(font) {
   try { localStorage.setItem('lirelacan_fonte', font); } catch(e) {}
   if (supa && supaUserId) {
     try { await supa.from('trechos_salvos').upsert({ user_id: supaUserId, seminario: 0,
-      seg_id: 'pref_tema', texto_fr: document.body.className.match(/theme-(\w+)/)?.[1] || 'paper', traducao: font
+      seg_id: 'pref_tema', texto_fr: document.body.className.match(/theme-(\w+)/)?.[1] || 'day', traducao: font
     }, { onConflict: 'user_id,seg_id' }); } catch(e) {}
   }
 }
