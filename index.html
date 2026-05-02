@@ -1809,8 +1809,7 @@ function loadSeminario(idx) {
   document.getElementById('tabSaved').classList.remove('active');
   renderSideIndex(sem);
   renderFullReader(sem);
-  // Atualizar marcadores após renderizar
-  setTimeout(() => { aplicarMarcadoresVisuais(); renderMarcadores(); }, 150);
+  setTimeout(() => { aplicarMarcadoresVisuais(); renderMarcadores(); }, 200);
 
   // Restaurar posição salva por segmento
   try {
