@@ -1495,8 +1495,7 @@ async function iniciarSessaoSupabase() {
 
   if (supaUserId) {
     console.log('✓ Supabase logado, userId:', supaUserId.slice(0,8) + '...');
-    await carregarDadosNuvem();
-    await carregarPreferenciasNuvem();
+    // carregarDadosNuvem é chamado depois de loadSeminario() no DOMContentLoaded
   } else {
     console.log('Supabase: não logado — usando localStorage');
   }
@@ -1700,30 +1699,27 @@ window.addEventListener('DOMContentLoaded', async () => {
   if ('speechSynthesis' in window) speechSynthesis.getVoices();
   setupScrollObserver();
   setupSelectionMenu();
-
-  // Carregar preferências de tema/fonte imediatamente (antes de qualquer outra coisa)
   carregarPreferencias();
 
-  // Iniciar sessão Supabase (token da URL ou localStorage)
-  await iniciarSessaoSupabase();
+  // Carregar seminários e autenticar EM PARALELO
+  const [seminariosDaPasta] = await Promise.all([
+    carregarSeminariosDaPasta(),
+    iniciarSessaoSupabase()  // não bloqueia os seminários
+  ]);
 
-  // Carregar seminários em paralelo
-  const seminariosDaPasta = await carregarSeminariosDaPasta();
-  if (seminariosDaPasta.length > 0) {
-    S.seminarios = seminariosDaPasta;
-  }
+  if (seminariosDaPasta.length > 0) S.seminarios = seminariosDaPasta;
 
   renderSidebar();
   loadSeminario(0);
 
-  // Carregar dados da nuvem APÓS seminário estar carregado
+  // Carregar dados da nuvem DEPOIS do leitor estar visível
   if (supaUserId) {
     setTimeout(async () => {
+      await carregarPreferenciasNuvem();
       await carregarDadosNuvem();
-    }, 300);
+    }, 500);
   }
 
-  // Salvar posição ao fechar
   window.addEventListener('beforeunload', () => salvarPosicaoLeitura());
   setInterval(() => { if (S.activeTab === 'read') salvarPosicaoLeitura(); }, 30000);
 });
