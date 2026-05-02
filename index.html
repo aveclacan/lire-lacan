@@ -8,18 +8,17 @@
 <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&family=Karla:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
 <style>
 :root {
-  --ink: #1a1a1a; --ink-soft: #444; --ink-faint: #999;
-  --paper: #ffffff; --paper-warm: #f8f8f8; --paper-dark: #eeeeee;
-  --accent: #1a1a1a; --accent-light: #444; --accent-pale: #f0f0f0;
+  --ink: #1a1712; --ink-soft: #4a4640; --ink-faint: #8a857e;
+  --paper: #f5f0e8; --paper-warm: #ede7d8; --paper-dark: #ddd5c5;
+  --accent: #6b3a2a; --accent-light: #c4785a; --accent-pale: #f0e0d6;
   --gold: #9a7a3a; --gold-pale: #f4ecda; --gold-hi: rgba(196,178,80,0.32);
   --violet: #3d2d5c; --violet-pale: #e8e0f0;
   --teal: #1d4a45; --teal-pale: #d8edeb;
   --hi-yellow: rgba(255,220,60,0.38); --hi-green: rgba(80,200,120,0.38); --hi-blue: rgba(80,150,255,0.38);
-  --border: rgba(0,0,0,0.10); --border-strong: rgba(0,0,0,0.22);
-  --font-principal: 'Helvetica Neue', Arial, sans-serif;
+  --border: rgba(26,23,18,0.12); --border-strong: rgba(26,23,18,0.25);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: var(--paper); color: var(--ink); font-family: var(--font-principal, 'Helvetica Neue', Arial, sans-serif);
+body { background: var(--paper); color: var(--ink); font-family: 'Karla', sans-serif;
   font-weight: 300; line-height: 1.7; min-height: 100vh; overflow-x: hidden; }
 
 /* ── TOPBAR ── */
@@ -158,8 +157,28 @@ body { background: var(--paper); color: var(--ink); font-family: var(--font-prin
 .seg-marker.has-termo { background:var(--gold); }
 
 /* Botão áudio (aparece no hover) */
-/* btn-audio gerenciado pelo .seg-btn-group — ver CSS de marcadores abaixo */
-
+.btn-audio {
+  position:absolute; left:-58px; top:3px;
+  width:22px; height:22px; border-radius:50%;
+  border:1px solid var(--border-strong); background:var(--paper);
+  color:var(--ink-faint); cursor:pointer; font-size:7px;
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; transition:opacity .15s, background .15s;
+}
+.segment:hover .btn-audio { opacity:1; }
+.btn-audio:hover, .btn-audio.playing { background:var(--accent); border-color:var(--accent); color:#fff; }
+.seg-bookmark-btn {
+  position:absolute; left:-34px; top:3px;
+  width:20px; height:20px; background:none; border:none;
+  cursor:pointer; color:var(--ink-faint); opacity:0;
+  transition:opacity .15s, color .15s;
+  display:flex; align-items:center; justify-content:center;
+  padding:0;
+}
+.segment:hover .seg-bookmark-btn { opacity:0.4; }
+.seg-bookmark-btn:hover { opacity:1 !important; color:var(--accent); }
+.seg-bookmark-btn.tem-marcador { opacity:1; }
+.seg-marcador-tag { display:inline-flex; }
 
 /* Tradução */
 .seg-pt {
@@ -444,25 +463,23 @@ body { background: var(--paper); color: var(--ink); font-family: var(--font-prin
 .font-btn.active { background:var(--accent-pale); border-color:var(--accent-light);
   color:var(--accent); }
 
-/* ── TEMA NOTURNO — azul espacial ── */
+/* ── TEMA NOTURNO ── */
 body.theme-night {
-  --ink:#c8d0e0; --ink-soft:#8a9ab8; --ink-faint:#4a5878;
-  --paper:#0d1117; --paper-warm:#161b22; --paper-dark:#21262d;
-  --accent:#58a6ff; --accent-light:#79c0ff; --accent-pale:#1f3a5f;
-  --border:rgba(200,208,224,0.08); --border-strong:rgba(200,208,224,0.15);
-  --hi-yellow:rgba(255,220,60,0.25); --hi-green:rgba(80,200,120,0.25); --hi-blue:rgba(80,150,255,0.25);
+  --ink:#e8e4dc; --ink-soft:#b0a898; --ink-faint:#706860;
+  --paper:#1a1a2e; --paper-warm:#16213e; --paper-dark:#0f3460;
+  --accent:#7b8cde; --accent-light:#a0aff0; --accent-pale:#1e2a5e;
+  --border:rgba(232,228,220,0.1); --border-strong:rgba(232,228,220,0.2);
 }
 body.theme-sage {
   --ink:#1a2a20; --ink-soft:#3d5a45; --ink-faint:#7a9a82;
   --paper:#f0f4f0; --paper-warm:#e4ece5; --paper-dark:#ccddd0;
   --accent:#3d6b5a; --accent-light:#5a9e80; --accent-pale:#d4ebe0;
 }
-body.theme-sepia {
-  --ink:#2c2416; --ink-soft:#6b5a3e; --ink-faint:#a08060;
-  --paper:#f5f0e8; --paper-warm:#ede8de; --paper-dark:#e0d9cc;
-  --accent:#7a2c1e; --accent-light:#a03d2e; --accent-pale:#f5ece9;
+body.theme-paper {
+  --ink:#2d2d2d; --ink-soft:#555; --ink-faint:#999;
+  --paper:#ffffff; --paper-warm:#f8f8f8; --paper-dark:#eee;
+  --accent:#2d2d2d; --accent-light:#555; --accent-pale:#f0f0f0;
 }
-/* Tema padrão: branco/preto (paper) — sem classe body extra */
 
 /* ── ABA TRADUÇÃO ── */
 .trad-view {
@@ -787,144 +804,27 @@ body.theme-sepia {
 .vocab-empty-state { text-align:center; padding:60px 20px; color:var(--ink-faint); font-style:italic; font-size:14px; }
 .vocab-stats { font-size:12px; color:var(--ink-faint); margin-bottom:16px; }
 
-/* ── CADERNO — layout duas colunas estilo Notas ── */
-.caderno-layout {
-  display: grid;
-  grid-template-columns: 220px 1fr;
-  gap: 0;
-  height: calc(100vh - 180px);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  overflow: hidden;
-  background: var(--paper);
-}
-.caderno-lista-col {
-  border-right: 1px solid var(--border);
-  background: var(--paper-warm);
-  display: flex; flex-direction: column;
-  overflow: hidden;
-}
-.caderno-lista-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 14px; border-bottom: 1px solid var(--border);
-  background: var(--paper-dark);
-}
-.caderno-nova-btn {
-  background: var(--accent); color: white; border: none;
-  border-radius: 50%; width: 24px; height: 24px;
-  font-size: 16px; cursor: pointer; line-height: 1;
-  display: flex; align-items: center; justify-content: center;
-}
-#cadernoListaNotas { flex: 1; overflow-y: auto; }
-.caderno-nota-item {
-  display: flex; align-items: flex-start; gap: 8px;
-  padding: 10px 14px; cursor: pointer; border-bottom: 1px solid var(--border);
-  transition: background .1s;
-}
-.caderno-nota-item:hover { background: var(--paper-dark); }
-.caderno-nota-item.active { background: var(--accent-pale); border-left: 3px solid var(--accent); }
-.caderno-nota-titulo { font-size: 13px; color: var(--ink); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.caderno-nota-data { font-size: 10px; color: var(--ink-faint); margin-top: 2px; }
-.caderno-nota-del { background: none; border: none; color: var(--ink-faint); cursor: pointer; font-size: 14px; padding: 0 4px; opacity: 0; transition: opacity .15s; }
-.caderno-nota-item:hover .caderno-nota-del { opacity: 1; }
-.caderno-editor-col {
-  display: flex; flex-direction: column; overflow: hidden;
-  background: var(--paper);
-}
-.caderno-editor-col .caderno-toolbar {
-  border-radius: 0; border-left: none; border-right: none; border-top: none;
-  border-bottom: 1px solid var(--border); flex-shrink: 0;
-}
-.caderno-editor-col .caderno-titulo {
-  border: none; border-bottom: 1px solid var(--border);
-  border-radius: 0; font-size: 20px; padding: 14px 20px;
-  background: var(--paper); flex-shrink: 0;
-}
-.caderno-editor-col .caderno-editor {
-  border: none; border-radius: 0; flex: 1;
-  overflow-y: auto; padding: 16px 20px;
-  background: var(--paper);
-}
-@media (max-width: 768px) {
-  .caderno-layout { grid-template-columns: 1fr; grid-template-rows: 200px 1fr; height: auto; }
-  .caderno-lista-col { border-right: none; border-bottom: 1px solid var(--border); }
-}
+/* ── CADERNO notas salvas ── */
+.caderno-header { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+.caderno-titulo { flex:1; font-family:'IM Fell English',serif; font-size:20px; border:none; background:transparent; color:var(--ink); outline:none; border-bottom:1px solid transparent; padding:4px 0; }
+.caderno-titulo:focus { border-bottom-color:var(--border-strong); }
+.caderno-actions { display:flex; gap:10px; margin-top:12px; align-items:center; }
+.caderno-save-btn { padding:8px 20px; border-radius:8px; border:none; background:var(--accent); color:white; cursor:pointer; font-size:13px; font-weight:500; }
+.caderno-status { font-size:12px; color:var(--ink-faint); }
+.caderno-notas-lista { margin-top:28px; }
+.caderno-nota-item { display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:8px; cursor:pointer; border:1px solid var(--border); margin-bottom:8px; background:var(--paper-warm); transition:all .15s; }
+.caderno-nota-item:hover, .caderno-nota-item.active { border-color:var(--accent-light); background:var(--accent-pale); }
+.caderno-nota-titulo { font-size:14px; color:var(--ink); flex:1; }
+.caderno-nota-data { font-size:11px; color:var(--ink-faint); white-space:nowrap; }
+.caderno-nota-del { background:none; border:none; color:var(--ink-faint); cursor:pointer; font-size:16px; padding:2px 6px; border-radius:4px; }
+.caderno-nota-del:hover { color:var(--accent); background:var(--paper-dark); }
 .select-font, .select-size { font-size:12px; padding:4px 6px; border:1px solid var(--border); border-radius:5px; background:var(--paper); color:var(--ink); cursor:pointer; font-family:'Karla',sans-serif; }
 .select-size { width:55px; }
 .conj-verb-header { font-family:'IM Fell English',serif; font-size:26px; color:var(--ink); margin-bottom:6px; }
 .conj-verb-info { font-size:12px; color:var(--ink-faint); font-family:'Karla',sans-serif; margin-left:10px; }
 .conj-tense-name { font-family:'IM Fell English SC',serif; font-size:11px; letter-spacing:.08em; color:white; background:var(--accent); padding:7px 12px; }
 
-/* ── MARCADORES INLINE ── */
-.seg-bookmark-btn {
-  position: absolute; left: -28px; top: 50%;
-  transform: translateY(-50%);
-  background: none; border: none; cursor: pointer;
-  font-size: 14px; opacity: 0; transition: opacity .15s;
-  padding: 4px; line-height: 1;
-}
-.segment { position: relative; }
-.segment:hover .seg-bookmark-btn { opacity: 0.6; }
-.segment:hover .seg-bookmark-btn:hover { opacity: 1; }
-.seg-marcador-tag {
-  display: inline-flex; align-items: center;
-  font-size: 9px; font-weight: 700; color: white;
-  padding: 1px 5px; border-radius: 10px;
-  margin-left: 6px; cursor: pointer;
-  font-family: 'Karla', sans-serif; letter-spacing: .03em;
-  vertical-align: middle; position: relative; top: -1px;
-}
-.seg-marcador-tag:hover { opacity: .8; }
-/* ── CADERNO toolbar moderna ── */
-.caderno-toolbar {
-  display: flex; align-items: center; gap: 2px;
-  padding: 6px 10px; background: var(--paper-warm);
-  border-bottom: 1px solid var(--border); flex-shrink: 0; flex-wrap: wrap;
-}
-.caderno-toolbar-group { display: flex; align-items: center; gap: 1px; }
-.caderno-toolbar-sep { width: 1px; height: 18px; background: var(--border-strong); margin: 0 4px; }
-.caderno-tbtn {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 28px; height: 28px; border: none; border-radius: 6px;
-  background: transparent; cursor: pointer; font-size: 13px;
-  color: var(--ink-soft); transition: background .1s; font-family: inherit;
-}
-.caderno-tbtn:hover { background: var(--paper-dark); color: var(--ink); }
-.caderno-tbtn:active { background: var(--border); }
-.caderno-select {
-  font-size: 12px; padding: 3px 6px; border: 1px solid var(--border);
-  border-radius: 6px; background: var(--paper); color: var(--ink);
-  cursor: pointer; font-family: 'Karla', sans-serif; height: 28px;
-}
-.caderno-select-sm { width: 52px; }
-.caderno-color-btn { display: flex; flex-direction: column; align-items: center; gap: 1px; cursor: pointer; padding: 2px 4px !important; }
-.caderno-color-bar { width: 18px; height: 3px; border-radius: 2px; }
-.caderno-status { margin-left: auto; font-size: 11px; color: var(--accent); font-family: 'Karla', sans-serif; }
-
-/* ── BOTÕES LATERAIS DO SEGMENTO ── */
-.segment { position: relative; padding-left: 48px; }
-.seg-btn-group {
-  position: absolute; left: 0; top: 8px;
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
-}
-.seg-bookmark-btn {
-  background: none; border: none; cursor: pointer;
-  color: var(--ink-faint); padding: 3px 4px;
-  opacity: 0.25; transition: opacity .15s, color .15s;
-  display: flex; align-items: center; line-height: 1;
-}
-.segment:hover .seg-bookmark-btn { opacity: 0.6; }
-.seg-bookmark-btn:hover { opacity: 1 !important; color: var(--accent) !important; }
-.seg-bookmark-btn.tem-marcador { opacity: 1; color: var(--accent); }
-.seg-btn-group .btn-audio {
-  background: none; border: none; cursor: pointer;
-  color: var(--ink-faint); font-size: 10px; padding: 3px 4px;
-  opacity: 0.25; transition: opacity .15s; line-height: 1;
-  border-radius: 0;
-}
-.segment:hover .seg-btn-group .btn-audio { opacity: 0.6; }
-.seg-btn-group .btn-audio:hover { opacity: 1 !important; }
-
+/* ── PAINEL EXPLICATIVO CONJUGADOR ── */
 .conj-explainer {
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -1026,7 +926,6 @@ body.theme-sepia {
 <header class="topbar">
   <button class="mobile-menu-btn" onclick="toggleMobileMenu()" title="Menu">☰</button>
   <div class="logo">lire <em>lacan</em></div>
-  <div style="font-size:9px;color:rgba(255,255,255,0.3);margin-left:4px">v28</div>
   <div class="topbar-sep"></div>
   <div class="topbar-sem" id="topSem">—</div>
   <div class="topbar-date" id="topDate">—</div>
@@ -1063,24 +962,24 @@ body.theme-sepia {
 <div class="theme-panel" id="themePanel">
   <div class="theme-section">Paleta</div>
   <div class="theme-palettes">
-    <button class="palette-btn active" data-theme="paper" onclick="setTheme('paper')" title="Branco (padrão)">
-      <span style="background:#ffffff"></span><span style="background:#1a1a1a"></span>
-    </button>
-    <button class="palette-btn" data-theme="sepia" onclick="setTheme('sepia')" title="Sépia">
+    <button class="palette-btn active" data-theme="sepia" onclick="setTheme('sepia')" title="Sépia (padrão)">
       <span style="background:#f5f0e8"></span><span style="background:#6b3a2a"></span>
+    </button>
+    <button class="palette-btn" data-theme="night" onclick="setTheme('night')" title="Noturno">
+      <span style="background:#1a1a2e"></span><span style="background:#7b8cde"></span>
     </button>
     <button class="palette-btn" data-theme="sage" onclick="setTheme('sage')" title="Sálvia">
       <span style="background:#f0f4f0"></span><span style="background:#3d6b5a"></span>
     </button>
-    <button class="palette-btn" data-theme="night" onclick="setTheme('night')" title="Noturno 🌙">
-      <span style="background:#0d1117"></span><span style="background:#58a6ff"></span>
+    <button class="palette-btn" data-theme="paper" onclick="setTheme('paper')" title="Branco">
+      <span style="background:#ffffff"></span><span style="background:#2d2d2d"></span>
     </button>
   </div>
   <div class="theme-section">Fonte do texto</div>
   <div class="theme-fonts">
-    <button class="font-btn" onclick="setFont('fell')" data-font="fell">IM Fell</button>
+    <button class="font-btn active" onclick="setFont('fell')" data-font="fell">IM Fell</button>
     <button class="font-btn" onclick="setFont('serif')" data-font="serif">Georgia</button>
-    <button class="font-btn active" onclick="setFont('sans')" data-font="sans">Sans-serif</button>
+    <button class="font-btn" onclick="setFont('sans')" data-font="sans">Sans-serif</button>
     <button class="font-btn" onclick="setFont('mono')" data-font="mono">Monospace</button>
   </div>
   <div class="theme-section">Tamanho</div>
@@ -1124,14 +1023,7 @@ body.theme-sepia {
   <aside class="panel">
     <!-- Mini-tradutor do painel direito -->
     <div class="panel-section">
-      <div class="panel-title" style="display:flex;align-items:center;justify-content:space-between">
-        Tradução rápida
-        <button onclick="togglePanelDir()" id="panelDirBtn"
-          style="font-size:10px;padding:2px 7px;border-radius:10px;border:1px solid var(--border-strong);
-          background:transparent;cursor:pointer;color:var(--ink-soft);font-family:'Karla',sans-serif">
-          FR → PT
-        </button>
-      </div>
+      <div class="panel-title">Tradução rápida</div>
       <div class="panel-trad-box">
         <input class="panel-trad-input" id="panelTradInput"
           placeholder="Digite ou selecione…"
@@ -1145,14 +1037,12 @@ body.theme-sepia {
       </div>
     </div>
 
-    <!-- Adicionar ao vocabulário — sempre visível -->
-    <div class="panel-section" id="panelVocabSection">
+    <!-- Adicionar ao vocabulário -->
+    <div class="panel-section" id="panelVocabSection" style="display:none">
       <div class="panel-title">+ Vocabulário</div>
-      <div style="font-size:12px;color:var(--ink-faint);margin-bottom:6px" id="panelVocabWord">
-        Selecione uma palavra ou busque acima
-      </div>
-      <input class="panel-trad-input" id="panelVocabTrad" placeholder="Tradução (opcional)…" style="margin-top:4px">
-      <button class="panel-vocab-btn" onclick="salvarVocabDoPainel()" style="margin-top:6px">Salvar no vocabulário</button>
+      <div id="panelVocabWord" class="panel-vocab-word"></div>
+      <input class="panel-trad-input" id="panelVocabTrad" placeholder="Tradução…" style="margin-top:6px">
+      <button class="panel-vocab-btn" onclick="salvarVocabDoPainel()">Salvar no vocabulário</button>
       <div id="panelVocabMsg" style="font-size:11px;color:var(--ink-faint);margin-top:4px"></div>
     </div>
 
@@ -1169,7 +1059,9 @@ body.theme-sepia {
     <!-- Marcadores de página -->
     <div class="panel-section">
       <div class="panel-title">Marcadores de página</div>
-      <div id="panelMarcadores" style="margin-top:8px"></div>
+      <div id="panelMarcadores">
+        <span style="font-size:11px;color:var(--ink-faint);font-style:italic">Clique em 🔖 num segmento para adicionar.</span>
+      </div>
     </div>
 
     <!-- Nota linguística (termo sublinhado) -->
@@ -1422,91 +1314,63 @@ async function carregarSeminariosDaPasta() {
 }
 
 // ══════════════════════════════════════════════════════
-//  SUPABASE — cliente oficial + sync completo
+//  SUPABASE — sincronização na nuvem
 // ══════════════════════════════════════════════════════
 const SUPA_URL = 'https://hczrvpghrntbvsjqbgqm.supabase.co';
 const SUPA_KEY = 'sb_publishable_x8rZm5Bn1SXVSsJrReUOxg_Va4Gi3fH';
-
-// Cliente Supabase (via CDN)
 let supa = null;
 let supaUserId = null;
-let supaToken = null;
 
 function iniciarClienteSupabase() {
   try {
-    supa = window.supabase.createClient(SUPA_URL, SUPA_KEY, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: false,
-        storage: window.localStorage
-      }
-    });
-  } catch(e) {
-    console.warn('Supabase CDN não disponível:', e.message);
-  }
+    if (window.supabase) {
+      supa = window.supabase.createClient(SUPA_URL, SUPA_KEY, {
+        auth: { persistSession: true, autoRefreshToken: true,
+                detectSessionInUrl: false, storage: window.localStorage }
+      });
+    }
+  } catch(e) {}
 }
 
 async function iniciarSessaoSupabase() {
   iniciarClienteSupabase();
   if (!supa) return;
-
-  // 1. Token da URL (vindo do login Vercel)
+  // Token da URL
   const urlParams = new URLSearchParams(window.location.search);
   const tokenUrl = urlParams.get('token');
   if (tokenUrl) {
-    supaToken = tokenUrl;
-    // Definir sessão manualmente via token
     try {
-      const { data, error } = await supa.auth.setSession({
-        access_token: tokenUrl,
-        refresh_token: tokenUrl
-      });
+      const { data } = await supa.auth.setSession({ access_token: tokenUrl, refresh_token: tokenUrl });
       if (data?.user) supaUserId = data.user.id;
     } catch(e) {}
-    // Limpar token da URL
     const url = new URL(window.location.href);
     url.searchParams.delete('token');
     window.history.replaceState({}, '', url.toString());
     try { localStorage.setItem('lirelacan_token', tokenUrl); } catch(e) {}
   }
-
-  // 2. Sessão salva pelo cliente Supabase
+  // Sessão salva
   if (!supaUserId) {
     try {
       const { data } = await supa.auth.getSession();
-      if (data?.session?.user) {
-        supaUserId = data.session.user.id;
-        supaToken = data.session.access_token;
-      }
+      if (data?.session?.user) supaUserId = data.session.user.id;
     } catch(e) {}
   }
-
-  // 3. Token do localStorage como fallback
+  // Token localStorage
   if (!supaUserId) {
     try {
       const tok = localStorage.getItem('lirelacan_token');
       if (tok) {
         const { data } = await supa.auth.setSession({ access_token: tok, refresh_token: tok });
-        if (data?.user) { supaUserId = data.user.id; supaToken = tok; }
+        if (data?.user) supaUserId = data.user.id;
       }
     } catch(e) {}
   }
-
-  if (supaUserId) {
-    console.log('✓ Supabase logado, userId:', supaUserId.slice(0,8) + '...');
-    // carregarDadosNuvem é chamado depois de loadSeminario() no DOMContentLoaded
-  } else {
-    console.log('Supabase: não logado — usando localStorage');
-  }
+  if (supaUserId) console.log('✓ Supabase logado');
 }
 
-// ── CARREGAR dados da nuvem ────────────────────────────
 async function carregarDadosNuvem() {
   if (!supa || !supaUserId) return;
-  const sem = S.semAtual !== null ? S.semAtual : 0;
-  const semNum = S.seminarios[sem]?.numero || 0;
-
+  const semNum = S.seminarios[S.semAtual]?.numero || 0;
   try {
     // Highlights
     const { data: hl } = await supa.from('highlights')
@@ -1515,210 +1379,362 @@ async function carregarDadosNuvem() {
       S.highlights = {};
       hl.forEach(h => {
         if (!S.highlights[h.seg_id]) S.highlights[h.seg_id] = [];
-        S.highlights[h.seg_id].push({ color: h.cor, text: h.texto, id: h.id });
+        S.highlights[h.seg_id].push({ color: h.cor, text: h.texto });
       });
+      setTimeout(() => aplicarHighlightsNuvem(), 200);
     }
-
     // Trechos salvos
     const { data: tr } = await supa.from('trechos_salvos')
       .select('*').eq('user_id', supaUserId)
-      .not('seg_id', 'like', 'vocab_%')
+      .not('seg_id', 'like', 'vocab_%').not('seg_id', 'like', 'marcador_%').not('seg_id', 'like', 'pref_%')
       .order('criado_em', { ascending: false });
     if (tr?.length) {
-      S.saved = tr.map(t => ({
-        semNum: t.seminario, segId: t.seg_id,
+      S.saved = tr.map(t => ({ semNum: t.seminario, segId: t.seg_id,
         texto: t.texto_fr, comentario: t.traducao || null,
-        date: new Date(t.criado_em).toLocaleDateString('pt-BR')
-      }));
+        date: new Date(t.criado_em).toLocaleDateString('pt-BR') }));
     }
-
     // Vocabulário
     const { data: voc } = await supa.from('trechos_salvos')
-      .select('*').eq('user_id', supaUserId)
-      .like('seg_id', 'vocab_%')
+      .select('*').eq('user_id', supaUserId).like('seg_id', 'vocab_%')
       .order('criado_em', { ascending: false });
     if (voc?.length) {
-      vocabItems = voc.map(v => ({
-        word: v.texto_fr, trad: v.traducao || '', ctx: '',
-        data: new Date(v.criado_em).toLocaleDateString('pt-BR'), supId: v.id
-      }));
+      vocabItems = voc.map(v => ({ word: v.texto_fr, trad: v.traducao || '',
+        ctx: '', data: new Date(v.criado_em).toLocaleDateString('pt-BR') }));
       try { localStorage.setItem('lirelacan_vocab', JSON.stringify(vocabItems)); } catch(e) {}
     }
-
-    // Notas do caderno
+    // Notas
     const { data: notas } = await supa.from('notas')
-      .select('*').eq('user_id', supaUserId)
-      .order('atualizado_em', { ascending: false });
+      .select('*').eq('user_id', supaUserId).order('atualizado_em', { ascending: false });
     if (notas?.length) {
-      cadernoNotas = notas.map(n => ({
-        id: n.id, titulo: n.titulo || 'Sem título', conteudo: n.conteudo || '',
+      cadernoNotas = notas.map(n => ({ id: n.id, titulo: n.titulo || '',
+        conteudo: n.conteudo || '',
         criado: new Date(n.criado_em).toLocaleDateString('pt-BR'),
-        atualizado: new Date(n.atualizado_em).toLocaleDateString('pt-BR') + ' ' +
-                    new Date(n.atualizado_em).toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'})
-      }));
+        atualizado: new Date(n.atualizado_em).toLocaleDateString('pt-BR') }));
       try { localStorage.setItem('lirelacan_notas', JSON.stringify(cadernoNotas)); } catch(e) {}
     }
-
     // Posição de leitura
     const { data: prog } = await supa.from('progresso')
-      .select('*').eq('user_id', supaUserId)
-      .order('atualizado_em', { ascending: false }).limit(1);
-    if (prog?.[0]) {
-      const p = prog[0];
-      const segs = p.segs_lidos || [];
-      if (segs.length) {
-        const ultimoSeg = segs[segs.length - 1];
-        S.lastSegId = ultimoSeg;
-        try {
-          localStorage.setItem('lirelacan_pos', JSON.stringify({ sem: 0, segId: ultimoSeg }));
-        } catch(e) {}
+      .select('*').eq('user_id', supaUserId).order('atualizado_em', { ascending: false }).limit(1);
+    if (prog?.[0]?.segs_lidos?.length) {
+      const segId = prog[0].segs_lidos[prog[0].segs_lidos.length - 1];
+      S.lastSegId = segId;
+      try { localStorage.setItem('lirelacan_pos', JSON.stringify({ sem: 0, segId, scrollTop: 0 })); } catch(e) {}
+    }
+    // Marcadores
+    const { data: marc } = await supa.from('trechos_salvos')
+      .select('*').eq('user_id', supaUserId).like('seg_id', 'marcador_%');
+    if (marc?.length) {
+      const carregados = marc.map(d => {
+        const parts = (d.traducao || '').split('|');
+        const num = parseInt(parts[1], 10);
+        if (!d.texto_fr || isNaN(num) || num <= 0) return null;
+        return { id: d.seg_id.replace('marcador_', ''), num,
+                 cor: parts[0] || 'blue', segId: d.texto_fr, sem: 0,
+                 label: parts.slice(2).join('|') || '' };
+      }).filter(Boolean);
+      if (carregados.length) {
+        marcadores = carregados;
+        proxNumMarcador = Math.max(...marcadores.map(m => m.num)) + 1;
+        try { localStorage.setItem('lirelacan_marcadores', JSON.stringify(marcadores)); } catch(e) {}
+        setTimeout(() => { aplicarMarcadoresVisuais(); renderMarcadores(); }, 300);
       }
     }
-  } catch(e) { console.warn('Erro ao carregar dados da nuvem:', e.message); }
-
-  // Re-renderizar leitor com highlights carregados
-  if (S.semAtual !== null) {
-    renderFullReader(S.seminarios[S.semAtual]);
-    // Aguardar DOM estar pronto antes de aplicar highlights e marcadores
-    setTimeout(() => {
-      aplicarHighlightsNuvem();
-      aplicarMarcadoresVisuais();
-      renderMarcadores();
-      // Restaurar posição após aplicar destaques
-      restaurarPosicaoLeitura();
-    }, 300);
-  }
-
-  // Carregar marcadores da nuvem
-  await carregarMarcadoresNuvem();
-  renderMarcadores();
-  if (S.semAtual !== null) setTimeout(() => aplicarMarcadoresVisuais(), 400);
+    // Preferências tema/fonte
+    const { data: pref } = await supa.from('trechos_salvos')
+      .select('*').eq('user_id', supaUserId).eq('seg_id', 'pref_tema').limit(1);
+    if (pref?.[0]) { setTheme(pref[0].texto_fr || 'paper'); setFont(pref[0].traducao || 'sans'); }
+  } catch(e) { console.warn('Erro ao carregar dados:', e.message); }
 }
 
-// ── SALVAR na nuvem ────────────────────────────────────
 async function nuvemSalvarHighlight(segId, texto, cor) {
   if (!supa || !supaUserId) return;
   try {
     await supa.from('highlights').insert({
-      user_id: supaUserId,
-      seminario: S.seminarios[S.semAtual]?.numero || 0,
-      seg_id: segId, texto, cor
-    });
-  } catch(e) { console.warn('Erro ao salvar highlight:', e.message); }
-}
-
-async function nuvemRemoverHighlight(segId, texto) {
-  if (!supa || !supaUserId) return;
-  try {
-    await supa.from('highlights')
-      .delete().eq('user_id', supaUserId).eq('seg_id', segId).eq('texto', texto);
+      user_id: supaUserId, seminario: S.seminarios[S.semAtual]?.numero || 0,
+      seg_id: segId, texto, cor });
   } catch(e) {}
 }
 
-async function nuvemSalvarComentario(segId, textoFr, nota) {
+async function nuvemRemoverHighlight(segId, texto, cor) {
   if (!supa || !supaUserId) return;
   try {
-    await supa.from('comentarios').insert({
-      user_id: supaUserId,
-      seminario: S.seminarios[S.semAtual]?.numero || 0,
-      seg_id: segId, texto_fr: textoFr, nota
-    });
-  } catch(e) { console.warn('Erro ao salvar comentário:', e.message); }
+    await supa.from('highlights').delete()
+      .eq('user_id', supaUserId).eq('seg_id', segId).eq('texto', texto).eq('cor', cor);
+  } catch(e) {}
 }
 
-async function nuvemSalvarTrecho(segId, textoFr, comentario) {
-  if (!supa || !supaUserId) return;
-  try {
-    await supa.from('trechos_salvos').insert({
-      user_id: supaUserId,
-      seminario: S.seminarios[S.semAtual]?.numero || 0,
-      seg_id: segId, texto_fr: textoFr, traducao: comentario || null
+function aplicarHighlightsNuvem() {
+  if (!S.highlights || !Object.keys(S.highlights).length) return;
+  const clsMap = { yellow:'hi-yellow', green:'hi-green', blue:'hi-blue' };
+  Object.entries(S.highlights).forEach(([segId, itens]) => {
+    const frEl = document.getElementById('fr_' + segId);
+    if (!frEl) return;
+    itens.forEach(h => {
+      const cor = h.color || h.cor || 'yellow';
+      const texto = (h.text || h.texto || '').trim().replace(/\s+/g,' ');
+      if (!texto) return;
+      const walker = document.createTreeWalker(frEl, NodeFilter.SHOW_TEXT);
+      let node;
+      while ((node = walker.nextNode())) {
+        if (node.parentElement?.dataset?.hi) continue;
+        const idx = node.textContent.indexOf(texto);
+        if (idx === -1) continue;
+        try {
+          const range = document.createRange();
+          range.setStart(node, idx);
+          range.setEnd(node, idx + texto.length);
+          const span = document.createElement('span');
+          span.className = clsMap[cor] || 'hi-yellow';
+          span.dataset.hi = cor;
+          range.surroundContents(span);
+        } catch(e) {}
+        break;
+      }
     });
-  } catch(e) { console.warn('Erro ao salvar trecho:', e.message); }
+  });
 }
 
-async function nuvemSalvarVocab(word, trad) {
+// ── Marcadores ─────────────────────────────────────────
+let marcadores = [];
+try {
+  const raw = JSON.parse(localStorage.getItem('lirelacan_marcadores') || '[]');
+  marcadores = raw.filter(m => m && m.segId && m.cor && typeof m.num === 'number' && !isNaN(m.num));
+} catch(e) { marcadores = []; }
+let proxNumMarcador = marcadores.length ? Math.max(...marcadores.map(m => m.num)) + 1 : 1;
+
+function salvarMarcadores() {
+  try { localStorage.setItem('lirelacan_marcadores', JSON.stringify(marcadores)); } catch(e) {}
   if (!supa || !supaUserId) return;
-  try {
-    await supa.from('trechos_salvos').insert({
-      user_id: supaUserId, seminario: 0,
-      seg_id: 'vocab_' + Date.now(),
-      texto_fr: word, traducao: trad || null
-    });
-  } catch(e) { console.warn('Erro ao salvar vocab:', e.message); }
+  marcadores.forEach(m => {
+    supa.from('trechos_salvos').upsert({
+      user_id: supaUserId, seminario: S.seminarios[m.sem]?.numero || 0,
+      seg_id: 'marcador_' + m.id, texto_fr: m.segId,
+      traducao: m.cor + '|' + m.num + '|' + (m.label || '')
+    }, { onConflict: 'user_id,seg_id' }).catch(() => {});
+  });
 }
 
-async function nuvemSalvarNota(nota) {
-  if (!supa || !supaUserId) return;
-  try {
-    const isLocal = !nota.id || String(nota.id).startsWith('local_');
-    if (isLocal) {
-      const { data } = await supa.from('notas').insert({
-        user_id: supaUserId,
-        titulo: nota.titulo || 'Sem título',
-        conteudo: nota.conteudo || '',
-        criado_em: new Date().toISOString(),
-        atualizado_em: new Date().toISOString()
-      }).select().single();
-      if (data?.id) nota.id = data.id; // Atualizar ID
-    } else {
-      await supa.from('notas')
-        .update({
-          titulo: nota.titulo || 'Sem título',
-          conteudo: nota.conteudo || '',
-          atualizado_em: new Date().toISOString()
-        })
-        .eq('id', nota.id).eq('user_id', supaUserId);
+function corMarcador(cor) {
+  return { blue:'#3b82f6', green:'#22c55e', red:'#ef4444', yellow:'#eab308', purple:'#a855f7' }[cor] || '#888';
+}
+function corEmoji(cor) {
+  return { blue:'🔵', green:'🟢', red:'🔴', yellow:'🟡', purple:'🟣' }[cor] || '⚫';
+}
+
+function mostrarMenuMarcadorInline(segId, btnEl) {
+  document.querySelectorAll('.bookmark-menu').forEach(e => e.remove());
+  const cores = [
+    {cor:'blue',hex:'#3b82f6'},{cor:'green',hex:'#22c55e'},
+    {cor:'red',hex:'#ef4444'},{cor:'yellow',hex:'#eab308'},{cor:'purple',hex:'#a855f7'}
+  ];
+  const menu = document.createElement('div');
+  menu.className = 'bookmark-menu';
+  menu.style.cssText = 'position:fixed;background:var(--paper-warm);border:1px solid var(--border);border-radius:10px;padding:12px 14px;z-index:400;box-shadow:0 6px 24px rgba(0,0,0,.18);';
+  menu.innerHTML = '<div style="font-size:11px;color:var(--ink-faint);margin-bottom:10px">+ Marcador de página</div>' +
+    '<div style="display:flex;gap:8px">' +
+    cores.map(c => '<button data-cor="'+c.cor+'" style="width:24px;height:24px;border-radius:50%;background:'+c.hex+';border:2px solid white;cursor:pointer"></button>').join('') +
+    '</div>';
+  const rect = btnEl.getBoundingClientRect();
+  menu.style.top = (rect.bottom+6)+'px';
+  menu.style.left = Math.max(8, rect.left-20)+'px';
+  document.body.appendChild(menu);
+  menu.addEventListener('click', e => {
+    const btn = e.target.closest('[data-cor]');
+    if (!btn) return;
+    e.stopPropagation();
+    menu.remove();
+    adicionarMarcadorNoSeg(segId, btn.dataset.cor);
+  });
+  setTimeout(() => {
+    document.addEventListener('click', function f(e) {
+      if (!menu.contains(e.target)) { menu.remove(); document.removeEventListener('click',f); }
+    });
+  }, 10);
+}
+
+function adicionarMarcadorNoSeg(segId, cor) {
+  const segEl = document.querySelector('[data-seg="'+segId+'"]');
+  const existente = marcadores.find(m => m.segId === segId);
+  if (existente) { removerMarcador(existente.id); mostrarToast('Marcador removido','#888'); return; }
+  const texto = (segEl?.querySelector('.seg-fr')?.textContent || '').slice(0,60).trim() + '…';
+  const id = String(Date.now());
+  const num = marcadores.length ? Math.max(...marcadores.map(m=>m.num))+1 : 1;
+  proxNumMarcador = num+1;
+  marcadores.push({ id, num, cor, segId, sem: S.semAtual, label: texto });
+  _tagMarcador(segEl, cor, num, segId);
+  salvarMarcadores();
+  renderMarcadores();
+  if (segEl) { segEl.style.outline='2px solid '+corMarcador(cor); setTimeout(()=>{segEl.style.outline='';},2000); }
+  mostrarToast('Marcador #'+num+' adicionado', corMarcador(cor));
+}
+
+function removerMarcador(id) {
+  const idStr = String(id);
+  const m = marcadores.find(x => String(x.id)===idStr);
+  if (m) {
+    const el = document.querySelector('[data-seg="'+m.segId+'"]');
+    if (el) {
+      el.querySelectorAll('.seg-marcador-tag').forEach(t=>t.remove());
+      const btn = el.querySelector('.seg-bookmark-btn');
+      if (btn) { btn.classList.remove('tem-marcador'); btn.style.color=''; }
     }
-  } catch(e) { console.warn('Erro ao salvar nota:', e.message); }
+    if (supa && supaUserId)
+      supa.from('trechos_salvos').delete().eq('user_id',supaUserId).eq('seg_id','marcador_'+idStr).catch(()=>{});
+  }
+  marcadores = marcadores.filter(x => String(x.id)!==idStr);
+  marcadores.sort((a,b)=>a.num-b.num).forEach((m,i)=>{ m.num=i+1; });
+  proxNumMarcador = marcadores.length+1;
+  marcadores.forEach(m => {
+    const tag = document.querySelector('[data-seg="'+m.segId+'"] .seg-marcador-tag');
+    if (tag) tag.textContent = corEmoji(m.cor)+' #'+m.num;
+  });
+  salvarMarcadores();
+  renderMarcadores();
 }
 
-async function nuvemDeletarNota(notaId) {
-  if (!supa || !supaUserId || !notaId || String(notaId).startsWith('local_')) return;
+function _tagMarcador(segEl, cor, num, segId) {
+  if (!segEl) return;
+  const btn = segEl.querySelector('.seg-bookmark-btn');
+  if (btn) { btn.classList.add('tem-marcador'); btn.style.color=corMarcador(cor); }
+  segEl.querySelectorAll('.seg-marcador-tag').forEach(t=>t.remove());
+  const tag = document.createElement('div');
+  tag.className = 'seg-marcador-tag';
+  tag.style.cssText = 'position:absolute;left:0;top:0;background:'+corMarcador(cor)+';color:white;font-size:9px;font-weight:700;padding:2px 5px;border-radius:0 0 5px 0;font-family:Karla,sans-serif;cursor:pointer;z-index:2;white-space:nowrap;';
+  tag.textContent = corEmoji(cor)+' #'+num;
+  tag.onclick = e => { e.stopPropagation(); irParaSegmento(segId); };
+  segEl.appendChild(tag);
+}
+
+function aplicarMarcadoresVisuais() {
+  marcadores.filter(m=>m.sem===S.semAtual).forEach(m=>{
+    _tagMarcador(document.querySelector('[data-seg="'+m.segId+'"]'), m.cor, m.num, m.segId);
+  });
+}
+
+function renderMarcadores() {
+  const el = document.getElementById('panelMarcadores');
+  if (!el) return;
+  marcadores = marcadores.filter(m=>m&&m.segId&&m.cor&&typeof m.num==='number'&&!isNaN(m.num));
+  const lista = marcadores.filter(m=>m.sem===S.semAtual).sort((a,b)=>a.num-b.num);
+  if (!lista.length) {
+    el.innerHTML = '<span style="font-size:11px;color:var(--ink-faint);font-style:italic">Clique em 🔖 num segmento para adicionar.</span>';
+    return;
+  }
+  el.innerHTML = lista.map(m =>
+    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;padding:5px 8px;border-radius:6px;cursor:pointer;border-left:3px solid '+corMarcador(m.cor)+';background:var(--paper-warm)" data-seg-id="'+m.segId+'">'+
+    '<span>'+corEmoji(m.cor)+'</span>'+
+    '<span style="font-size:10px;font-weight:700;color:white;background:'+corMarcador(m.cor)+';padding:1px 5px;border-radius:10px">#'+m.num+'</span>'+
+    '<span style="font-size:11px;color:var(--ink-soft);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+escH(m.label)+'</span>'+
+    '<button class="btn-rm-marc" data-id="'+m.id+'" style="background:none;border:none;color:var(--ink-faint);cursor:pointer;font-size:16px;padding:0 4px">×</button>'+
+    '</div>'
+  ).join('');
+  el.querySelectorAll('[data-seg-id]').forEach(div => {
+    div.addEventListener('click', e => { if(!e.target.closest('.btn-rm-marc')) irParaSegmento(div.dataset.segId); });
+  });
+  el.querySelectorAll('.btn-rm-marc').forEach(btn => {
+    btn.addEventListener('click', e => { e.stopPropagation(); removerMarcador(btn.dataset.id); });
+  });
+}
+
+function irParaMarcador(m) {
+  if (m.sem !== S.semAtual) { loadSeminario(m.sem); setTimeout(()=>irParaSegmento(m.segId),600); }
+  else irParaSegmento(m.segId);
+}
+
+function irParaSegmento(segId) {
+  S.lastSegId = segId;
+  if (S.activeTab !== 'read') switchTab('read');
+  setTimeout(()=>{
+    const el = document.querySelector('[data-seg="'+segId+'"]');
+    if (el) { const top = window.scrollY+el.getBoundingClientRect().top-100; window.scrollTo({top,behavior:'smooth'}); }
+  },100);
+}
+
+function mostrarToast(msg, cor) {
+  const t = document.createElement('div');
+  t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:'+(cor||'var(--accent)')+';color:white;padding:8px 18px;border-radius:20px;font-size:13px;font-family:Karla,sans-serif;font-weight:500;z-index:500;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.2)';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  requestAnimationFrame(()=>{ t.style.opacity='1'; t.style.transform='translateX(-50%) translateY(0)'; });
+  setTimeout(()=>{ t.style.opacity='0'; t.style.transform='translateX(-50%) translateY(20px)'; setTimeout(()=>t.remove(),300); },2500);
+}
+
+// ── Posição de leitura ─────────────────────────────────
+let savedScrollTop = 0;
+function salvarPosicaoLeitura() {
+  const scrollEl = document.scrollingElement || document.documentElement;
+  savedScrollTop = scrollEl.scrollTop || window.scrollY || 0;
+  const segs = document.querySelectorAll('[data-seg]');
+  let melhor = null, menorY = Infinity;
+  segs.forEach(seg => {
+    const rect = seg.getBoundingClientRect();
+    if (rect.bottom > 0 && rect.top < window.innerHeight) {
+      const d = Math.abs(rect.top - 80);
+      if (d < menorY) { menorY = d; melhor = seg; }
+    }
+  });
+  if (!melhor) return;
+  S.lastSegId = melhor.dataset.seg;
+  try { localStorage.setItem('lirelacan_pos', JSON.stringify({sem:S.semAtual,segId:S.lastSegId,scrollTop:savedScrollTop})); } catch(e) {}
+  if (supa && supaUserId) {
+    supa.from('progresso').upsert({user_id:supaUserId,seminario:S.seminarios[S.semAtual]?.numero||0,
+      segs_lidos:[...S.readSegs].slice(-50),atualizado_em:new Date().toISOString()},{onConflict:'user_id,seminario'}).catch(()=>{});
+  }
+}
+
+function restaurarPosicaoLeitura() {
+  if (savedScrollTop > 0) {
+    (document.scrollingElement||document.documentElement).scrollTop = savedScrollTop;
+    window.scrollTo(0, savedScrollTop);
+    return;
+  }
+  let segId = S.lastSegId;
+  let storedScroll = 0;
+  if (!segId) {
+    try { const s=JSON.parse(localStorage.getItem('lirelacan_pos')||'{}'); if(s.segId){segId=s.segId;storedScroll=s.scrollTop||0;} } catch(e) {}
+  }
+  if (!segId) return;
+  S.lastSegId = segId;
+  if (storedScroll > 0) { (document.scrollingElement||document.documentElement).scrollTop=storedScroll; window.scrollTo(0,storedScroll); return; }
+  let n=0;
+  const tentar = () => {
+    const el = document.querySelector('[data-seg="'+segId+'"]');
+    if (el) { window.scrollTo({top:window.scrollY+el.getBoundingClientRect().top-80,behavior:'instant'}); return; }
+    if(++n<10) setTimeout(tentar,150);
+  };
+  tentar();
+}
+
+// ── Preferências ───────────────────────────────────────
+let currentFont = 'sans';
+const fontMap = { fell:"'IM Fell English',serif", serif:"Georgia,serif", sans:"'Helvetica Neue',Arial,sans-serif", mono:"'Courier New',monospace" };
+
+function carregarPreferencias() {
   try {
-    await supa.from('notas').delete().eq('id', notaId).eq('user_id', supaUserId);
+    const tema = localStorage.getItem('lirelacan_tema') || 'paper';
+    const fonte = localStorage.getItem('lirelacan_fonte') || 'sans';
+    setTheme(tema); setFont(fonte);
   } catch(e) {}
 }
 
-async function nuvemSalvarPosicao(seminario, segId) {
-  if (!supa || !supaUserId || !segId) return;
-  try {
-    const semNum = S.seminarios[seminario]?.numero || 0;
-    const segsLidos = [...S.readSegs].slice(-100);
-    // Upsert: atualiza se já existe, cria se não existe
-    await supa.from('progresso').upsert({
-      user_id: supaUserId, seminario: semNum,
-      segs_lidos: segsLidos,
-      atualizado_em: new Date().toISOString()
-    }, { onConflict: 'user_id,seminario' });
-  } catch(e) { console.warn('Erro ao salvar posição:', e.message); }
-}
-
-// ══════════════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', async () => {
   if ('speechSynthesis' in window) speechSynthesis.getVoices();
   setupScrollObserver();
   setupSelectionMenu();
   carregarPreferencias();
 
-  // Carregar seminários e autenticar EM PARALELO
+  // Seminários e auth em paralelo
   const [seminariosDaPasta] = await Promise.all([
     carregarSeminariosDaPasta(),
-    iniciarSessaoSupabase()  // não bloqueia os seminários
+    iniciarSessaoSupabase()
   ]);
-
   if (seminariosDaPasta.length > 0) S.seminarios = seminariosDaPasta;
 
   renderSidebar();
   loadSeminario(0);
 
-  // Carregar dados da nuvem DEPOIS do leitor estar visível
-  if (supaUserId) {
-    setTimeout(async () => {
-      await carregarPreferenciasNuvem();
-      await carregarDadosNuvem();
-    }, 500);
-  }
+  // Dados da nuvem em background
+  if (supaUserId) setTimeout(async () => { await carregarDadosNuvem(); }, 500);
 
   window.addEventListener('beforeunload', () => salvarPosicaoLeitura());
   setInterval(() => { if (S.activeTab === 'read') salvarPosicaoLeitura(); }, 30000);
@@ -1762,8 +1778,6 @@ function loadSeminario(idx) {
   document.getElementById('tabSaved').classList.remove('active');
   renderSideIndex(sem);
   renderFullReader(sem);
-  // Aplicar marcadores visuais após renderizar
-  setTimeout(() => aplicarMarcadoresVisuais(), 100);
 
   // Restaurar posição salva por segmento
   try {
@@ -1856,7 +1870,7 @@ function buildSegEl(seg, idx, licaoNum) {
   // seg-content
   const content = el('div', { cls: 'seg-content' });
 
-  // seg-fr
+  // seg-fr — construído por nós de texto + spans, nunca innerHTML
   const frDiv = el('div', { cls: 'seg-fr', id: 'fr_' + seg.id });
   buildFRNodes(seg.texto_fr, seg.termos || [], seg.id).forEach(n => frDiv.appendChild(n));
   content.appendChild(frDiv);
@@ -1870,33 +1884,16 @@ function buildSegEl(seg, idx, licaoNum) {
   body.appendChild(el('div', { cls: 'seg-marker ' + marker }));
   div.appendChild(body);
 
-  // Botão de marcador — ao lado esquerdo do play
-  const marcadorBtn = el('button', { cls: 'seg-bookmark-btn', title: 'Adicionar marcador de página' });
-  marcadorBtn.innerHTML = `<svg width="11" height="15" viewBox="0 0 11 15" fill="none">
-    <path d="M0 0h11v15l-5.5-3.5L0 15V0z" fill="currentColor"/>
-  </svg>`;
-  marcadorBtn.addEventListener('click', e => {
-    e.stopPropagation();
-    // Verificar se já tem marcador neste segmento
-    const marcadorExistente = marcadores.find(m => m.segId === seg.id && m.sem === S.semAtual);
-    if (marcadorExistente) {
-      // Toggle: remover marcador existente
-      removerMarcador(marcadorExistente.id);
-    } else {
-      // Adicionar novo marcador
-      mostrarMenuMarcadorInline(seg.id, marcadorBtn, idx);
-    }
-  });
+  // Botão de marcador (à esquerda do áudio)
+  const marcBtn = el('button', { cls: 'seg-bookmark-btn', title: 'Marcador de página' });
+  marcBtn.innerHTML = '<svg width="11" height="15" viewBox="0 0 11 15" fill="currentColor"><path d="M0 0h11v15l-5.5-3.5L0 15V0z"/></svg>';
+  marcBtn.addEventListener('click', e => { e.stopPropagation(); mostrarMenuMarcadorInline(seg.id, marcBtn); });
+  div.appendChild(marcBtn);
 
   // Botão de áudio
   const btn = el('button', { cls: 'btn-audio', id: 'btn_' + seg.id, title: 'Ouvir em francês' }, '▶');
   btn.addEventListener('click', e => { e.stopPropagation(); playAudio(seg.id); });
-
-  // Grupo de botões lado a lado
-  const btnGroup = el('div', { cls: 'seg-btn-group' });
-  btnGroup.appendChild(marcadorBtn);
-  btnGroup.appendChild(btn);
-  div.appendChild(btnGroup);
+  div.appendChild(btn);
 
   // Comentários
   div.appendChild(el('div', { id: 'cmts_' + seg.id }));
@@ -2010,17 +2007,9 @@ document.addEventListener('click', e => {
 // ══════════════════════════════════════════════════════
 document.addEventListener('click', e => {
   if (e.target.closest('[data-mi]') || e.target.closest('.btn-audio') ||
-      e.target.closest('#selMenu') || e.target.closest('.seg-comment-del')) return;
+      e.target.closest('.sel-menu') || e.target.closest('.seg-comment-del')) return;
   const segEl = e.target.closest('.segment');
   if (!segEl || !S.bilingualOn) return;
-
-  // Não fechar/abrir se o usuário acabou de selecionar texto
-  const sel = window.getSelection();
-  if (sel && !sel.isCollapsed && sel.toString().trim().length > 0) return;
-
-  // Não fechar se clicou dentro da tradução PT (para permitir seleção)
-  if (e.target.closest('.seg-pt')) return;
-
   const id = segEl.dataset.seg;
   const pt = document.getElementById('pt_' + id);
   if (!pt) return;
@@ -2103,50 +2092,71 @@ let selSegAtual = null;
 function setupSelectionMenu() {
   const menu = document.getElementById('selMenu');
 
-  // mousedown no menu: prevenir desfazer seleção
+  // ── Proteger o menu: mousedown/touchstart no menu não fecha e não desfaz seleção
   menu.addEventListener('mousedown', e => {
     menuClickando = true;
-    e.preventDefault();
+    e.preventDefault(); // impede desfazer seleção ao clicar no menu
   });
-  menu.addEventListener('touchstart', () => { menuClickando = true; }, { passive: true });
+  menu.addEventListener('touchstart', e => {
+    menuClickando = true;
+    // NÃO preventDefault no touch para não bloquear scroll
+  }, { passive: true });
 
-  // Clique dentro do menu — nunca fechar
-  menu.addEventListener('click', e => {
-    e.stopPropagation();
-    e.preventDefault();
-    const btnRemover = e.target.closest('.sel-btn-remove');
-    if (btnRemover) removeHighlight();
-  });
-
-  // Clique no documento
+  // ── Clique fora do menu → fechar
   document.addEventListener('click', e => {
-    // Clique em destaque existente → menu de remoção
+    // Clique em highlight existente
     const hiSpan = e.target.closest('[data-hi]');
     if (hiSpan && !e.target.closest('#selMenu')) {
+      e.stopPropagation();
       hiSpanAlvo = hiSpan;
-      const cores = { yellow:'amarelo', green:'verde', blue:'azul' };
+      const corLabel = { yellow: 'amarelo', green: 'verde', blue: 'azul' };
+      const cor = corLabel[hiSpan.dataset.hi] || 'destaque';
       menu.innerHTML = `
-        <div class="sel-section-label">Destaque ${escH(cores[hiSpan.dataset.hi]||'')}</div>
-        <button class="sel-btn sel-btn-remove">
+        <div class="sel-section-label">Destaque ${cor}</div>
+        <button class="sel-btn sel-btn-remove" onclick="removeHighlight()">
           <svg class="sel-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
             <polyline points="3,6 17,6"/><path d="M8,6V4h4v2"/><path d="M5,6l1,11h8l1-11"/>
-          </svg>Remover destaque</button>`;
+          </svg>
+          Remover destaque
+        </button>`;
       posicionarMenu(hiSpan.getBoundingClientRect());
       menu.classList.add('visible');
       menuAberto = true;
-      return; // não fechar
+      menuClickando = false;
+      return;
     }
 
-    // Clique fora → fechar apenas se não foi dentro do menu
-    if (!e.target.closest('#selMenu') && !menuClickando) hideMenu();
+    // Clique fora do menu (e não foi clique em botão do menu)
+    if (!e.target.closest('#selMenu') && !menuClickando) {
+      hideMenu();
+    }
     menuClickando = false;
   });
 
-  // Mostrar menu ao soltar após seleção
+  // ── Mostrar menu ao soltar o mouse/touch após seleção
+  // Usar pointerup em vez de selectionchange — mais confiável
   document.addEventListener('pointerup', e => {
     if (e.target.closest('#selMenu')) return;
+    // Pequeno delay para a seleção estabilizar
     clearTimeout(selTimer);
-    selTimer = setTimeout(() => verificarSelecao(), 100);
+    selTimer = setTimeout(() => verificarSelecao(), 80);
+  });
+
+  // ── selectionchange: só usar para detectar quando seleção é ZERADA pelo usuário
+  // (ex: clicar em área vazia), não para fechar durante arraste
+  document.addEventListener('selectionchange', () => {
+    const sel = window.getSelection();
+    // Se seleção foi zerada E menu está aberto E não estamos clicando no menu
+    if (menuAberto && !menuClickando && sel && sel.isCollapsed) {
+      clearTimeout(selTimer);
+      // Aguardar para ver se foi apenas transição durante arraste
+      selTimer = setTimeout(() => {
+        const s = window.getSelection();
+        if (s && s.isCollapsed && !menuClickando) {
+          hideMenu();
+        }
+      }, 300);
+    }
   });
 }
 
@@ -2219,7 +2229,7 @@ function menuNormalHTML() {
       </svg>
       Salvar trecho
     </button>
-    <button class="sel-btn" id="selVocabBtn" onclick="doAddVocab()">
+    <button class="sel-btn" onclick="doAddVocab()">
       <svg class="sel-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
         <path d="M4 19V4a2 2 0 012-2h12v14H6a2 2 0 000 4z"/>
         <line x1="12" y1="7" x2="12" y2="13"/><line x1="9" y1="10" x2="15" y2="10"/>
@@ -2235,61 +2245,145 @@ function menuNormalHTML() {
     </button>`;
 }
 
-// ── Ações do menu — NÃO fecham o menu automaticamente ──────────────
-// O menu fecha apenas ao clicar no background (ver setupSelectionMenu)
-
-function doAddVocab() {
-  if (!currentSel) return;
-  const palavra = currentSel.text.trim();
-  if (!palavra) return;
-  // Buscar tradução automática do dicionário local
-  const chave = palavra.toLowerCase()
-    .replace(/œ/g,'oe').replace(/æ/g,'ae')
-    .normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
-  const local = typeof DICT_LOCAL !== 'undefined' ? DICT_LOCAL[chave] : null;
-  const trad = local?.v?.[0]?.t || '';
-  // Salvar no vocabulário
-  if (vocabItems.some(v => v.word.toLowerCase() === palavra.toLowerCase())) {
-    // Já existe — mostrar feedback no botão
-    const btn = document.getElementById('selVocabBtn');
-    if (btn) { btn.textContent = '✓ Já salvo'; setTimeout(() => { btn.innerHTML = btn.innerHTML; document.getElementById('selMenu').innerHTML = menuNormalHTML(); }, 1500); }
-    return;
-  }
-  vocabItems.unshift({ word: palavra, trad, ctx: currentSel.text, data: new Date().toLocaleDateString('pt-BR') });
-  salvarVocab();
-  // Atualizar painel vocab
-  preencherPainelVocab(palavra, trad);
-  // Feedback visual no botão sem fechar o menu
-  const btn = document.getElementById('selVocabBtn');
-  if (btn) {
-    const orig = btn.innerHTML;
-    btn.innerHTML = '✓ Salvo no vocabulário';
-    btn.style.color = 'var(--accent)';
-    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 2000);
-  }
-}
-
 // ── PAINEL DIREITO — Tradução rápida e Vocabulário ──────────────────
 
 // Chamado pelo botão "Traduzir" no menu de seleção
 function traduzirNoPainel() {
   if (!currentSel) return;
   const palavra = currentSel.text.trim().split(/\s+/).slice(0, 4).join(' ');
-  // Não fechar menu — traduz no painel e mantém seleção ativa
+  hideMenu();
+  // Preencher input do painel e buscar
   const inp = document.getElementById('panelTradInput');
-  if (inp) inp.value = palavra;
+  if (inp) { inp.value = palavra; }
   buscarTradPainel(palavra);
+  // Scroll suave para o painel (mobile)
   document.querySelector('.panel')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
-// Chamado pelo botão no painel — delega para a função principal abaixo
+// Chamado pelo botão no painel
+async function buscarTradPainel(termoForc) {
+  const inp = document.getElementById('panelTradInput');
+  const res = document.getElementById('panelTradResult');
+  const termo = (termoForc || inp?.value || '').trim();
+  if (!termo || !res) return;
+  if (inp && !termoForc) inp.value = termo;
+
+  res.innerHTML = '<span style="color:var(--ink-faint);font-size:12px">Buscando…</span>';
+
+  // Normalizar para busca no dicionário local
+  const chave = termo.toLowerCase()
+    .replace(/œ/g,'oe').replace(/æ/g,'ae')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/\s+/g,' ').trim();
+
+  // 1. Dicionário local (lacanianos)
+  const entradaLocal = DICT_LOCAL[chave];
+  const dirLocal = tradDir === 'fr-pt' ? 'fr' : 'pt';
+  const localOk = entradaLocal && entradaLocal.d === dirLocal;
+  if (localOk) {
+    renderPanelTrad(termo, entradaLocal.v.map(x => x.t), entradaLocal.ex);
+    // Preencher campo vocab automaticamente
+    preencherPainelVocab(termo, entradaLocal.v[0]?.t || '');
+    return;
+  }
+
+  // 2. TRAD_DICT geral
+  const entradaTrad = TRAD_DICT[chave];
+  if (entradaTrad) {
+    renderPanelTrad(termo, entradaTrad.map(x => x.t), []);
+    preencherPainelVocab(termo, entradaTrad[0]?.t || '');
+    return;
+  }
+
+  // 3. Reverso como fallback
+  try {
+    const [src, tgt] = tradDir === 'fr-pt' ? ['fr','pt'] : ['pt','fr'];
+    const r = await fetch('https://api.reverso.net/translate/v1/translation', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Origin': 'https://context.reverso.net' },
+      body: JSON.stringify({ format:'text', from:src, to:tgt, input:termo,
+        options: { sentenceSplitter:false, origin:'translation.web',
+                   contextResults:true, languageDetection:true } })
+    });
+    const data = await r.json();
+    const trs = (data.translation || []).slice(0, 6);
+    const exs = (data.contextResults?.results || []).slice(0, 2).map(ex => ({
+      fr: (ex.sourceExamples||[])[0]?.replace(/<[^>]+>/g,'').trim()||'',
+      pt: (ex.targetExamples||[])[0]?.replace(/<[^>]+>/g,'').trim()||'',
+    })).filter(e => e.fr && e.pt);
+    if (trs.length) {
+      renderPanelTrad(termo, trs, exs);
+      preencherPainelVocab(termo, trs[0] || '');
+      return;
+    }
+  } catch(e) {}
+
+  res.innerHTML = '<span style="color:var(--ink-faint);font-size:12px;font-style:italic">Sem resultado.</span>';
+}
+
+function renderPanelTrad(termo, traducoes, exemplos) {
+  const res = document.getElementById('panelTradResult');
+  if (!res) return;
+  const tags = traducoes.map(t =>
+    `<span class="panel-trad-tag">${t.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</span>`
+  ).join('');
+  const exHtml = exemplos.slice(0, 2).map(e =>
+    `<div class="panel-trad-ex">
+      <div style="font-style:italic;color:var(--ink-soft)">${e.fr.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</div>
+      <div style="color:var(--ink-faint);font-size:11px">↳ ${e.pt.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</div>
+    </div>`
+  ).join('');
+  res.innerHTML = `
+    <div style="font-weight:500;color:var(--ink);margin-bottom:8px;font-family:'IM Fell English',serif">${termo.replace(/&/g,'&amp;')}</div>
+    <div class="panel-trad-tags">${tags}</div>
+    ${exHtml}`;
+}
 
 // ── Vocabulário no painel ────────────────────────────
 function preencherPainelVocab(palavra, trad) {
-  panelUltimoTermo = palavra;
-  mostrarVocabPainel(palavra);
+  const sec = document.getElementById('panelVocabSection');
+  const wordEl = document.getElementById('panelVocabWord');
   const tradEl = document.getElementById('panelVocabTrad');
-  if (tradEl) tradEl.value = trad || '';
+  const msgEl = document.getElementById('panelVocabMsg');
+  if (!sec) return;
+  sec.style.display = 'block';
+  if (wordEl) wordEl.textContent = palavra;
+  if (tradEl) tradEl.value = trad;
+  if (msgEl) msgEl.textContent = '';
+}
+
+// Chamado pelo botão "+ Vocabulário" no menu de seleção
+function doAddVocab() {
+  if (!currentSel) return;
+  const palavra = currentSel.text.trim();
+  hideMenu();
+  preencherPainelVocab(palavra, '');
+  // Tentar buscar tradução automaticamente
+  const chave = palavra.toLowerCase()
+    .replace(/œ/g,'oe').replace(/æ/g,'ae')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+  const local = DICT_LOCAL[chave];
+  const trad2 = TRAD_DICT[chave];
+  const trad = local?.v[0]?.t || trad2?.[0]?.t || '';
+  preencherPainelVocab(palavra, trad);
+  document.querySelector('.panel')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function salvarVocabDoPainel() {
+  const wordEl = document.getElementById('panelVocabWord');
+  const tradEl = document.getElementById('panelVocabTrad');
+  const msgEl = document.getElementById('panelVocabMsg');
+  const palavra = wordEl?.textContent?.trim();
+  const trad = tradEl?.value?.trim();
+  if (!palavra) return;
+  // Verificar se já existe
+  if (vocabItems.some(v => v.word.toLowerCase() === palavra.toLowerCase())) {
+    if (msgEl) msgEl.textContent = 'Já está no vocabulário.';
+    return;
+  }
+  vocabItems.unshift({ word: palavra, trad, ctx: '', data: new Date().toLocaleDateString('pt-BR') });
+  salvarVocab();
+  if (msgEl) { msgEl.textContent = '✓ Salvo!'; setTimeout(() => { msgEl.textContent = ''; }, 2000); }
 }
 
 function posicionarMenu(rect) {
@@ -2317,40 +2411,12 @@ function posicionarMenu(rect) {
 
 function removeHighlight() {
   if (!hiSpanAlvo) { hideMenu(); return; }
-
-  // Guardar info antes de remover
-  const cor = hiSpanAlvo.dataset.hi;
-  const texto = hiSpanAlvo.textContent;
-  const segEl = hiSpanAlvo.closest('[data-seg]');
-  const segId = segEl?.dataset?.seg;
-
-  // Remover do DOM
   const parent = hiSpanAlvo.parentNode;
   if (parent) {
     while (hiSpanAlvo.firstChild) parent.insertBefore(hiSpanAlvo.firstChild, hiSpanAlvo);
     parent.removeChild(hiSpanAlvo);
     parent.normalize();
   }
-
-  // Atualizar S.highlights
-  if (segId && S.highlights[segId]) {
-    S.highlights[segId] = S.highlights[segId].filter(h =>
-      (h.text || h.texto || '').trim() !== texto.trim() ||
-      (h.color || h.cor) !== cor
-    );
-    if (!S.highlights[segId].length) delete S.highlights[segId];
-  }
-
-  // Remover da nuvem
-  if (supa && supaUserId && segId) {
-    supa.from('highlights').delete()
-      .eq('user_id', supaUserId)
-      .eq('seg_id', segId)
-      .eq('cor', cor)
-      .eq('texto', texto)
-      .catch(e => console.warn('Erro ao remover highlight:', e.message));
-  }
-
   hiSpanAlvo = null;
   hideMenu();
 }
@@ -2359,8 +2425,7 @@ function hideMenu() {
   const menu = document.getElementById('selMenu');
   if (menu) menu.classList.remove('visible');
   menuAberto = false;
-  // Manter currentSel para permitir múltiplas ações
-  // Só limpar currentSel ao abrir novo menu ou clicar no background
+  currentSel = null;
 }
 
 
@@ -2373,24 +2438,16 @@ function doSave(extraComment) {
     if (licao.segmentos.find(s => s.id === currentSel.segId)) { licaoNum = licao.numero; break; }
   }
   S.saved.push({
-    semNum: sem.numero, licaoNum,
+    semNum: sem.numero,
+    licaoNum,
     segId: currentSel.segId,
     texto: currentSel.text,
     comentario: extraComment || null,
     date: new Date().toLocaleDateString('pt-BR'),
   });
   updateSavedBadge();
-  // Sync nuvem
-  nuvemSalvarTrecho(currentSel.segId, currentSel.text, extraComment || null);
-  // Feedback visual
-  const menu = document.getElementById('selMenu');
-  const btns = menu?.querySelectorAll('.sel-btn');
-  btns?.forEach(b => { if (b.textContent.includes('Salvar')) {
-    const orig = b.innerHTML;
-    b.innerHTML = '✓ Trecho salvo';
-    b.style.color = 'var(--accent)';
-    setTimeout(() => { b.innerHTML = orig; b.style.color = ''; }, 2000);
-  }});
+  hideMenu();
+  window.getSelection().removeAllRanges();
 }
 
 // ── Comentar ──
@@ -2401,39 +2458,20 @@ function doComment() {
     '"' + currentSel.text.slice(0, 120) + (currentSel.text.length > 120 ? '…' : '') + '"';
   document.getElementById('modalText').value = '';
   document.getElementById('modalOverlay').classList.add('visible');
-  // Fechar menu enquanto modal está aberto — sem poluição visual
   hideMenu();
   window.getSelection().removeAllRanges();
   setTimeout(() => document.getElementById('modalText').focus(), 50);
 }
 
-function reabrirMenu() {
-  if (!currentSel) return;
-  const menu = document.getElementById('selMenu');
-  menu.innerHTML = menuNormalHTML();
-  // Posicionar no centro inferior da tela
-  menu.style.left = Math.round(window.innerWidth / 2 - 96) + 'px';
-  menu.style.top = Math.round(window.innerHeight * 0.6) + 'px';
-  menu.style.transform = 'none';
-  menu.classList.add('visible');
-  menuAberto = true;
-}
-
 function closeModal() {
   document.getElementById('modalOverlay').classList.remove('visible');
-  // Reabrir menu após fechar modal (cancelar)
-  if (commentTarget) {
-    currentSel = commentTarget;
-    commentTarget = null;
-    reabrirMenu();
-  } else {
-    commentTarget = null;
-  }
+  commentTarget = null;
 }
 
 function confirmComment() {
   const txt = document.getElementById('modalText').value.trim();
   if (!txt || !commentTarget) { closeModal(); return; }
+  // Adicionar comentário inline ao segmento
   const cmtsEl = document.getElementById('cmts_' + commentTarget.segId);
   if (cmtsEl) {
     const div = document.createElement('div');
@@ -2441,21 +2479,20 @@ function confirmComment() {
     div.innerHTML = `<button class="seg-comment-del" onclick="this.parentElement.remove()" title="Remover">×</button>${escH(txt)}`;
     cmtsEl.appendChild(div);
   }
+  // Salvar junto com o trecho
   currentSel = commentTarget;
-  commentTarget = null;
   doSave(txt);
-  document.getElementById('modalOverlay').classList.remove('visible');
-  // Reabrir menu após confirmar comentário
-  reabrirMenu();
+  closeModal();
 }
 
 // ══════════════════════════════════════════════════════
 //  ABA SALVOS
 // ══════════════════════════════════════════════════════
 function switchTab(tab) {
-  // Salvar antes de sair da aba atual
-  if (S.activeTab === 'read') salvarPosicaoLeitura();
-  if (S.activeTab === 'caderno') salvarNotaAtual(true);
+  // Salvar segmento atual antes de sair da leitura
+  if (S.activeTab === 'read') {
+    salvarPosicaoLeitura();
+  }
 
   S.activeTab = tab;
   const allTabs = ['read','trad','conj','vocab','gram','caderno','saved'];
@@ -2466,8 +2503,7 @@ function switchTab(tab) {
 
   // Mostrar/ocultar views
   const inner = document.getElementById('readerInner');
-  const isRead = tab === 'read';
-  inner.classList.toggle('hidden', !isRead);
+  inner.classList.toggle('hidden', tab !== 'read');
   document.getElementById('savedView').classList.toggle('visible', tab === 'saved');
   document.getElementById('tradView').classList.toggle('visible', tab === 'trad');
   document.getElementById('conjView').classList.toggle('visible', tab === 'conj');
@@ -2475,10 +2511,9 @@ function switchTab(tab) {
   document.getElementById('gramView').classList.toggle('visible', tab === 'gram');
   document.getElementById('cadernoView').classList.toggle('visible', tab === 'caderno');
 
-  // Restaurar posição DEPOIS de mostrar o reader
-  if (isRead) {
-    // Usar setTimeout para garantir que display:none foi removido e layout recalculado
-    setTimeout(() => restaurarPosicaoLeitura(), 50);
+  // Restaurar posição ao voltar para leitura
+  if (tab === 'read') {
+    restaurarPosicaoLeitura();
   }
 
   if (tab === 'saved') renderSaved();
@@ -2489,352 +2524,100 @@ function switchTab(tab) {
   if (tab === 'caderno') renderCadernoView();
 }
 
-// ── Salvar/restaurar posição de leitura ───────────────────────────
-let savedScrollTop = 0;
-
+// ── Salvar/restaurar posição de leitura por segmento ──────────────
 function salvarPosicaoLeitura() {
-  // Salvar scrollTop do elemento que realmente faz scroll
-  const scrollEl = document.scrollingElement || document.documentElement;
-  savedScrollTop = scrollEl.scrollTop || window.scrollY || 0;
-
-  // Encontrar segmento visível para identificação e nuvem
+  // Encontrar o segmento mais visível na viewport
   const segs = document.querySelectorAll('[data-seg]');
   if (!segs.length) return;
-  let melhorSeg = null, melhorY = Infinity;
+
+  let melhorSeg = null;
+  let melhorY = Infinity;
+  const main = document.querySelector('main') || document.body;
+  const mainRect = main.getBoundingClientRect();
+
   segs.forEach(seg => {
     const rect = seg.getBoundingClientRect();
-    if (rect.bottom > 0 && rect.top < window.innerHeight) {
-      const d = Math.abs(rect.top - 80); // 80 = altura do topbar
-      if (d < melhorY) { melhorY = d; melhorSeg = seg; }
+    // Pegar o segmento mais próximo do topo visível
+    if (rect.bottom > mainRect.top && rect.top < mainRect.bottom) {
+      const distTopo = Math.abs(rect.top - mainRect.top);
+      if (distTopo < melhorY) {
+        melhorY = distTopo;
+        melhorSeg = seg;
+      }
     }
   });
 
-  const segId = melhorSeg?.dataset?.seg || S.lastSegId;
-  if (segId) {
-    S.lastSegId = segId;
-    try {
-      localStorage.setItem('lirelacan_pos', JSON.stringify({
-        sem: S.semAtual, segId, scrollTop: savedScrollTop
-      }));
-    } catch(e) {}
-    if (supaUserId && supa) nuvemSalvarPosicao(S.semAtual, segId);
-  }
+  if (!melhorSeg) return;
+  const segId = melhorSeg.dataset.seg;
+  S.lastSegId = segId;
+
+  // Salvar localmente
+  try {
+    localStorage.setItem('lirelacan_pos', JSON.stringify({
+      sem: S.semAtual, segId
+    }));
+  } catch(e) {}
 }
 
 function restaurarPosicaoLeitura() {
-  // 1. Tentar restaurar pelo scrollTop salvo (mais rápido e preciso)
-  if (savedScrollTop > 0) {
-    const scrollEl = document.scrollingElement || document.documentElement;
-    scrollEl.scrollTop = savedScrollTop;
-    window.scrollTo(0, savedScrollTop);
-    return;
-  }
-
-  // 2. Fallback: restaurar pelo segId do localStorage
-  let segId = S.lastSegId;
-  let storedScroll = 0;
-  if (!segId) {
+  if (!S.lastSegId) {
+    // Tentar do localStorage
     try {
       const saved = JSON.parse(localStorage.getItem('lirelacan_pos') || '{}');
-      if (saved.segId) { segId = saved.segId; storedScroll = saved.scrollTop || 0; }
+      if (saved.sem === S.semAtual && saved.segId) {
+        S.lastSegId = saved.segId;
+      }
     } catch(e) {}
   }
-  if (!segId) return;
-  S.lastSegId = segId;
+  if (!S.lastSegId) return;
 
-  // Se temos scrollTop salvo, usar diretamente
-  if (storedScroll > 0) {
-    const scrollEl = document.scrollingElement || document.documentElement;
-    scrollEl.scrollTop = storedScroll;
-    window.scrollTo(0, storedScroll);
-    return;
-  }
-
-  // Último recurso: scrollIntoView com retry
-  let n = 0;
-  const tentar = () => {
-    const el = document.querySelector(`[data-seg="${segId}"]`);
-    if (el) {
-      const rect = el.getBoundingClientRect();
-      const target = window.scrollY + rect.top - 80;
-      window.scrollTo({ top: target, behavior: 'instant' });
-      return;
-    }
-    if (++n < 10) setTimeout(tentar, 150);
-  };
-  tentar();
+  // Usar requestAnimationFrame + setTimeout para garantir renderização completa
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      const el = document.querySelector(`[data-seg="${S.lastSegId}"]`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'instant', block: 'start' });
+        // Compensar o topbar fixo (~60px)
+        const main = document.querySelector('main');
+        if (main) main.scrollTop = Math.max(0, (main.scrollTop || 0) - 60);
+      }
+    }, 80);
+  });
 }
 
-// ── Marcadores de página ─────────────────────────────────────────
-let marcadores = [];
-try {
-  const raw = JSON.parse(localStorage.getItem('lirelacan_marcadores') || '[]');
-  // Filtrar marcadores corrompidos (sem num, sem segId, etc.)
-  marcadores = raw.filter(m => m && m.segId && m.cor && typeof m.num === 'number' && !isNaN(m.num));
-} catch(e) { marcadores = []; }
-let proxNumMarcador = marcadores.length ? Math.max(...marcadores.map(m => m.num), 0) + 1 : 1;
+// ══════════════════════════════════════════════════════
+//  PERSONALIZAÇÃO — tema e fonte
+// ══════════════════════════════════════════════════════
+function toggleThemePanel() {
+  document.getElementById('themePanel').classList.toggle('visible');
+}
 
-function salvarMarcadores() {
-  try { localStorage.setItem('lirelacan_marcadores', JSON.stringify(marcadores)); } catch(e) {}
+function setTheme(theme) {
+  document.body.className = document.body.className
+    .replace(/theme-\w+/g, '').trim();
+  if (theme !== 'paper') document.body.classList.add('theme-' + theme);
+  document.querySelectorAll('.palette-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.theme === theme));
+  try { localStorage.setItem('lirelacan_tema', theme); } catch(e) {}
   if (supa && supaUserId) {
-    marcadores.forEach(m => {
-      supa.from('trechos_salvos').upsert({
-        user_id: supaUserId, seminario: S.seminarios[m.sem]?.numero || 0,
-        seg_id: 'marcador_' + m.id, texto_fr: m.segId, traducao: m.cor + '|' + m.num + '|' + (m.label||'')
-      }, { onConflict: 'user_id,seg_id' }).catch(() => {});
-    });
-  }
-}
-
-function mostrarMenuMarcadorInline(segId, btnEl) {
-  document.querySelectorAll('.bookmark-menu').forEach(e => e.remove());
-  const cores = [
-    { cor:'blue',   hex:'#3b82f6', nome:'Azul'     },
-    { cor:'green',  hex:'#22c55e', nome:'Verde'    },
-    { cor:'red',    hex:'#ef4444', nome:'Vermelho' },
-    { cor:'yellow', hex:'#eab308', nome:'Amarelo'  },
-    { cor:'purple', hex:'#a855f7', nome:'Roxo'     },
-  ];
-  const menu = document.createElement('div');
-  menu.className = 'bookmark-menu';
-  menu.style.cssText = 'position:fixed;background:var(--paper-warm);border:1px solid var(--border);' +
-    'border-radius:10px;padding:12px 14px;z-index:400;box-shadow:0 6px 24px rgba(0,0,0,.18);';
-  menu.innerHTML = '<div style="font-size:11px;color:var(--ink-faint);margin-bottom:10px;font-family:Karla,sans-serif;font-weight:500">+ Marcador de página</div>' +
-    '<div style="display:flex;gap:10px;align-items:center">' +
-    cores.map(c =>
-      '<button data-cor="' + c.cor + '" title="' + c.nome + '" ' +
-      'style="width:24px;height:24px;border-radius:50%;background:' + c.hex + ';' +
-      'border:2px solid white;box-shadow:0 0 0 1.5px ' + c.hex + ';cursor:pointer"></button>'
-    ).join('') + '</div>';
-
-  // Posicionar
-  const rect = btnEl.getBoundingClientRect();
-  menu.style.top  = (rect.bottom + 6) + 'px';
-  menu.style.left = Math.max(8, rect.left - 20) + 'px';
-  document.body.appendChild(menu);
-
-  // Clique nas cores
-  menu.addEventListener('click', e => {
-    const btn = e.target.closest('[data-cor]');
-    if (!btn) return;
-    e.stopPropagation();
-    menu.remove();
-    adicionarMarcadorNoSeg(segId, btn.dataset.cor);
-  });
-
-  // Fechar ao clicar fora
-  setTimeout(() => {
-    document.addEventListener('click', function fechar(e) {
-      if (!menu.contains(e.target)) { menu.remove(); document.removeEventListener('click', fechar); }
-    });
-  }, 10);
-}
-
-function adicionarMarcadorNoSeg(segId, cor) {
-  const segEl = document.querySelector('[data-seg="' + segId + '"]');
-
-  // Toggle: se já existe marcador neste segmento, remover
-  const existente = marcadores.find(function(m) { return m.segId === segId; });
-  if (existente) {
-    removerMarcador(existente.id);
-    mostrarToast('Marcador removido', '#888');
-    return;
-  }
-
-  // Criar novo marcador
-  const textoEl = segEl && segEl.querySelector('.seg-fr');
-  const label   = ((textoEl && textoEl.textContent) || '').slice(0, 60).trim() + '…';
-  const id      = String(Date.now());
-  const sem     = S.semAtual;
-  const num     = marcadores.length
-    ? Math.max.apply(null, marcadores.map(function(m){ return m.num; })) + 1
-    : 1;
-
-  marcadores.push({ id: id, num: num, cor: cor, segId: segId, sem: sem, label: label });
-  proxNumMarcador = num + 1;
-
-  // Visual no segmento
-  _aplicarTagMarcador(segId, cor, num);
-
-  salvarMarcadores();
-  renderMarcadores();
-  mostrarToast('Marcador #' + num + ' adicionado', corMarcador(cor));
-}
-
-function removerMarcador(id) {
-  const idStr = String(id);
-  const m = marcadores.find(function(x){ return String(x.id) === idStr; });
-
-  if (m) {
-    // Limpar visual no segmento
-    const segEl = document.querySelector('[data-seg="' + m.segId + '"]');
-    if (segEl) {
-      segEl.querySelectorAll('.seg-marcador-tag').forEach(function(t){ t.remove(); });
-      const btn = segEl.querySelector('.seg-bookmark-btn');
-      if (btn) { btn.classList.remove('tem-marcador'); btn.style.color = ''; btn.style.opacity = ''; }
-    }
-  }
-
-  marcadores = marcadores.filter(function(x){ return String(x.id) !== idStr; });
-
-  // Renumerar por ordem crescente
-  marcadores.sort(function(a,b){ return a.num - b.num; });
-  marcadores.forEach(function(m, i){ m.num = i + 1; });
-  proxNumMarcador = marcadores.length + 1;
-
-  // Atualizar tags dos restantes
-  marcadores.forEach(function(m) {
-    const tag = document.querySelector('[data-seg="' + m.segId + '"] .seg-marcador-tag');
-    if (tag) tag.textContent = corEmoji(m.cor) + ' #' + m.num;
-  });
-
-  salvarMarcadores();
-  renderMarcadores();
-}
-
-function corMarcador(cor) {
-  return { blue:'#3b82f6', green:'#22c55e', red:'#ef4444', yellow:'#eab308', purple:'#a855f7' }[cor] || '#888';
-}
-
-function corEmoji(cor) {
-  return { blue:'🔵', green:'🟢', red:'🔴', yellow:'🟡', purple:'🟣' }[cor] || '⚫';
-}
-
-function _aplicarTagMarcador(segId, cor, num) {
-  const segEl = document.querySelector('[data-seg="' + segId + '"]');
-  if (!segEl) return;
-  // Botão
-  const btn = segEl.querySelector('.seg-bookmark-btn');
-  if (btn) { btn.classList.add('tem-marcador'); btn.style.color = corMarcador(cor); btn.style.opacity = '1'; }
-  // Tag
-  segEl.querySelectorAll('.seg-marcador-tag').forEach(function(t){ t.remove(); });
-  const tag = document.createElement('div');
-  tag.className = 'seg-marcador-tag';
-  tag.style.cssText = 'position:absolute;left:0;top:0;background:' + corMarcador(cor) + ';color:white;' +
-    'font-size:9px;font-weight:700;padding:2px 5px;border-radius:0 0 5px 0;' +
-    'font-family:Karla,sans-serif;cursor:pointer;display:flex;align-items:center;gap:2px;z-index:2;white-space:nowrap;';
-  tag.textContent = corEmoji(cor) + ' #' + num;
-  tag.onclick = function(e) { e.stopPropagation(); irParaSegmento(segId); };
-  segEl.appendChild(tag);
-  // Outline temporário
-  segEl.style.outline = '2px solid ' + corMarcador(cor);
-  setTimeout(function(){ segEl.style.outline = ''; }, 2000);
-}
-
-function renderMarcadores() {
-  const el = document.getElementById('panelMarcadores');
-  if (!el) return;
-
-  // Filtrar corrompidos
-  marcadores = marcadores.filter(function(m) {
-    return m && m.segId && m.cor && typeof m.num === 'number' && !isNaN(m.num);
-  });
-
-  const semMarcadores = marcadores
-    .filter(function(m){ return m.sem === S.semAtual; })
-    .sort(function(a,b){ return a.num - b.num; });
-
-  if (!semMarcadores.length) {
-    el.innerHTML = '<span style="font-size:11px;color:var(--ink-faint);font-style:italic">Clique em 🔖 ao lado de um parágrafo para adicionar.</span>';
-    return;
-  }
-
-  el.innerHTML = semMarcadores.map(function(m) {
-    return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;' +
-      'padding:5px 8px;border-radius:6px;cursor:pointer;' +
-      'border-left:3px solid ' + corMarcador(m.cor) + ';background:var(--paper-warm)"' +
-      ' data-seg-id="' + m.segId + '">' +
-      '<span style="font-size:12px">' + corEmoji(m.cor) + '</span>' +
-      '<span style="font-size:10px;font-weight:700;color:white;background:' + corMarcador(m.cor) + ';padding:1px 5px;border-radius:10px;flex-shrink:0">#' + m.num + '</span>' +
-      '<span style="font-size:11px;color:var(--ink-soft);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="' + escH(m.label) + '">' + escH(m.label) + '</span>' +
-      '<button class="btn-rm-marc" data-id="' + m.id + '" style="background:none;border:none;color:var(--ink-faint);cursor:pointer;font-size:16px;padding:0 4px;flex-shrink:0;line-height:1" title="Remover">×</button>' +
-      '</div>';
-  }).join('');
-
-  // Clique na linha → ir para marcador
-  el.querySelectorAll('[data-seg-id]').forEach(function(div) {
-    div.addEventListener('click', function(e) {
-      if (e.target.closest('.btn-rm-marc')) return;
-      irParaSegmento(div.dataset.segId);
-    });
-  });
-
-  // Clique no X → remover
-  el.querySelectorAll('.btn-rm-marc').forEach(function(btn) {
-    btn.addEventListener('click', function(e) {
-      e.stopPropagation();
-      removerMarcador(btn.dataset.id);
-    });
-  });
-}
-
-function aplicarMarcadoresVisuais() {
-  marcadores.filter(function(m){ return m.sem === S.semAtual; }).forEach(function(m) {
-    _aplicarTagMarcador(m.segId, m.cor, m.num);
-  });
-}
-
-async function carregarMarcadoresNuvem() {
-  if (!supa || !supaUserId) return;
-  try {
-    const { data } = await supa.from('trechos_salvos')
-      .select('*').eq('user_id', supaUserId).like('seg_id', 'marcador_%');
-    if (!data || !data.length) return;
-    const carregados = [];
-    data.forEach(function(d) {
-      const parts = (d.traducao || '').split('|');
-      const cor   = parts[0] || 'blue';
-      const num   = parseInt(parts[1], 10);
-      const label = parts.slice(2).join('|') || '';
-      const segId = d.texto_fr || '';
-      const id    = d.seg_id.replace('marcador_', '');
-      // Validar: segId deve ser id de segmento real, num deve ser número válido
-      if (!segId || isNaN(num) || num <= 0) return;
-      carregados.push({ id: id, num: num, cor: cor, segId: segId, sem: 0, label: label });
-    });
-    if (carregados.length) {
-      marcadores = carregados;
-      proxNumMarcador = Math.max.apply(null, marcadores.map(function(m){return m.num;})) + 1;
-      try { localStorage.setItem('lirelacan_marcadores', JSON.stringify(marcadores)); } catch(e) {}
-    }
-  } catch(e) { console.warn('Erro ao carregar marcadores:', e); }
-}
-    supa.from('trechos_salvos').upsert({
-      user_id: supaUserId, seminario: 0,
+    supa.from('trechos_salvos').upsert({ user_id: supaUserId, seminario: 0,
       seg_id: 'pref_tema', texto_fr: theme, traducao: currentFont || 'sans'
     }, { onConflict: 'user_id,seg_id' }).catch(() => {});
   }
 }
 
-let currentFont = 'sans'; // padrão sans-serif
-
-const fontMap = {
-  fell:  "'IM Fell English', serif",
-  serif: "Georgia, 'Times New Roman', serif",
-  sans:  "'Helvetica Neue', Arial, sans-serif",
-  mono:  "'Courier New', monospace",
-};
-
 function setFont(font) {
   currentFont = font;
   const ff = fontMap[font] || fontMap.sans;
-  // Aplicar em TODAS as abas — não só no leitor
-  document.body.style.setProperty('--font-principal', ff);
-  // Elementos específicos de leitura
-  document.querySelectorAll('.seg-fr, .lecon-date, .sem-header-title').forEach(el => {
-    el.style.fontFamily = ff;
-  });
-  // Também aplicar em abas de ferramentas
-  document.querySelectorAll('.caderno-editor, .tool-header, .gram-card, .vocab-item').forEach(el => {
+  document.body.style.fontFamily = ff;
+  document.querySelectorAll('.seg-fr, .lecon-date, .sem-header-title, .caderno-editor, .tool-header').forEach(el => {
     el.style.fontFamily = ff;
   });
   document.querySelectorAll('.font-btn').forEach(b =>
     b.classList.toggle('active', b.dataset.font === font));
-  // Salvar preferência
   try { localStorage.setItem('lirelacan_fonte', font); } catch(e) {}
   if (supa && supaUserId) {
-    supa.from('trechos_salvos').upsert({
-      user_id: supaUserId, seminario: 0,
+    supa.from('trechos_salvos').upsert({ user_id: supaUserId, seminario: 0,
       seg_id: 'pref_tema', texto_fr: document.body.className.match(/theme-(\w+)/)?.[1] || 'paper', traducao: font
     }, { onConflict: 'user_id,seg_id' }).catch(() => {});
   }
@@ -2846,75 +2629,6 @@ function setFontSize(size) {
   });
 }
 
-// Carregar preferências salvas
-function carregarPreferencias() {
-  try {
-    const tema = localStorage.getItem('lirelacan_tema') || 'paper';
-    const fonte = localStorage.getItem('lirelacan_fonte') || 'sans';
-    setTheme(tema);
-    setFont(fonte);
-  } catch(e) {}
-}
-
-async function carregarPreferenciasNuvem() {
-  if (!supa || !supaUserId) return;
-  try {
-    const { data } = await supa.from('trechos_salvos')
-      .select('*').eq('user_id', supaUserId).eq('seg_id', 'pref_tema').single();
-    if (data) {
-      setTheme(data.texto_fr || 'paper');
-      setFont(data.traducao || 'sans');
-    }
-  } catch(e) {}
-}
-
-const DICT_LOCAL = {
-  // FR → PT
-  'rapport':    {d:'fr',v:[{t:'relação',c:'subst'},{t:'relatório',c:'subst'},{t:'proporção',c:'subst'},{t:'razão',c:'subst'},{t:'ligação',c:'subst'},{t:'rácio',c:'subst'},{t:'relacionamento',c:'subst'},{t:'conexão',c:'subst'},{t:'nexo',c:'subst'},{t:'vínculo',c:'subst'}],
-    ex:[{fr:"Il n'y a pas de rapport sexuel.",pt:"Não há relação sexual."},{fr:"Un rapport de force entre les deux parties.",pt:"Uma relação de força entre as duas partes."}]},
-  'sens':       {d:'fr',v:[{t:'sentido',c:'subst'},{t:'significado',c:'subst'},{t:'direção',c:'subst'},{t:'percepção',c:'subst'},{t:'orientação',c:'subst'}],
-    ex:[{fr:"Le sens de la vie.",pt:"O sentido da vida."},{fr:"Dans le sens des aiguilles d'une montre.",pt:"No sentido dos ponteiros do relógio."}]},
-  'desir':      {d:'fr',v:[{t:'desejo',c:'subst'},{t:'anseio',c:'subst'},{t:'vontade',c:'subst'},{t:'aspiração',c:'subst'}],
-    ex:[{fr:"Le désir de l'homme est le désir de l'Autre.",pt:"O desejo do homem é o desejo do Outro."}]},
-  'jouissance': {d:'fr',v:[{t:'gozo',c:'subst'},{t:'jouissance',c:'subst'},{t:'prazer',c:'subst'},{t:'usufruição',c:'subst'}],
-    ex:[{fr:"La jouissance de l'Autre.",pt:"O gozo do Outro."}]},
-  'sujet':      {d:'fr',v:[{t:'sujeito',c:'subst'},{t:'assunto',c:'subst'},{t:'tema',c:'subst'},{t:'súdito',c:'subst'},{t:'tópico',c:'subst'}],
-    ex:[{fr:"Le sujet de l'inconscient.",pt:"O sujeito do inconsciente."}]},
-  'signifiant': {d:'fr',v:[{t:'significante',c:'subst'},{t:'expressivo',c:'adj'},{t:'representativo',c:'adj'}],
-    ex:[{fr:"La chaîne signifiante.",pt:"A cadeia significante."}]},
-  'reel':       {d:'fr',v:[{t:'real',c:'subst'},{t:'real',c:'adj'},{t:'verdadeiro',c:'adj'},{t:'efetivo',c:'adj'},{t:'concreto',c:'adj'}],
-    ex:[{fr:"Le registre du réel.",pt:"O registro do real."}]},
-  'pulsion':    {d:'fr',v:[{t:'pulsão',c:'subst'},{t:'impulso',c:'subst'},{t:'instinto',c:'subst'},{t:'drive',c:'subst'}],
-    ex:[{fr:"La pulsion de mort.",pt:"A pulsão de morte."}]},
-  'manque':     {d:'fr',v:[{t:'falta',c:'subst'},{t:'carência',c:'subst'},{t:'ausência',c:'subst'},{t:'lacuna',c:'subst'},{t:'escassez',c:'subst'}],
-    ex:[{fr:"Le manque constitutif du sujet.",pt:"A falta constitutiva do sujeito."}]},
-  'transfert':  {d:'fr',v:[{t:'transferência',c:'subst'},{t:'deslocamento',c:'subst'},{t:'transporte',c:'subst'}],
-    ex:[{fr:"Le transfert analytique.",pt:"A transferência analítica."}]},
-  'angoisse':   {d:'fr',v:[{t:'angústia',c:'subst'},{t:'ansiedade',c:'subst'},{t:'aflição',c:'subst'}],
-    ex:[{fr:"L'angoisse comme signal du danger.",pt:"A angústia como sinal de perigo."}]},
-  'inconscient':{d:'fr',v:[{t:'inconsciente',c:'subst'},{t:'involuntário',c:'adj'}],
-    ex:[{fr:"L'inconscient est structuré comme un langage.",pt:"O inconsciente é estruturado como uma linguagem."}]},
-  'fantasme':   {d:'fr',v:[{t:'fantasia',c:'subst'},{t:'fantasma',c:'subst'},{t:'devaneio',c:'subst'}],
-    ex:[{fr:"La traversée du fantasme.",pt:"A travessia da fantasia."}]},
-  'langage':    {d:'fr',v:[{t:'linguagem',c:'subst'},{t:'fala',c:'subst'},{t:'idioma',c:'subst'},{t:'língua',c:'subst'}],
-    ex:[{fr:"L'inconscient est structuré comme un langage.",pt:"O inconsciente é estruturado como uma linguagem."}]},
-  'parole':     {d:'fr',v:[{t:'palavra',c:'subst'},{t:'fala',c:'subst'},{t:'discurso',c:'subst'},{t:'promessa',c:'subst'},{t:'voz',c:'subst'}],
-    ex:[{fr:"La parole pleine et la parole vide.",pt:"A palavra plena e a palavra vazia."}]},
-  'lien':       {d:'fr',v:[{t:'laço',c:'subst'},{t:'vínculo',c:'subst'},{t:'conexão',c:'subst'},{t:'ligação',c:'subst'},{t:'elo',c:'subst'}],
-    ex:[{fr:"Le lien social.",pt:"O laço social."}]},
-  'verite':     {d:'fr',v:[{t:'verdade',c:'subst'},{t:'veracidade',c:'subst'},{t:'realidade',c:'subst'}],
-    ex:[{fr:"La vérité surgit dans l'acte.",pt:"A verdade surge no ato."}]},
-  // PT → FR (termos que o Reverso também confunde)
-  'relação':    {d:'pt',v:[{t:'rapport',c:'subst'},{t:'relation',c:'subst'},{t:'lien',c:'subst'},{t:'connexion',c:'subst'}],
-    ex:[{pt:"Não há relação sexual.",fr:"Il n'y a pas de rapport sexuel."}]},
-  'gozo':       {d:'pt',v:[{t:'jouissance',c:'subst'},{t:'plaisir',c:'subst'},{t:'joie',c:'subst'}],
-    ex:[{pt:"O gozo do Outro.",fr:"La jouissance de l'Autre."}]},
-  'falta':      {d:'pt',v:[{t:'manque',c:'subst'},{t:'absence',c:'subst'},{t:'carence',c:'subst'}],
-    ex:[{pt:"A falta constitutiva do sujeito.",fr:"Le manque constitutif du sujet."}]},
-  'pulsao':     {d:'pt',v:[{t:'pulsion',c:'subst'},{t:'instinct',c:'subst'},{t:'drive',c:'subst'}],
-    ex:[{pt:"A pulsão de morte.",fr:"La pulsion de mort."}]},
-};
-
 // ══════════════════════════════════════════════════════
 //  PAINEL DIREITO — mini-tradutor + vocab
 // ══════════════════════════════════════════════════════
@@ -2923,104 +2637,96 @@ let panelUltimoTermo = '';
 async function buscarTradPainel(termoExterno) {
   const inp = document.getElementById('panelTradInput');
   const res = document.getElementById('panelTradResult');
+  const vocabSection = document.getElementById('panelVocabSection');
   if (!res) return;
 
-  const termo = (termoExterno || inp?.value || '').trim();
+  const termo = termoExterno || inp?.value.trim();
   if (!termo) return;
   if (inp) inp.value = termo;
   panelUltimoTermo = termo;
 
-  // Normalizar
+  res.innerHTML = '<span style="color:var(--ink-faint);font-size:12px">Buscando…</span>';
+
+  // Normalizar para busca no dicionário
   const chave = termo.toLowerCase()
     .replace(/œ/g,'oe').replace(/æ/g,'ae')
     .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
     .replace(/\s+/g,' ').trim();
 
-  const mostrarTags = (trs, ex) => {
-    if (!trs.length) {
-      res.innerHTML = `<span style="color:var(--ink-faint);font-size:12px">
-        Sem resultado. Tente na aba <strong>Tradução</strong>.
-      </span>`;
-      return;
+  // 1. Dicionário local primeiro (instantâneo)
+  const entLocal = DICT_LOCAL[chave];
+  if (entLocal && tradDir === 'fr-pt') {
+    const tags = entLocal.v.slice(0,6).map(x =>
+      `<span class="panel-trad-tag">${x.t}</span>`).join('');
+    res.innerHTML = `<div class="panel-trad-tags">${tags}</div>`;
+    if (entLocal.ex?.[0]) {
+      res.innerHTML += `<div class="panel-trad-ex">${escH(entLocal.ex[0].fr)}<br>↳ ${escH(entLocal.ex[0].pt)}</div>`;
     }
-    const tags = trs.slice(0,8).map(t =>
-      `<span class="panel-trad-tag">${escH(t)}</span>`).join('');
-    let html = `<div class="panel-trad-tags">${tags}</div>`;
-    if (ex?.fr && ex?.pt) {
-      html += `<div class="panel-trad-ex"><em>${escH(ex.fr)}</em><br>↳ ${escH(ex.pt)}</div>`;
-    }
-    res.innerHTML = html;
     mostrarVocabPainel(termo);
-  };
+    return;
+  }
 
-  // 1. Dicionário local lacaniano (se disponível)
+  // 2. TRAD_DICT
+  const entTrad = TRAD_DICT[chave];
+  if (entTrad) {
+    const tags = entTrad.slice(0,6).map(x =>
+      `<span class="panel-trad-tag">${x.t}</span>`).join('');
+    res.innerHTML = `<div class="panel-trad-tags">${tags}</div>`;
+    mostrarVocabPainel(termo);
+    return;
+  }
+
+  // 3. Reverso como fallback
   try {
-    if (typeof DICT_LOCAL !== 'undefined') {
-      const entLocal = DICT_LOCAL[chave];
-      const dirOk = tradDir === 'fr-pt' ? entLocal?.d === 'fr' : entLocal?.d === 'pt';
-      if (entLocal && dirOk) {
-        mostrarTags(entLocal.v.map(x => x.t), entLocal.ex?.[0]);
-        return;
-      }
-    }
-  } catch(e) {}
-
-  // 2. Reverso com timeout
-  res.innerHTML = '<span style="color:var(--ink-faint);font-size:12px">Buscando…</span>';
-  const [srcLang, tgtLang] = tradDir === 'fr-pt' ? ['fr','pt'] : ['pt','fr'];
-
-  try {
-    const controller = new AbortController();
-    const tid = setTimeout(() => controller.abort(), 5000);
+    const [srcLang, tgtLang] = tradDir === 'fr-pt' ? ['fr','pt'] : ['pt','fr'];
     const resp = await fetch('https://api.reverso.net/translate/v1/translation', {
-      method: 'POST', signal: controller.signal,
-      headers: { 'Content-Type': 'application/json', 'Origin': 'https://context.reverso.net' },
-      body: JSON.stringify({ format:'text', from:srcLang, to:tgtLang, input:termo,
-        options: { sentenceSplitter:false, origin:'translation.web',
-                   contextResults:true, languageDetection:true }})
+      method:'POST', headers:{'Content-Type':'application/json','Origin':'https://context.reverso.net'},
+      body: JSON.stringify({format:'text',from:srcLang,to:tgtLang,input:termo,
+        options:{sentenceSplitter:false,origin:'translation.web',contextResults:true,languageDetection:true}})
     });
-    clearTimeout(tid);
     const data = await resp.json();
     const vistas = new Set();
-    const trs = [];
+    const traducoes = [];
     const add = t => {
-      const k = (t||'').toLowerCase().trim();
+      const k = t.toLowerCase().trim();
       if (!k || k.length > 50 || vistas.has(k)) return;
-      vistas.add(k); trs.push(t.trim());
+      vistas.add(k); traducoes.push(t.trim());
     };
     (data.translation||[]).forEach(t => add(t));
     (data.contextResults?.results||[]).forEach(r => {
-      [...((r.targetExamples||[])[0]||'').matchAll(/<em>([^<]+)<\/em>/g)].forEach(m => add(m[1]));
+      const tgt = (r.targetExamples||[])[0]||'';
+      [...tgt.matchAll(/<em>([^<]+)<\/em>/g)].forEach(m => add(m[1]));
     });
-    const ex0 = (data.contextResults?.results||[])[0];
-    const exFr = ex0 ? (ex0.sourceExamples||[])[0]?.replace(/<[^>]+>/g,'').trim()||'' : '';
-    const exPt = ex0 ? (ex0.targetExamples||[])[0]?.replace(/<[^>]+>/g,'').trim()||'' : '';
-    mostrarTags(trs, exFr && exPt ? {fr:exFr, pt:exPt} : null);
+    const ex = (data.contextResults?.results||[])[0];
+    const exFr = ex ? (ex.sourceExamples||[])[0]?.replace(/<[^>]+>/g,'').trim() : '';
+    const exPt = ex ? (ex.targetExamples||[])[0]?.replace(/<[^>]+>/g,'').trim() : '';
+
+    if (traducoes.length) {
+      const tags = traducoes.slice(0,6).map(t =>
+        `<span class="panel-trad-tag">${escH(t)}</span>`).join('');
+      res.innerHTML = `<div class="panel-trad-tags">${tags}</div>`;
+      if (exFr && exPt) {
+        res.innerHTML += `<div class="panel-trad-ex">${escH(exFr)}<br>↳ ${escH(exPt)}</div>`;
+      }
+      mostrarVocabPainel(termo);
+    } else {
+      res.innerHTML = `<span style="color:var(--ink-faint);font-size:12px">Sem resultado para "<em>${escH(termo)}</em>".</span>`;
+    }
   } catch(e) {
-    res.innerHTML = `<span style="color:var(--ink-faint);font-size:12px">
-      Sem resultado. Tente na aba <strong>Tradução</strong>.
-    </span>`;
+    res.innerHTML = `<span style="color:var(--ink-faint);font-size:12px">Sem conexão.</span>`;
   }
 }
 
-function togglePanelDir() {
-  tradDir = tradDir === 'fr-pt' ? 'pt-fr' : 'fr-pt';
-  const btn = document.getElementById('panelDirBtn');
-  if (btn) btn.textContent = tradDir === 'fr-pt' ? 'FR → PT' : 'PT → FR';
-  const inp = document.getElementById('panelTradInput');
-  if (inp) inp.placeholder = tradDir === 'fr-pt' ? 'Digite ou selecione…' : 'Digite em português…';
-  // Sincronizar com o toggle da aba de tradução
-  const btnTrad = document.getElementById('tradDirBtn');
-  if (btnTrad) btnTrad.textContent = tradDir === 'fr-pt' ? 'FR → PT' : 'PT → FR';
-}
-
 function mostrarVocabPainel(termo) {
+  const section = document.getElementById('panelVocabSection');
   const wordEl = document.getElementById('panelVocabWord');
   const tradInp = document.getElementById('panelVocabTrad');
   const msg = document.getElementById('panelVocabMsg');
+  if (!section) return;
   if (wordEl) wordEl.textContent = termo;
   if (tradInp) tradInp.value = '';
   if (msg) msg.textContent = '';
+  section.style.display = 'block';
 }
 
 function salvarVocabDoPainel() {
@@ -3080,8 +2786,6 @@ function toggleTradDir() {
     : 'Digite qualquer palavra em português…';
 }
 
-
-
 async function buscarTraducao() {
   if (!document.getElementById('tradResults')) renderTradView();
   const inp = document.getElementById('tradInput');
@@ -3103,6 +2807,52 @@ async function buscarTraducao() {
 
   // Dicionário local — termos onde o Reverso falha ou prioriza errado
   // Fonte: dados lexicográficos reais do francês acadêmico/filosófico
+  const DICT_LOCAL = {
+    // FR → PT
+    'rapport':    {d:'fr',v:[{t:'relação',c:'subst'},{t:'relatório',c:'subst'},{t:'proporção',c:'subst'},{t:'razão',c:'subst'},{t:'ligação',c:'subst'},{t:'rácio',c:'subst'},{t:'relacionamento',c:'subst'},{t:'conexão',c:'subst'},{t:'nexo',c:'subst'},{t:'vínculo',c:'subst'}],
+      ex:[{fr:"Il n'y a pas de rapport sexuel.",pt:"Não há relação sexual."},{fr:"Un rapport de force entre les deux parties.",pt:"Uma relação de força entre as duas partes."}]},
+    'sens':       {d:'fr',v:[{t:'sentido',c:'subst'},{t:'significado',c:'subst'},{t:'direção',c:'subst'},{t:'percepção',c:'subst'},{t:'orientação',c:'subst'}],
+      ex:[{fr:"Le sens de la vie.",pt:"O sentido da vida."},{fr:"Dans le sens des aiguilles d'une montre.",pt:"No sentido dos ponteiros do relógio."}]},
+    'desir':      {d:'fr',v:[{t:'desejo',c:'subst'},{t:'anseio',c:'subst'},{t:'vontade',c:'subst'},{t:'aspiração',c:'subst'}],
+      ex:[{fr:"Le désir de l'homme est le désir de l'Autre.",pt:"O desejo do homem é o desejo do Outro."}]},
+    'jouissance': {d:'fr',v:[{t:'gozo',c:'subst'},{t:'jouissance',c:'subst'},{t:'prazer',c:'subst'},{t:'usufruição',c:'subst'}],
+      ex:[{fr:"La jouissance de l'Autre.",pt:"O gozo do Outro."}]},
+    'sujet':      {d:'fr',v:[{t:'sujeito',c:'subst'},{t:'assunto',c:'subst'},{t:'tema',c:'subst'},{t:'súdito',c:'subst'},{t:'tópico',c:'subst'}],
+      ex:[{fr:"Le sujet de l'inconscient.",pt:"O sujeito do inconsciente."}]},
+    'signifiant': {d:'fr',v:[{t:'significante',c:'subst'},{t:'expressivo',c:'adj'},{t:'representativo',c:'adj'}],
+      ex:[{fr:"La chaîne signifiante.",pt:"A cadeia significante."}]},
+    'reel':       {d:'fr',v:[{t:'real',c:'subst'},{t:'real',c:'adj'},{t:'verdadeiro',c:'adj'},{t:'efetivo',c:'adj'},{t:'concreto',c:'adj'}],
+      ex:[{fr:"Le registre du réel.",pt:"O registro do real."}]},
+    'pulsion':    {d:'fr',v:[{t:'pulsão',c:'subst'},{t:'impulso',c:'subst'},{t:'instinto',c:'subst'},{t:'drive',c:'subst'}],
+      ex:[{fr:"La pulsion de mort.",pt:"A pulsão de morte."}]},
+    'manque':     {d:'fr',v:[{t:'falta',c:'subst'},{t:'carência',c:'subst'},{t:'ausência',c:'subst'},{t:'lacuna',c:'subst'},{t:'escassez',c:'subst'}],
+      ex:[{fr:"Le manque constitutif du sujet.",pt:"A falta constitutiva do sujeito."}]},
+    'transfert':  {d:'fr',v:[{t:'transferência',c:'subst'},{t:'deslocamento',c:'subst'},{t:'transporte',c:'subst'}],
+      ex:[{fr:"Le transfert analytique.",pt:"A transferência analítica."}]},
+    'angoisse':   {d:'fr',v:[{t:'angústia',c:'subst'},{t:'ansiedade',c:'subst'},{t:'aflição',c:'subst'}],
+      ex:[{fr:"L'angoisse comme signal du danger.",pt:"A angústia como sinal de perigo."}]},
+    'inconscient':{d:'fr',v:[{t:'inconsciente',c:'subst'},{t:'involuntário',c:'adj'}],
+      ex:[{fr:"L'inconscient est structuré comme un langage.",pt:"O inconsciente é estruturado como uma linguagem."}]},
+    'fantasme':   {d:'fr',v:[{t:'fantasia',c:'subst'},{t:'fantasma',c:'subst'},{t:'devaneio',c:'subst'}],
+      ex:[{fr:"La traversée du fantasme.",pt:"A travessia da fantasia."}]},
+    'langage':    {d:'fr',v:[{t:'linguagem',c:'subst'},{t:'fala',c:'subst'},{t:'idioma',c:'subst'},{t:'língua',c:'subst'}],
+      ex:[{fr:"L'inconscient est structuré comme un langage.",pt:"O inconsciente é estruturado como uma linguagem."}]},
+    'parole':     {d:'fr',v:[{t:'palavra',c:'subst'},{t:'fala',c:'subst'},{t:'discurso',c:'subst'},{t:'promessa',c:'subst'},{t:'voz',c:'subst'}],
+      ex:[{fr:"La parole pleine et la parole vide.",pt:"A palavra plena e a palavra vazia."}]},
+    'lien':       {d:'fr',v:[{t:'laço',c:'subst'},{t:'vínculo',c:'subst'},{t:'conexão',c:'subst'},{t:'ligação',c:'subst'},{t:'elo',c:'subst'}],
+      ex:[{fr:"Le lien social.",pt:"O laço social."}]},
+    'verite':     {d:'fr',v:[{t:'verdade',c:'subst'},{t:'veracidade',c:'subst'},{t:'realidade',c:'subst'}],
+      ex:[{fr:"La vérité surgit dans l'acte.",pt:"A verdade surge no ato."}]},
+    // PT → FR (termos que o Reverso também confunde)
+    'relação':    {d:'pt',v:[{t:'rapport',c:'subst'},{t:'relation',c:'subst'},{t:'lien',c:'subst'},{t:'connexion',c:'subst'}],
+      ex:[{pt:"Não há relação sexual.",fr:"Il n'y a pas de rapport sexuel."}]},
+    'gozo':       {d:'pt',v:[{t:'jouissance',c:'subst'},{t:'plaisir',c:'subst'},{t:'joie',c:'subst'}],
+      ex:[{pt:"O gozo do Outro.",fr:"La jouissance de l'Autre."}]},
+    'falta':      {d:'pt',v:[{t:'manque',c:'subst'},{t:'absence',c:'subst'},{t:'carence',c:'subst'}],
+      ex:[{pt:"A falta constitutiva do sujeito.",fr:"Le manque constitutif du sujet."}]},
+    'pulsao':     {d:'pt',v:[{t:'pulsion',c:'subst'},{t:'instinct',c:'subst'},{t:'drive',c:'subst'}],
+      ex:[{pt:"A pulsão de morte.",fr:"La pulsion de mort."}]},
+  };
 
   // Verificar se está no dicionário local
   const entradaLocal = DICT_LOCAL[chave];
@@ -4018,11 +3768,6 @@ try { vocabItems = JSON.parse(localStorage.getItem('lirelacan_vocab') || '[]'); 
 
 function salvarVocab() {
   try { localStorage.setItem('lirelacan_vocab', JSON.stringify(vocabItems)); } catch(e) {}
-  // Sync nuvem — salvar item mais recente
-  if (supaUserId && vocabItems[0]) {
-    const v = vocabItems[0];
-    nuvemSalvarVocab(v.word, v.trad || '');
-  }
 }
 
 function renderVocabView() {
@@ -4294,110 +4039,87 @@ function renderCadernoView() {
   const v = document.getElementById('cadernoView');
   if (!v) return;
   v.innerHTML = `
-    <div class="caderno-layout">
-      <!-- Lista de notas (coluna esquerda) -->
-      <div class="caderno-lista-col">
-        <div class="caderno-lista-header">
-          <span style="font-family:'IM Fell English SC',serif;font-size:12px;letter-spacing:.08em;color:var(--ink-faint)">Notas</span>
-          <button class="caderno-nova-btn" onclick="novaNota()" title="Nova nota">＋</button>
-        </div>
-        <div id="cadernoListaNotas"></div>
+    <div class="tool-header">Caderno Pessoal</div>
+    <div class="caderno-header">
+      <input class="caderno-titulo" id="cadernoTitulo" placeholder="Título da nota…">
+      <button class="conj-btn" onclick="novaNota()" title="Nova nota">+ Nova nota</button>
+    </div>
+
+    <!-- Barra de ferramentas de formatação -->
+    <div class="caderno-toolbar">
+      <!-- Fonte -->
+      <select class="select-font" onchange="execCmd('fontName',this.value)" title="Fonte">
+        <option value="'IM Fell English',serif">IM Fell</option>
+        <option value="Georgia,serif">Georgia</option>
+        <option value="'Helvetica Neue',Arial,sans-serif">Sans-serif</option>
+        <option value="'Courier New',monospace">Monospace</option>
+      </select>
+      <!-- Tamanho -->
+      <select class="select-size" onchange="execCmdSize(this.value)" title="Tamanho">
+        <option value="1">10px</option>
+        <option value="2">12px</option>
+        <option value="3" selected>14px</option>
+        <option value="4">16px</option>
+        <option value="5">18px</option>
+        <option value="6">22px</option>
+        <option value="7">26px</option>
+      </select>
+      <div class="caderno-sep"></div>
+      <!-- Formatação básica -->
+      <button class="caderno-btn" onclick="execCmd('bold')" title="Negrito"><strong>N</strong></button>
+      <button class="caderno-btn" onclick="execCmd('italic')" title="Itálico"><em>I</em></button>
+      <button class="caderno-btn" onclick="execCmd('underline')" title="Sublinhado"><u>S</u></button>
+      <button class="caderno-btn" onclick="execCmd('strikeThrough')" title="Tachado"><s>T</s></button>
+      <div class="caderno-sep"></div>
+      <!-- Alinhamento -->
+      <button class="caderno-btn" onclick="execCmd('justifyLeft')" title="Alinhar à esquerda">⬅</button>
+      <button class="caderno-btn" onclick="execCmd('justifyCenter')" title="Centralizar">↔</button>
+      <button class="caderno-btn" onclick="execCmd('justifyRight')" title="Alinhar à direita">➡</button>
+      <button class="caderno-btn" onclick="execCmd('justifyFull')" title="Justificar">≡</button>
+      <div class="caderno-sep"></div>
+      <!-- Listas -->
+      <button class="caderno-btn" onclick="execCmd('insertUnorderedList')" title="Lista com marcadores">•—</button>
+      <button class="caderno-btn" onclick="execCmd('insertOrderedList')" title="Lista numerada">1.</button>
+      <div class="caderno-sep"></div>
+      <!-- Cores -->
+      <label class="caderno-btn" title="Cor do texto">
+        A <input type="color" style="display:none" oninput="execCmd('foreColor',this.value)">
+      </label>
+      <label class="caderno-btn" title="Cor de fundo">
+        <span style="background:#ffeb3b;padding:0 3px">M</span>
+        <input type="color" style="display:none" value="#ffeb3b" oninput="execCmd('backColor',this.value)">
+      </label>
+      <div class="caderno-sep"></div>
+      <!-- Limpar -->
+      <button class="caderno-btn" onclick="execCmd('removeFormat')" title="Limpar formatação">✕</button>
+    </div>
+
+    <!-- Editor -->
+    <div class="caderno-editor" id="cadernoEditor"
+      contenteditable="true"
+      onkeydown="cadernoKeydown(event)"
+      oninput="cadernoAutoSave()"></div>
+
+    <div class="caderno-actions">
+      <button class="caderno-save-btn" onclick="salvarNotaAtual()">💾 Salvar nota</button>
+      <span class="caderno-status" id="cadernoStatus"></span>
+    </div>
+
+    <!-- Lista de notas -->
+    <div class="caderno-notas-lista">
+      <div style="font-family:'IM Fell English SC',serif;font-size:11px;letter-spacing:.1em;color:var(--ink-faint);text-transform:uppercase;margin-bottom:12px">
+        Notas salvas
       </div>
-      <!-- Editor (coluna direita) -->
-      <div class="caderno-editor-col">
-        <div class="caderno-toolbar">
-          <div class="caderno-toolbar-group">
-            <select class="caderno-select" onchange="execCmd('fontName',this.value)" title="Fonte">
-              <option value="'IM Fell English',serif">IM Fell</option>
-              <option value="Georgia,serif">Georgia</option>
-              <option value="'Helvetica Neue',Arial,sans-serif">Sans-serif</option>
-              <option value="'Courier New',monospace">Mono</option>
-            </select>
-            <select class="caderno-select caderno-select-sm" onchange="execCmdSize(this.value)" title="Tamanho">
-              <option value="2">12</option>
-              <option value="3" selected>14</option>
-              <option value="4">16</option>
-              <option value="5">18</option>
-              <option value="6">22</option>
-              <option value="7">28</option>
-            </select>
-          </div>
-          <div class="caderno-toolbar-sep"></div>
-          <div class="caderno-toolbar-group">
-            <button class="caderno-tbtn" onclick="execCmd('bold')" title="Negrito (⌘B)"><strong>B</strong></button>
-            <button class="caderno-tbtn" onclick="execCmd('italic')" title="Itálico (⌘I)"><em>I</em></button>
-            <button class="caderno-tbtn" onclick="execCmd('underline')" title="Sublinhado (⌘U)"><u>U</u></button>
-            <button class="caderno-tbtn" onclick="execCmd('strikeThrough')" title="Tachado"><s>S</s></button>
-          </div>
-          <div class="caderno-toolbar-sep"></div>
-          <div class="caderno-toolbar-group">
-            <button class="caderno-tbtn" onclick="execCmd('justifyLeft')" title="Esquerda">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="1" width="14" height="2" rx="1"/><rect x="0" y="5" width="10" height="2" rx="1"/><rect x="0" y="9" width="14" height="2" rx="1"/><rect x="0" y="13" width="8" height="2" rx="1"/></svg>
-            </button>
-            <button class="caderno-tbtn" onclick="execCmd('justifyCenter')" title="Centro">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="1" width="14" height="2" rx="1"/><rect x="2" y="5" width="10" height="2" rx="1"/><rect x="0" y="9" width="14" height="2" rx="1"/><rect x="3" y="13" width="8" height="2" rx="1"/></svg>
-            </button>
-            <button class="caderno-tbtn" onclick="execCmd('justifyFull')" title="Justificado">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="1" width="14" height="2" rx="1"/><rect x="0" y="5" width="14" height="2" rx="1"/><rect x="0" y="9" width="14" height="2" rx="1"/><rect x="0" y="13" width="14" height="2" rx="1"/></svg>
-            </button>
-            <button class="caderno-tbtn" onclick="execCmd('justifyRight')" title="Direita">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="1" width="14" height="2" rx="1"/><rect x="4" y="5" width="10" height="2" rx="1"/><rect x="0" y="9" width="14" height="2" rx="1"/><rect x="6" y="13" width="8" height="2" rx="1"/></svg>
-            </button>
-          </div>
-          <div class="caderno-toolbar-sep"></div>
-          <div class="caderno-toolbar-group">
-            <button class="caderno-tbtn" onclick="execCmd('insertUnorderedList')" title="Lista">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><circle cx="1.5" cy="2" r="1.5"/><rect x="4" y="1" width="10" height="2" rx="1"/><circle cx="1.5" cy="7" r="1.5"/><rect x="4" y="6" width="10" height="2" rx="1"/><circle cx="1.5" cy="12" r="1.5"/><rect x="4" y="11" width="10" height="2" rx="1"/></svg>
-            </button>
-            <button class="caderno-tbtn" onclick="execCmd('insertOrderedList')" title="Lista numerada">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><text x="0" y="4" font-size="5" fill="currentColor">1.</text><rect x="5" y="1" width="9" height="2" rx="1"/><text x="0" y="9" font-size="5" fill="currentColor">2.</text><rect x="5" y="6" width="9" height="2" rx="1"/><text x="0" y="14" font-size="5" fill="currentColor">3.</text><rect x="5" y="11" width="9" height="2" rx="1"/></svg>
-            </button>
-          </div>
-          <div class="caderno-toolbar-sep"></div>
-          <div class="caderno-toolbar-group">
-            <label class="caderno-tbtn caderno-color-btn" title="Cor do texto">
-              <span style="font-weight:700;font-size:12px">A</span>
-              <div class="caderno-color-bar" id="textColorBar" style="background:#000"></div>
-              <input type="color" style="display:none" value="#000000"
-                oninput="document.getElementById('textColorBar').style.background=this.value;execCmd('foreColor',this.value)">
-            </label>
-            <label class="caderno-tbtn caderno-color-btn" title="Cor de destaque">
-              <span style="font-size:12px">M</span>
-              <div class="caderno-color-bar" id="bgColorBar" style="background:#ffeb3b"></div>
-              <input type="color" style="display:none" value="#ffeb3b"
-                oninput="document.getElementById('bgColorBar').style.background=this.value;execCmd('backColor',this.value)">
-            </label>
-          </div>
-          <div class="caderno-toolbar-sep"></div>
-          <button class="caderno-tbtn" onclick="execCmd('removeFormat')" title="Limpar formatação" style="font-size:11px;color:var(--ink-faint)">✕</button>
-          <span class="caderno-status" id="cadernoStatus"></span>
-        </div>
-        <input class="caderno-titulo" id="cadernoTitulo" placeholder="Sem título…"
-          oninput="cadernoAutoSave()">
-        <div class="caderno-editor" id="cadernoEditor"
-          contenteditable="true"
-          onkeydown="cadernoKeydown(event)"
-          oninput="cadernoAutoSave()"></div>
-      </div>
+      <div id="cadernoListaNotas"></div>
     </div>`;
 
-  // Carregar nota atual
-  if (cadernoNotaAtual !== null && cadernoNotas[cadernoNotaAtual]) {
+  // Carregar nota atual se existir
+  if (cadernoNotaAtual !== null) {
     const nota = cadernoNotas[cadernoNotaAtual];
-    const tit = document.getElementById('cadernoTitulo');
-    const ed  = document.getElementById('cadernoEditor');
-    if (tit) tit.value = nota.titulo || '';
-    if (ed)  ed.innerHTML = nota.conteudo || '';
-  } else if (cadernoNotas.length > 0) {
-    // Abrir a primeira nota automaticamente
-    cadernoNotaAtual = 0;
-    const nota = cadernoNotas[0];
-    setTimeout(() => {
-      const tit = document.getElementById('cadernoTitulo');
-      const ed  = document.getElementById('cadernoEditor');
-      if (tit) tit.value = nota.titulo || '';
-      if (ed)  ed.innerHTML = nota.conteudo || '';
-    }, 0);
+    if (nota) {
+      document.getElementById('cadernoTitulo').value = nota.titulo || '';
+      document.getElementById('cadernoEditor').innerHTML = nota.conteudo || '';
+    }
   }
   renderListaNotas();
 }
@@ -4424,102 +4146,51 @@ function cadernoKeydown(e) {
   if ((e.ctrlKey || e.metaKey) && e.key === 's') {
     e.preventDefault();
     salvarNotaAtual();
-    return;
-  }
-  // Corrigir aspas tipográficas do Safari ("" → "")
-  if (e.key === '"') {
-    e.preventDefault();
-    document.execCommand('insertText', false, '"');
   }
 }
 
 function novaNota() {
-  // Salvar nota atual antes de criar nova
-  if (cadernoNotaAtual !== null) salvarNotaAtual(true);
-  const agora = new Date().toLocaleDateString('pt-BR') + ' ' +
-    new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
-  const novaId = 'local_' + Date.now();
-  cadernoNotas.unshift({ id: novaId, titulo: '', conteudo: '', criado: agora, atualizado: agora });
-  cadernoNotaAtual = 0;
-  salvarCaderno();
-  const tit = document.getElementById('cadernoTitulo');
-  const ed  = document.getElementById('cadernoEditor');
-  if (tit) { tit.value = ''; tit.focus(); }
-  if (ed)  ed.innerHTML = '';
-  renderListaNotas();
+  const titulo = document.getElementById('cadernoTitulo');
+  const editor = document.getElementById('cadernoEditor');
+  if (titulo) titulo.value = '';
+  if (editor) editor.innerHTML = '';
+  cadernoNotaAtual = null;
+  document.getElementById('cadernoStatus').textContent = '';
 }
 
 function salvarNotaAtual(silencioso = false) {
-  const tituloEl = document.getElementById('cadernoTitulo');
-  const editorEl = document.getElementById('cadernoEditor');
-  const titulo = tituloEl?.value.trim() || '';
-  const conteudo = editorEl?.innerHTML || '';
-  // Não salvar se completamente vazia
-  if (!titulo && (!conteudo || conteudo === '<br>')) return;
-  const agora = new Date().toLocaleDateString('pt-BR') + ' ' +
-    new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
+  const titulo = document.getElementById('cadernoTitulo')?.value.trim() || 'Sem título';
+  const conteudo = document.getElementById('cadernoEditor')?.innerHTML || '';
+  const agora = new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
 
   if (cadernoNotaAtual !== null && cadernoNotas[cadernoNotaAtual]) {
-    cadernoNotas[cadernoNotaAtual] = {
-      ...cadernoNotas[cadernoNotaAtual], titulo, conteudo, atualizado: agora
-    };
+    cadernoNotas[cadernoNotaAtual] = { ...cadernoNotas[cadernoNotaAtual], titulo, conteudo, atualizado: agora };
   } else {
-    const novaId = 'local_' + Date.now();
-    cadernoNotas.unshift({ id: novaId, titulo, conteudo, criado: agora, atualizado: agora });
+    cadernoNotas.unshift({ titulo, conteudo, criado: agora, atualizado: agora });
     cadernoNotaAtual = 0;
   }
   salvarCaderno();
   renderListaNotas();
-
-  // Sync nuvem
-  if (supaUserId && cadernoNotaAtual !== null) {
-    nuvemSalvarNota(cadernoNotas[cadernoNotaAtual]);
-  }
-
   if (!silencioso) {
     const status = document.getElementById('cadernoStatus');
-    if (status) {
-      status.textContent = '✓ Salvo';
-      setTimeout(() => { status.textContent = ''; }, 2000);
-    }
+    if (status) { status.textContent = 'Nota salva ✓'; setTimeout(() => { status.textContent = ''; }, 2000); }
   }
 }
 
 function abrirNota(i) {
-  if (cadernoNotaAtual !== null && cadernoNotaAtual !== i) {
-    salvarNotaAtual(true);
-  }
   cadernoNotaAtual = i;
   const nota = cadernoNotas[i];
-  const tit = document.getElementById('cadernoTitulo');
-  const ed  = document.getElementById('cadernoEditor');
-  // Só preencher título se não for placeholder
-  if (tit) tit.value = (nota.titulo && nota.titulo !== 'Sem título') ? nota.titulo : '';
-  if (ed)  ed.innerHTML = nota.conteudo || '';
-  renderListaNotas();
-  setTimeout(() => ed?.focus(), 50);
+  const titulo = document.getElementById('cadernoTitulo');
+  const editor = document.getElementById('cadernoEditor');
+  if (titulo) titulo.value = nota.titulo || '';
+  if (editor) editor.innerHTML = nota.conteudo || '';
 }
 
 function deletarNota(i) {
-  if (!confirm('Deletar esta nota permanentemente?')) return;
-  const nota = cadernoNotas[i];
-  if (nota?.id) nuvemDeletarNota(nota.id);
+  if (!confirm('Deletar esta nota?')) return;
   cadernoNotas.splice(i, 1);
-  if (cadernoNotaAtual === i) {
-    cadernoNotaAtual = cadernoNotas.length > 0 ? 0 : null;
-    const tit = document.getElementById('cadernoTitulo');
-    const ed  = document.getElementById('cadernoEditor');
-    if (cadernoNotaAtual !== null) {
-      const n = cadernoNotas[0];
-      if (tit) tit.value = n.titulo || '';
-      if (ed)  ed.innerHTML = n.conteudo || '';
-    } else {
-      if (tit) tit.value = '';
-      if (ed)  ed.innerHTML = '';
-    }
-  } else if (cadernoNotaAtual > i) {
-    cadernoNotaAtual--;
-  }
+  if (cadernoNotaAtual === i) { cadernoNotaAtual = null; novaNota(); }
+  else if (cadernoNotaAtual > i) cadernoNotaAtual--;
   salvarCaderno();
   renderListaNotas();
 }
@@ -4528,22 +4199,16 @@ function renderListaNotas() {
   const lista = document.getElementById('cadernoListaNotas');
   if (!lista) return;
   if (!cadernoNotas.length) {
-    lista.innerHTML = `<div style="padding:20px 12px;font-size:12px;color:var(--ink-faint);font-style:italic;text-align:center">
-      Nenhuma nota.<br>Toque em ＋ para criar.
-    </div>`;
+    lista.innerHTML = `<div style="font-size:13px;color:var(--ink-faint);font-style:italic">Nenhuma nota salva ainda.</div>`;
     return;
   }
   lista.innerHTML = cadernoNotas.map((n, i) => `
-    <div class="caderno-nota-item ${i === cadernoNotaAtual ? 'active' : ''}"
-      onclick="abrirNota(${i})">
-      <div style="flex:1;min-width:0">
-        <div class="caderno-nota-titulo">${escH(n.titulo || 'Sem título')}</div>
-        <div class="caderno-nota-data">${escH(n.atualizado || n.criado || '')}</div>
-      </div>
+    <div class="caderno-nota-item ${i === cadernoNotaAtual ? 'active' : ''}" onclick="abrirNota(${i})">
+      <span class="caderno-nota-titulo">${escH(n.titulo || 'Sem título')}</span>
+      <span class="caderno-nota-data">${escH(n.atualizado || n.criado || '')}</span>
       <button class="caderno-nota-del" onclick="event.stopPropagation();deletarNota(${i})" title="Deletar">×</button>
     </div>`).join('');
 }
-
 
 function renderSaved() {
   const sv = document.getElementById('savedView');
@@ -4794,72 +4459,6 @@ function stopAudioUI() {
 
 
 // ══════════════════════════════════════════════════════
-//  REAPLICAR HIGHLIGHTS NO DOM após carregar da nuvem
-// ══════════════════════════════════════════════════════
-function aplicarHighlightsNuvem() {
-  if (!S.highlights || !Object.keys(S.highlights).length) return;
-  const clsMap = { yellow:'hi-yellow', green:'hi-green', blue:'hi-blue' };
-
-  Object.entries(S.highlights).forEach(([segId, itens]) => {
-    const frEl = document.getElementById('fr_' + segId);
-    if (!frEl) return;
-
-    itens.forEach(h => {
-      const cor = h.color || h.cor || 'yellow';
-      const textoOrig = (h.text || h.texto || '').trim();
-      if (!textoOrig) return;
-      // Normalizar texto para comparação
-      const textoNorm = textoOrig.replace(/\s+/g, ' ').trim();
-
-      // Verificar se já está destacado
-      if (frEl.querySelector(`[data-hi="${cor}"]`)) {
-        // Verificar se tem o mesmo texto
-        const existente = frEl.querySelector(`[data-hi="${cor}"]`);
-        if (existente?.textContent?.includes(textoNorm.slice(0, 10))) return;
-      }
-
-      // Usar TreeWalker para encontrar o texto
-      const walker = document.createTreeWalker(frEl, NodeFilter.SHOW_TEXT, null);
-      let node;
-      let encontrou = false;
-      while ((node = walker.nextNode()) && !encontrou) {
-        // Pular nós já dentro de highlight
-        if (node.parentElement?.dataset?.hi) continue;
-        const nodeText = node.textContent;
-        const idx = nodeText.indexOf(textoNorm);
-        if (idx === -1) continue;
-
-        try {
-          const range = document.createRange();
-          range.setStart(node, idx);
-          range.setEnd(node, idx + textoNorm.length);
-          const span = document.createElement('span');
-          span.className = clsMap[cor] || 'hi-yellow';
-          span.dataset.hi = cor;
-          range.surroundContents(span);
-          encontrou = true;
-          console.log('Highlight reaplicado:', segId, textoNorm.slice(0,20));
-        } catch(e) {
-          // Tentar sem surroundContents
-          try {
-            const frag = range.extractContents();
-            const span = document.createElement('span');
-            span.className = clsMap[cor] || 'hi-yellow';
-            span.dataset.hi = cor;
-            span.appendChild(frag);
-            range.insertNode(span);
-            encontrou = true;
-          } catch(e2) {
-            console.warn('Falha ao reaplicar highlight:', e2.message);
-          }
-        }
-      }
-    });
-  });
-}
-
-
-// ══════════════════════════════════════════════════════
 //  HIGHLIGHT — reescrito com suporte a 3 cores
 // ══════════════════════════════════════════════════════
 function doHighlight(color) {
@@ -4909,20 +4508,9 @@ function doHighlight(color) {
     console.warn('Highlight error:', e);
   }
 
-  // Manter menu aberto
   window.getSelection().removeAllRanges();
-
-  // Salvar highlight na nuvem e em S.highlights
-  if (currentSel?.segId && currentSel?.text) {
-    const segId = currentSel.segId;
-    const texto = currentSel.text;
-    // Atualizar estado local
-    if (!S.highlights[segId]) S.highlights[segId] = [];
-    S.highlights[segId].push({ color, text: texto });
-    // Salvar na nuvem
-    nuvemSalvarHighlight(segId, texto, color);
-    console.log('Highlight salvo:', { segId, texto: texto.slice(0,30), color });
-  }
+  currentSel = null;
+  hideMenu();
 }
 
 // ══════════════════════════════════════════════════════
