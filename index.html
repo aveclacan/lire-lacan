@@ -2317,7 +2317,7 @@ async function buscarTradPainel(termoForc) {
   await buscarTraducao();
 
   // Copiar o resultado da aba de tradução para o painel
-  const tradResult = document.getElementById('tradResult');
+  const tradResult = document.getElementById('tradResults');
   if (tradResult && tradResult.innerHTML) {
     res.innerHTML = tradResult.innerHTML;
   } else {
