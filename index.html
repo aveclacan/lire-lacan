@@ -1510,12 +1510,12 @@ let proxNumMarcador = marcadores.length ? Math.max(...marcadores.map(m => m.num)
 function salvarMarcadores() {
   try { localStorage.setItem('lirelacan_marcadores', JSON.stringify(marcadores)); } catch(e) {}
   if (!supa || !supaUserId) return;
-  marcadores.forEach(m => {
-    supa.from('trechos_salvos').upsert({
+  marcadores.forEach(async m => {
+    try { await supa.from('trechos_salvos').upsert({
       user_id: supaUserId, seminario: S.seminarios[m.sem]?.numero || 0,
       seg_id: 'marcador_' + m.id, texto_fr: m.segId,
       traducao: m.cor + '|' + m.num + '|' + (m.label || '')
-    }, { onConflict: 'user_id,seg_id' }).catch(() => {});
+    }, { onConflict: 'user_id,seg_id' }); } catch(e) {}
   });
 }
 
@@ -1573,7 +1573,7 @@ function adicionarMarcadorNoSeg(segId, cor) {
   mostrarToast('Marcador #'+num+' adicionado', corMarcador(cor));
 }
 
-function removerMarcador(id) {
+async function removerMarcador(id) {
   const idStr = String(id);
   const m = marcadores.find(x => String(x.id)===idStr);
   if (m) {
@@ -1584,7 +1584,7 @@ function removerMarcador(id) {
       if (btn) { btn.classList.remove('tem-marcador'); btn.style.color=''; }
     }
     if (supa && supaUserId)
-      supa.from('trechos_salvos').delete().eq('user_id',supaUserId).eq('seg_id','marcador_'+idStr).catch(()=>{});
+      try { await supa.from('trechos_salvos').delete().eq('user_id',supaUserId).eq('seg_id','marcador_'+idStr); } catch(e) {}
   }
   marcadores = marcadores.filter(x => String(x.id)!==idStr);
   marcadores.sort((a,b)=>a.num-b.num).forEach((m,i)=>{ m.num=i+1; });
@@ -1696,7 +1696,7 @@ function mostrarToast(msg, cor) {
 
 // ── Posição de leitura ─────────────────────────────────
 let savedScrollTop = 0;
-function salvarPosicaoLeitura() {
+async function salvarPosicaoLeitura() {
   const scrollEl = document.scrollingElement || document.documentElement;
   savedScrollTop = scrollEl.scrollTop || window.scrollY || 0;
   const segs = document.querySelectorAll('[data-seg]');
@@ -1712,8 +1712,8 @@ function salvarPosicaoLeitura() {
   S.lastSegId = melhor.dataset.seg;
   try { localStorage.setItem('lirelacan_pos', JSON.stringify({sem:S.semAtual,segId:S.lastSegId,scrollTop:savedScrollTop})); } catch(e) {}
   if (supa && supaUserId) {
-    supa.from('progresso').upsert({user_id:supaUserId,seminario:S.seminarios[S.semAtual]?.numero||0,
-      segs_lidos:[...S.readSegs].slice(-50),atualizado_em:new Date().toISOString()},{onConflict:'user_id,seminario'}).catch(()=>{});
+    try { await supa.from('progresso').upsert({user_id:supaUserId,seminario:S.seminarios[S.semAtual]?.numero||0,
+      segs_lidos:[...S.readSegs].slice(-50),atualizado_em:new Date().toISOString()},{onConflict:'user_id,seminario'}); } catch(e) {}
   }
 }
 
@@ -2536,7 +2536,7 @@ function toggleThemePanel() {
   document.getElementById('themePanel').classList.toggle('visible');
 }
 
-function setTheme(theme) {
+async function setTheme(theme) {
   document.body.className = document.body.className
     .replace(/theme-\w+/g, '').trim();
   if (theme !== 'paper') document.body.classList.add('theme-' + theme);
@@ -2544,13 +2544,13 @@ function setTheme(theme) {
     b.classList.toggle('active', b.dataset.theme === theme));
   try { localStorage.setItem('lirelacan_tema', theme); } catch(e) {}
   if (supa && supaUserId) {
-    supa.from('trechos_salvos').upsert({ user_id: supaUserId, seminario: 0,
+    try { await supa.from('trechos_salvos').upsert({ user_id: supaUserId, seminario: 0,
       seg_id: 'pref_tema', texto_fr: theme, traducao: currentFont || 'sans'
-    }, { onConflict: 'user_id,seg_id' }).catch(() => {});
+    }, { onConflict: 'user_id,seg_id' }); } catch(e) {}
   }
 }
 
-function setFont(font) {
+async function setFont(font) {
   currentFont = font;
   const ff = fontMap[font] || fontMap.fell;
   // Usar CSS variable para afetar TODAS as abas globalmente
@@ -2560,9 +2560,9 @@ function setFont(font) {
     b.classList.toggle('active', b.dataset.font === font));
   try { localStorage.setItem('lirelacan_fonte', font); } catch(e) {}
   if (supa && supaUserId) {
-    supa.from('trechos_salvos').upsert({ user_id: supaUserId, seminario: 0,
+    try { await supa.from('trechos_salvos').upsert({ user_id: supaUserId, seminario: 0,
       seg_id: 'pref_tema', texto_fr: document.body.className.match(/theme-(\w+)/)?.[1] || 'paper', traducao: font
-    }, { onConflict: 'user_id,seg_id' }).catch(() => {});
+    }, { onConflict: 'user_id,seg_id' }); } catch(e) {}
   }
 }
 
@@ -4021,7 +4021,7 @@ function novaNota() {
   document.getElementById('cadernoStatus').textContent = '';
 }
 
-function salvarNotaAtual(silencioso = false) {
+async function salvarNotaAtual(silencioso = false) {
   const titulo = document.getElementById('cadernoTitulo')?.value.trim() || 'Sem título';
   const conteudo = document.getElementById('cadernoEditor')?.innerHTML || '';
   const agora = new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
@@ -4040,19 +4040,20 @@ function salvarNotaAtual(silencioso = false) {
     if (nota) {
       const agoraIso = new Date().toISOString();
       if (nota.id) {
-        supa.from('notas').update({
+        try { await supa.from('notas').update({
           titulo: nota.titulo, conteudo: nota.conteudo, atualizado_em: agoraIso
-        }).eq('id', nota.id).eq('user_id', supaUserId).catch(() => {});
+        }).eq('id', nota.id).eq('user_id', supaUserId); } catch(e) {}
       } else {
-        supa.from('notas').insert({
-          user_id: supaUserId, titulo: nota.titulo, conteudo: nota.conteudo,
-          criado_em: agoraIso, atualizado_em: agoraIso
-        }).select('id').single().then(({ data }) => {
+        try {
+          const { data } = await supa.from('notas').insert({
+            user_id: supaUserId, titulo: nota.titulo, conteudo: nota.conteudo,
+            criado_em: agoraIso, atualizado_em: agoraIso
+          }).select('id').single();
           if (data?.id && cadernoNotaAtual !== null && cadernoNotas[cadernoNotaAtual]) {
             cadernoNotas[cadernoNotaAtual].id = data.id;
             salvarCaderno();
           }
-        }).catch(() => {});
+        } catch(e) {}
       }
     }
   }
