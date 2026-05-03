@@ -842,7 +842,7 @@ body.theme-night {
 .caderno-nota-item:hover .caderno-nota-del-btn { opacity:1; }
 .caderno-nota-del-btn:hover { color:#ef4444; background:var(--paper-dark); }
 /* Layout duas colunas do Caderno */
-.caderno-layout { display:flex; height:calc(100vh - 160px); overflow:hidden; margin:-36px -48px; }
+.caderno-layout { display:flex; height:calc(100vh - 120px); max-height:calc(100vh - 120px); overflow:hidden; margin:-36px -48px; }
 .caderno-sidebar { width:240px; flex-shrink:0; border-right:1px solid var(--border); display:flex; flex-direction:column; overflow:hidden; background:var(--paper-warm); }
 .caderno-sidebar-head { padding:12px 14px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
 .caderno-sidebar-label { font-family:'IM Fell English SC',serif; font-size:11px; letter-spacing:.1em; color:var(--ink-faint); text-transform:uppercase; }
@@ -850,7 +850,7 @@ body.theme-night {
 .caderno-nova-btn:hover { background:var(--paper-dark); }
 #cadernoListaNotas { flex:1; overflow-y:auto; }
 .caderno-main { flex:1; display:flex; flex-direction:column; overflow:hidden; padding:0; }
-.caderno-main .caderno-editor { flex:1; min-height:0; border:none; }
+.caderno-main .caderno-editor { flex:1; min-height:0; border:none; overflow-y:auto; }
 .caderno-main .caderno-actions { padding:8px 24px; border-top:1px solid var(--border); }
 .select-font, .select-size { font-size:12px; padding:4px 6px; border:1px solid var(--border); border-radius:5px; background:var(--paper); color:var(--ink); cursor:pointer; font-family:'Karla',sans-serif; }
 .select-size { width:55px; }
@@ -2572,7 +2572,12 @@ function switchTab(tab) {
     const gv = document.getElementById('gramUnificadoView');
     if (gv) gv.scrollTop = 0;
   }
-  if (tab === 'caderno') renderCadernoView();
+  if (tab === 'caderno') {
+    renderCadernoView();
+    const cv = document.getElementById('cadernoView');
+    if (cv) cv.scrollTop = 0;
+    window.scrollTo(0, 0);
+  }
 }
 
 // ── Salvar/restaurar posição de leitura por segmento ──────────────
@@ -4052,6 +4057,12 @@ function renderCadernoView() {
     </div>`;
 
   document.getElementById('cadernoView').scrollTop = 0;
+  window.scrollTo(0, 0);
+  requestAnimationFrame(() => {
+    const cv = document.getElementById('cadernoView');
+    if (cv) cv.scrollTop = 0;
+    window.scrollTo(0, 0);
+  });
 
   if (cadernoNotaAtual !== null) {
     const nota = cadernoNotas[cadernoNotaAtual];
