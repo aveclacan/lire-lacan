@@ -200,10 +200,15 @@ body { background: var(--paper); color: var(--ink); font-family: var(--font-ui, 
 .pt-text { font-size:13.5px; color:var(--ink-soft); line-height:1.6; font-style:italic; }
 
 /* Termos marcados */
-.termo-hom     { border-bottom:1.5px solid var(--violet); cursor:pointer; border-radius:1px; }
-.termo-hom:hover { background:var(--violet-pale); }
-.termo-conceito { border-bottom:1.5px solid var(--gold); cursor:pointer; border-radius:1px; }
-.termo-conceito:hover { background:var(--gold-pale); }
+.termo-hom     { border-bottom:1.5px solid var(--violet); border-radius:1px; }
+.termo-conceito { border-bottom:1.5px solid var(--gold); border-radius:1px; }
+[data-mi] {
+  cursor: default !important;
+  pointer-events: none !important;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-decoration-color: var(--ink-faint);
+}
 
 /* Highlights de usuário */
 .hi-yellow { background:var(--hi-yellow); border-radius:2px; }
@@ -2037,47 +2042,13 @@ function buildPTNodes(traducoes) {
 // Mantido para compatibilidade mas não usado para renderização
 function buildPT(traducoes) { return ''; }
 
-// ══════════════════════════════════════════════════════
-//  CLIQUE EM TERMOS (delegação via data-mi)
-// ══════════════════════════════════════════════════════
-document.addEventListener('click', e => {
-  const span = e.target.closest('[data-mi]');
-  if (!span) return;
-  e.stopPropagation();
-  const segEl = span.closest('[data-seg]');
-  if (!segEl) return;
-  const segId = segEl.dataset.seg;
-  const mi = parseInt(span.dataset.mi);
-  const sem = S.seminarios[S.semAtual];
-  if (!sem) return;
-  for (const licao of sem.licoes) {
-    const seg = licao.segmentos.find(s => s.id === segId);
-    if (!seg) continue;
-    // Normalizar campos — suporta ambos os formatos
-    const termos = (seg.termos || []).map(t => ({
-      ...t,
-      inicio: t.inicio ?? t.posicao_inicio ?? 0,
-      fim: t.fim ?? t.posicao_fim ?? 0,
-      entrada: t.entrada ?? t.entrada_catalogo ?? t.termo ?? '',
-    }));
-    const sorted = [...termos].sort((a, b) => a.inicio - b.inicio);
-    const marks = [];
-    let cur = 0;
-    for (const t of sorted) {
-      if (t.inicio < cur || t.fim > seg.texto_fr.length) continue;
-      marks.push(t); cur = t.fim;
-    }
-    const termo = marks[mi];
-    if (termo && (termo.nota_pt || termo.homofonia?.length)) showTermoPanel(termo);
-    break;
-  }
-});
+// Termos [data-mi] têm pointer-events:none — sem handler de clique
 
 // ══════════════════════════════════════════════════════
 //  CLIQUE NO SEGMENTO → abrir/fechar tradução
 // ══════════════════════════════════════════════════════
 document.addEventListener('click', e => {
-  if (e.target.closest('[data-mi]') || e.target.closest('.btn-audio') ||
+  if (e.target.closest('.btn-audio') ||
       e.target.closest('.sel-menu') || e.target.closest('.seg-comment-del')) return;
   const segEl = e.target.closest('.segment');
   if (!segEl || !S.bilingualOn) return;
