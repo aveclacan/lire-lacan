@@ -4295,8 +4295,20 @@ function showTermoPanel(t) {
 let audioAtivo = null;
 let audioUtterance = null;
 let audioPaused = false;
-let audioSpeed = 0.85;
+let audioSpeed = 0.88;
 let audioProgressTimer = null;
+
+function getMelhorVozFrancesa() {
+  const vozes = window.speechSynthesis.getVoices();
+  const preferidas = ['Thomas','Amelie','Julie','Grandma','Eddy','Flo','Reed','Rocko','Sandy','Shelley'];
+  for (const nome of preferidas) {
+    const voz = vozes.find(v => v.lang.startsWith('fr') && v.name.includes(nome));
+    if (voz) return voz;
+  }
+  return vozes.find(v => v.lang.startsWith('fr')) || null;
+}
+
+function pauseResumeAudio() { togglePauseAudio(); }
 
 function playAudio(segId) {
   if (!('speechSynthesis' in window)) { alert('Áudio não suportado. Use Chrome ou Edge.'); return; }
@@ -4308,17 +4320,12 @@ function playAudio(segId) {
   const utt = new SpeechSynthesisUtterance(texto);
   utt.lang = 'fr-FR';
   utt.rate = audioSpeed;
-  utt.pitch = 1.05;  // leve elevação de tom = mais natural
+  utt.pitch = 1.0;
+  utt.volume = 1.0;
   audioUtterance = utt;
 
   function speak() {
-    const vozes = speechSynthesis.getVoices();
-    // Prioridade: vozes Apple (Thomas, Amélie) → vozes Google francês → qualquer fr
-    const voz = vozes.find(v => v.lang === 'fr-FR' && /thomas/i.test(v.name))
-              || vozes.find(v => v.lang === 'fr-FR' && /amélie|amelie/i.test(v.name))
-              || vozes.find(v => v.lang === 'fr-FR' && /google/i.test(v.name))
-              || vozes.find(v => v.lang === 'fr-FR')
-              || vozes.find(v => v.lang.startsWith('fr'));
+    const voz = getMelhorVozFrancesa();
     if (voz) utt.voice = voz;
 
     utt.onstart = () => {
