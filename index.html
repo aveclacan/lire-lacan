@@ -2844,11 +2844,15 @@ function renderTradResultados(termo, traducoes, exemplos) {
     </div>`;
   }).join('');
 
-  const exemploHTML = exemplos.map(e => `
+  const exemploHTML = exemplos.map(e => {
+    const frEsc = e.fr.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const frData = e.fr.replace(/"/g,'&quot;');
+    return `
     <div class="trad-example-pair">
-      <div class="trad-ex-fr">${e.fr.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+      <div class="trad-ex-fr">${frEsc}<button class="trad-audio-btn" onclick="playTextoFr(this)" data-texto="${frData}" title="Ouvir em francês" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--ink-faint);padding:2px 4px;vertical-align:middle;margin-left:4px">🔊</button></div>
       <div class="trad-ex-pt">↳ ${e.pt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 
   resultEl.innerHTML = `
     <div class="trad-result-card">
@@ -2859,6 +2863,19 @@ function renderTradResultados(termo, traducoes, exemplos) {
 }
 
 
+
+function playTextoFr(btnEl) {
+  const texto = btnEl.dataset.texto;
+  if (!texto) return;
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(texto);
+  utterance.lang = 'fr-FR';
+  utterance.rate = audioSpeed;
+  utterance.pitch = 1.0;
+  const voz = getMelhorVozFrancesa();
+  if (voz) utterance.voice = voz;
+  window.speechSynthesis.speak(utterance);
+}
 
 // ══════════════════════════════════════════════════════
 //  CONJUGADOR VERBAL
