@@ -817,6 +817,11 @@ body.theme-night {
 #cadernoTitulo, .caderno-titulo { height:44px; min-height:44px; max-height:44px; font-size:20px; font-weight:600; line-height:44px; padding:0 20px; border:none; border-bottom:1px solid var(--border); background:var(--paper); color:var(--ink); width:100%; outline:none; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; flex-shrink:0; }
 .caderno-actions { display:flex; gap:10px; margin-top:12px; align-items:center; }
 .caderno-save-btn { padding:8px 20px; border-radius:8px; border:none; background:var(--accent); color:white; cursor:pointer; font-size:13px; font-weight:500; }
+.caderno-cloud-status {
+  display:flex; align-items:center; gap:4px; font-size:11px;
+  color:var(--ink-faint); margin-left:auto; padding:0 12px;
+}
+#cadernoView { overflow-y:auto; scroll-behavior:auto; }
 .caderno-status { font-size:12px; color:var(--ink-faint); }
 .caderno-notas-lista { margin-top:28px; }
 .caderno-nota-item { display:flex; align-items:center; gap:8px; padding:10px 14px; border-bottom:1px solid var(--border); cursor:pointer; transition:background .1s; }
@@ -4043,10 +4048,15 @@ function renderCadernoView() {
           onkeydown="cadernoKeydown(event)"
           oninput="cadernoAutoSave()"></div>
         <div class="caderno-actions">
-          <button class="caderno-save-btn" onclick="salvarNotaAtual()">💾 Salvar nota</button>
+          <div class="caderno-cloud-status" id="cadernoCloudStatus">
+            <span id="cadernoCloudIcon">☁️</span>
+            <span id="cadernoCloudText" style="font-size:11px;color:var(--ink-faint)"></span>
+          </div>
         </div>
       </div>
     </div>`;
+
+  document.getElementById('cadernoView').scrollTop = 0;
 
   if (cadernoNotaAtual !== null) {
     const nota = cadernoNotas[cadernoNotaAtual];
@@ -4058,9 +4068,12 @@ function renderCadernoView() {
   renderListaNotas();
 }
 
-function execCmd(cmd, val) {
-  document.getElementById('cadernoEditor')?.focus();
-  document.execCommand(cmd, false, val || null);
+function execCmd(cmd, value = null) {
+  const editor = document.getElementById('cadernoEditor');
+  if (!editor) return;
+  editor.focus();
+  document.execCommand(cmd, false, value);
+  editor.focus();
 }
 
 function execCmdSize(val) {
@@ -4123,7 +4136,12 @@ async function salvarNotaAtual(silencioso = false) {
   salvarCaderno();
   renderListaNotas();
 
+  const cloudText = document.getElementById('cadernoCloudText');
+  const cloudIcon = document.getElementById('cadernoCloudIcon');
+
   if (supa && supaUserId) {
+    if (cloudIcon) cloudIcon.textContent = '🔄';
+    if (cloudText) cloudText.textContent = 'Salvando…';
     const nota = cadernoNotas[cadernoNotaAtual];
     const isLocal = !nota.id || String(nota.id).startsWith('local_');
     try {
@@ -4143,7 +4161,19 @@ async function salvarNotaAtual(silencioso = false) {
           atualizado_em: new Date().toISOString()
         }).eq('id', nota.id).eq('user_id', supaUserId);
       }
-    } catch(e) { console.warn('Erro ao salvar nota:', e.message); }
+      if (cloudIcon) {
+        cloudIcon.textContent = '✓';
+        if (cloudText) cloudText.textContent = 'Salvo';
+        setTimeout(() => {
+          if (cloudIcon) cloudIcon.textContent = '☁️';
+          if (cloudText) cloudText.textContent = '';
+        }, 3000);
+      }
+    } catch(e) {
+      console.warn('Erro ao salvar nota:', e.message);
+      if (cloudIcon) cloudIcon.textContent = '☁️';
+      if (cloudText) cloudText.textContent = '';
+    }
   }
 
   if (!silencioso) {
