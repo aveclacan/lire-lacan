@@ -1,9 +1,17 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lire Lacan</title>
+<meta name="description" content="Plataforma bilíngue para leitura e estudo dos Seminários de Jacques Lacan em francês, com tradução, vocabulário e ferramentas de estudo.">
+<meta property="og:title" content="Lire Lacan">
+<meta property="og:description" content="Leitura bilíngue dos Seminários de Lacan — FR/PT">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://aveclacan.github.io/lire-lacan/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Lire Lacan">
+<link rel="canonical" href="https://aveclacan.github.io/lire-lacan/">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&family=Karla:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
 <style>
@@ -1916,6 +1924,7 @@ function renderFullReader(sem) {
   });
 
   updateProgress();
+  document.querySelectorAll('.seg-fr').forEach(frEl => frEl.setAttribute('lang', 'fr'));
   requestAnimationFrame(() => window._reobserve && window._reobserve());
 }
 
@@ -2450,7 +2459,7 @@ async function removeHighlight() {
   // 2. Remover de S.highlights em memória
   if (segId && S.highlights?.[segId]) {
     S.highlights[segId] = S.highlights[segId].filter(h =>
-      !(h.text === texto && h.color === cor)
+      !((h.text === texto || h.texto === texto) && (h.color === cor || h.cor === cor))
     );
     if (!S.highlights[segId].length) delete S.highlights[segId];
   }
