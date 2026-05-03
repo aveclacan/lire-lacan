@@ -974,6 +974,15 @@ body.theme-night {
   "inLanguage": ["pt-BR", "fr"]
 }
 </script>
+<!-- Google Analytics 4 — preencher G-XXXXXXXXXX com o ID real do GA4 em https://analytics.google.com
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-XXXXXXXXXX');
+</script>
+-->
 </head>
 <body>
 
@@ -1632,6 +1641,7 @@ function adicionarMarcadorNoSeg(segId, cor) {
   marcadores.push({ id, num, cor, segId, sem: S.semAtual, label: texto });
   _tagMarcador(segEl, cor, num, segId);
   salvarMarcadores();
+  if (typeof gtag !== 'undefined') gtag('event', 'marcador_adicionado', { cor });
   renderMarcadores();
   if (segEl) { segEl.style.outline='2px solid '+corMarcador(cor); setTimeout(()=>{segEl.style.outline='';},2000); }
   mostrarToast('Marcador #'+num+' adicionado', corMarcador(cor));
@@ -2520,6 +2530,7 @@ function doSave(extraComment) {
   updateSavedBadge();
   hideMenu();
   window.getSelection().removeAllRanges();
+  if (typeof gtag !== 'undefined') gtag('event', 'trecho_salvo');
 }
 
 // ── Comentar ──
@@ -2601,6 +2612,7 @@ function switchTab(tab) {
     if (cv) cv.scrollTop = 0;
     window.scrollTo(0, 0);
   }
+  if (typeof gtag !== 'undefined') gtag('event', 'page_view', { page_title: tab, page_location: window.location.href });
 }
 
 // ── Salvar/restaurar posição de leitura por segmento ──────────────
@@ -2698,9 +2710,9 @@ function renderTradView() {
     <div class="trad-search-box">
       <input class="trad-input" id="tradInput"
         placeholder="Digite qualquer palavra em francês…"
-        onkeydown="if(event.key==='Enter') buscarTraducao()">
+        onkeydown="if(event.key==='Enter') buscarTradComTrack()">
       <button class="trad-dir-btn" id="tradDirBtn" onclick="toggleTradDir()">FR → PT</button>
-      <button class="trad-search-btn" onclick="buscarTraducao()">Buscar</button>
+      <button class="trad-search-btn" onclick="buscarTradComTrack()">Buscar</button>
     </div>
     <div class="trad-results" id="tradResults">
       <div class="trad-empty">
@@ -2708,6 +2720,12 @@ function renderTradView() {
         <em>rapport · encore · vrai · parle · vous · sens · corps</em>
       </div>
     </div>`;
+}
+
+function buscarTradComTrack() {
+  const termo = document.getElementById('tradInput')?.value?.trim();
+  if (typeof gtag !== 'undefined' && termo) gtag('event', 'traducao_buscada', { termo });
+  buscarTraducao();
 }
 
 function toggleTradDir() {
@@ -4600,6 +4618,7 @@ function doHighlight(color) {
 
   window.getSelection().removeAllRanges();
   currentSel = null;
+  if (typeof gtag !== 'undefined') gtag('event', 'highlight_added', { color });
   hideMenu();
 }
 
