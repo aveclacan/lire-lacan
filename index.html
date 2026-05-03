@@ -1049,6 +1049,13 @@ body.theme-night {
         <input class="panel-trad-input" id="panelTradInput"
           placeholder="Digite ou selecione…"
           onkeydown="if(event.key==='Enter') buscarTradPainel()">
+        <button onclick="limparTradPainel()"
+          style="background:none;border:none;cursor:pointer;font-size:12px;
+          color:var(--ink-faint);padding:4px 8px;border-radius:4px;
+          white-space:nowrap;transition:color .15s"
+          onmouseover="this.style.color='var(--ink)'"
+          onmouseout="this.style.color='var(--ink-faint)'"
+          title="Limpar busca">× Limpar</button>
         <button class="panel-trad-btn" onclick="buscarTradPainel()">→</button>
       </div>
       <div id="panelTradResult" class="panel-trad-result">
@@ -2316,6 +2323,15 @@ function traduzirNoPainel() {
   buscarTradPainel(palavra);
   // Scroll suave para o painel (mobile)
   document.querySelector('.panel')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function limparTradPainel() {
+  const inp = document.getElementById('panelTradInput');
+  const res = document.getElementById('panelTradResult');
+  if (inp) inp.value = '';
+  if (res) res.innerHTML = '';
+  const tradInp = document.getElementById('tradInput');
+  if (tradInp) tradInp.value = '';
 }
 
 // Chamado pelo botão no painel
