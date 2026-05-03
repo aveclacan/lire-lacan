@@ -29,6 +29,9 @@
   --font-size: 14px;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+button:focus-visible, a:focus-visible, input:focus-visible, [tabindex]:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px; }
 body { background: var(--paper); color: var(--ink); font-family: var(--font-ui, 'Lora', serif);
   font-size: var(--font-size, 14px); font-weight: 300; line-height: 1.7; min-height: 100vh; overflow-x: hidden; }
 
@@ -163,7 +166,7 @@ body { background: var(--paper); color: var(--ink); font-family: var(--font-ui, 
 .seg-num { font-family:'IM Fell English',serif; font-size:10px; color:var(--ink-faint);
   min-width:24px; text-align:right; padding-top:5px; flex-shrink:0; user-select:none; }
 .seg-content { flex:1; }
-.seg-fr { font-family: var(--font-ui); font-size:var(--font-size,14px); line-height:1.75;
+.seg-fr { font-family: var(--font-ui); font-size:max(var(--font-size,14px), 17px); line-height:1.75;
   color:var(--ink); position:relative; }
 .seg-marker { flex-shrink:0; width:5px; height:5px; border-radius:50%;
   margin-top:9px; background:transparent; }
@@ -977,7 +980,7 @@ body.theme-night {
 <!-- TOPBAR -->
 <div class="mobile-overlay" id="mobileOverlay" onclick="toggleMobileMenu()"></div>
 <header class="topbar">
-  <button class="mobile-menu-btn" onclick="toggleMobileMenu()" title="Menu">☰</button>
+  <button class="mobile-menu-btn" onclick="toggleMobileMenu()" title="Menu" aria-label="Abrir menu">☰</button>
   <div class="logo">lire <em>lacan</em></div>
   <div class="topbar-sep"></div>
   <div class="topbar-sem" id="topSem">—</div>
@@ -1022,7 +1025,7 @@ body.theme-night {
   <button onclick="toggleThemePanel()"
     style="position:absolute;top:8px;right:8px;background:none;border:none;
     cursor:pointer;font-size:18px;color:var(--ink-faint);line-height:1;padding:4px"
-    title="Fechar">×</button>
+    title="Fechar" aria-label="Fechar painel de tema">×</button>
   <div class="theme-section">Paleta</div>
   <div class="theme-palettes">
     <button class="palette-btn active" data-theme="day" onclick="setTheme('day')">
@@ -1987,13 +1990,13 @@ function buildSegEl(seg, idx, licaoNum) {
   div.appendChild(body);
 
   // Botão de marcador (à esquerda do áudio)
-  const marcBtn = el('button', { cls: 'seg-bookmark-btn', title: 'Marcador de página' });
+  const marcBtn = el('button', { cls: 'seg-bookmark-btn', title: 'Marcador de página', 'aria-label': 'Adicionar marcador de página' });
   marcBtn.innerHTML = '<svg width="11" height="15" viewBox="0 0 11 15" fill="currentColor"><path d="M0 0h11v15l-5.5-3.5L0 15V0z"/></svg>';
   marcBtn.addEventListener('click', e => { e.stopPropagation(); mostrarMenuMarcadorInline(seg.id, marcBtn); });
   div.appendChild(marcBtn);
 
   // Botão de áudio
-  const btn = el('button', { cls: 'btn-audio', id: 'btn_' + seg.id, title: 'Ouvir em francês' }, '▶');
+  const btn = el('button', { cls: 'btn-audio', id: 'btn_' + seg.id, title: 'Ouvir em francês', 'aria-label': 'Ouvir em francês' }, '▶');
   btn.addEventListener('click', e => { e.stopPropagation(); playAudio(seg.id); });
   div.appendChild(btn);
 
