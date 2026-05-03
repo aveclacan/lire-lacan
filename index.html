@@ -131,8 +131,11 @@ body { background: var(--paper); color: var(--ink); font-family: var(--font-ui, 
 .sem-header { margin-bottom: 40px; padding-bottom: 28px; border-bottom: 1px solid var(--border); }
 .sem-header-label { font-family:'IM Fell English SC',serif; font-size:11px;
   letter-spacing:.12em; color:var(--ink-faint); text-transform:uppercase; margin-bottom:8px; }
-.sem-header-title { font-family: var(--font-ui); font-size:26px;
+.sem-header-title { font-family: 'IM Fell English SC', serif; font-size:26px;
   line-height:1.3; color:var(--ink); }
+.main-tab, .panel-title, .tool-header, .lecon-title, .sem-header-title {
+  font-family: 'IM Fell English SC', serif !important;
+}
 
 /* Cabeçalho de lição (inline no scroll) */
 .lecon-header {
@@ -434,6 +437,14 @@ body { background: var(--paper); color: var(--ink); font-family: var(--font-ui, 
   border-bottom:2px solid transparent; transition:color .15s;
 }
 .theme-btn:hover { color:var(--ink-soft); }
+.theme-toggle-btn {
+  width:36px; height:36px; border-radius:50%; font-size:18px;
+  display:flex; align-items:center; justify-content:center;
+  border:none; background:transparent; color:var(--ink-faint);
+  cursor:pointer; transition:background .15s, color .15s;
+  margin-left:4px; flex-shrink:0;
+}
+.theme-toggle-btn:hover { background:var(--paper-dark); color:var(--ink); }
 
 .theme-panel {
   position:fixed; top:80px; right:0; z-index:300;
@@ -967,11 +978,15 @@ body.theme-night {
     Salvos <span class="tab-badge" id="savedBadge" style="display:none">0</span>
   </div>
   <div class="main-tab-spacer"></div>
-  <button class="main-tab theme-btn" onclick="toggleThemePanel()" title="Personalizar">⚙ Tema</button>
+  <button class="theme-toggle-btn" onclick="toggleThemePanel()" title="Personalizar">⚙</button>
 </div>
 
 <!-- PAINEL DE TEMA -->
 <div class="theme-panel" id="themePanel">
+  <button onclick="toggleThemePanel()"
+    style="position:absolute;top:8px;right:8px;background:none;border:none;
+    cursor:pointer;font-size:18px;color:var(--ink-faint);line-height:1;padding:4px"
+    title="Fechar">×</button>
   <div class="theme-section">Paleta</div>
   <div class="theme-palettes">
     <button class="palette-btn active" data-theme="day" onclick="setTheme('day')">
