@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /vocabulario
+Disallow: /caderno
+Disallow: /salvos
+Sitemap: https://aveclacan.github.io/lire-lacan/sitemap.xml
