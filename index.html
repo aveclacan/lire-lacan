@@ -827,6 +827,7 @@ body.theme-night {
   color:var(--ink-faint); margin-left:auto; padding:0 12px;
 }
 #cadernoView { overflow-y:auto; scroll-behavior:auto; }
+#gramUnificadoView, #gramView, #conjView { scroll-behavior:auto; }
 .caderno-status { font-size:12px; color:var(--ink-faint); }
 .caderno-notas-lista { margin-top:28px; }
 .caderno-nota-item { display:flex; align-items:center; gap:8px; padding:10px 14px; border-bottom:1px solid var(--border); cursor:pointer; transition:background .1s; }
@@ -1052,9 +1053,7 @@ body.theme-night {
     <div class="saved-view" id="savedView"></div>
     <div class="trad-view" id="tradView"></div>
     <div class="tool-view" id="gramUnificadoView">
-      <div class="tool-header" style="font-family:'IM Fell English SC',serif;letter-spacing:.08em;font-size:13px;margin-bottom:16px">CONJUGADOR</div>
       <div id="conjView"></div>
-      <div class="tool-header" style="font-family:'IM Fell English SC',serif;letter-spacing:.08em;font-size:13px;margin:28px 0 16px">GRAMÁTICA FRANCESA</div>
       <div id="gramView"></div>
     </div>
     <div class="tool-view" id="vocabView"></div>
@@ -2568,7 +2567,11 @@ function switchTab(tab) {
   if (tab === 'saved') renderSaved();
   if (tab === 'trad') renderTradView();
   if (tab === 'vocab') renderVocabView();
-  if (tab === 'gram') { renderConjView(); renderGramView(); }
+  if (tab === 'gram') {
+    renderConjView(); renderGramView();
+    const gv = document.getElementById('gramUnificadoView');
+    if (gv) gv.scrollTop = 0;
+  }
   if (tab === 'caderno') renderCadernoView();
 }
 
@@ -3565,11 +3568,7 @@ function renderConjView() {
       <datalist id="conjSugestoes">${lista}</datalist>
       <button class="conj-btn" onclick="conjugar()">Conjugar</button>
     </div>
-    <div id="conjResult">
-      <div class="trad-empty" style="padding:32px 0">
-        Digite qualquer verbo em francês.
-      </div>
-    </div>`;
+    <div id="conjResult"></div>`;
 
   // Animação da seta no details
   const det = document.getElementById('conjExplainer');
