@@ -443,11 +443,11 @@ body { background: var(--paper); color: var(--ink); font-family: var(--font-ui, 
 }
 .theme-btn:hover { color:var(--ink-soft); }
 .theme-toggle-btn {
-  width:36px; height:36px; border-radius:50%; font-size:18px;
-  display:flex; align-items:center; justify-content:center;
-  border:none; background:transparent; color:var(--ink-faint);
-  cursor:pointer; transition:background .15s, color .15s;
-  margin-left:4px; flex-shrink:0;
+  display:flex; align-items:center; gap:5px;
+  padding:6px 10px; border-radius:8px;
+  background:none; border:1px solid var(--border);
+  cursor:pointer; color:var(--ink-soft);
+  transition:background .15s; margin-left:4px; flex-shrink:0;
 }
 .theme-toggle-btn:hover { background:var(--paper-dark); color:var(--ink); }
 
@@ -987,7 +987,14 @@ body.theme-night {
     Salvos <span class="tab-badge" id="savedBadge" style="display:none">0</span>
   </div>
   <div class="main-tab-spacer"></div>
-  <button class="theme-toggle-btn" onclick="toggleThemePanel()" title="Personalizar">⚙</button>
+  <button class="theme-toggle-btn" onclick="toggleThemePanel()" title="Personalizar tema">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/>
+      <path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/>
+    </svg>
+    <span style="font-size:12px;font-family:'Karla',sans-serif">Tema</span>
+  </button>
 </div>
 
 <!-- PAINEL DE TEMA -->
