@@ -1843,7 +1843,24 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (seminariosDaPasta.length > 0) S.seminarios = seminariosDaPasta;
 
   renderSidebar();
-  loadSeminario(0);
+  if (supaUserId) {
+    loadSeminario(0);
+  } else if (S.seminarios.length > 0) {
+    document.getElementById('readerInner').innerHTML = `
+      <div style="text-align:center;padding:80px 40px;color:var(--ink-faint)">
+        <div style="font-size:32px;margin-bottom:16px">⌖</div>
+        <div style="font-family:'IM Fell English',serif;font-size:22px;margin-bottom:12px;color:var(--ink)">Lire Lacan</div>
+        <div style="font-size:15px;max-width:340px;margin:0 auto 28px;line-height:1.8;color:var(--ink-soft)">
+          Faça login para acessar os Seminários de Jacques Lacan com tradução, vocabulário e ferramentas de estudo.
+        </div>
+        <a href="https://lire-lacan-app.vercel.app"
+           style="display:inline-block;background:var(--accent);color:var(--paper);
+                  padding:12px 28px;border-radius:6px;font-family:'Karla',sans-serif;
+                  font-size:14px;text-decoration:none;letter-spacing:0.05em">
+          Entrar
+        </a>
+      </div>`;
+  }
 
   // Dados da nuvem em background
   if (supaUserId) setTimeout(async () => { await carregarDadosNuvem(); }, 500);
