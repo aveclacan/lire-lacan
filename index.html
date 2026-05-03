@@ -692,29 +692,32 @@ body.theme-night {
 
 /* ── CADERNO ── */
 .caderno-toolbar {
-  display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 12px;
-  padding: 8px; background: var(--paper-warm);
-  border: 1px solid var(--border); border-radius: 8px 8px 0 0;
+  display: flex; align-items: center; gap: 2px;
+  padding: 6px 12px; background: var(--paper-warm);
+  border-bottom: 1px solid var(--border); flex-wrap: wrap;
+  flex-shrink: 0; min-height: 42px;
 }
-.cad-btn {
-  padding: 5px 10px; border-radius: 5px; border: none;
-  background: transparent; color: var(--ink-soft); cursor: pointer;
-  font-size: 13px; transition: background .12s; min-width: 30px;
+.ct-group { display: flex; align-items: center; gap: 1px; }
+.ct-sep { width: 1px; height: 20px; background: var(--border-strong); margin: 0 4px; flex-shrink: 0; }
+.ct-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border: none; border-radius: 5px;
+  background: transparent; cursor: pointer; color: var(--ink-soft);
+  font-size: 13px; font-family: inherit; transition: background .1s, color .1s;
+  padding: 0; flex-shrink: 0;
 }
-.cad-btn:hover { background: var(--paper-dark); }
-.cad-btn.active { background: var(--accent-pale); color: var(--accent); }
-.cad-sep { width: 1px; background: var(--border); margin: 4px 4px; }
-.cad-select {
-  padding: 4px 8px; border: 1px solid var(--border); border-radius: 5px;
-  background: var(--paper); color: var(--ink-soft); font-size: 12.5px;
-  font-family: 'Karla', sans-serif; cursor: pointer;
+.ct-btn:hover { background: var(--paper-dark); color: var(--ink); }
+.ct-btn:active { background: var(--border); }
+.ct-color-btn { cursor: pointer; }
+.ct-select {
+  height: 28px; padding: 0 6px; border: 1px solid var(--border);
+  border-radius: 5px; background: var(--paper); color: var(--ink);
+  font-size: 12px; cursor: pointer; font-family: inherit; outline: none;
 }
-.cad-color-group { display: flex; gap: 4px; align-items: center; }
-.cad-color {
-  width: 18px; height: 18px; border-radius: 50%; border: 2px solid transparent;
-  cursor: pointer; transition: border-color .12s;
-}
-.cad-color:hover { border-color: var(--ink-soft); }
+.ct-select:hover { border-color: var(--border-strong); }
+.ct-font { min-width: 80px; }
+.ct-size { min-width: 52px; }
+.ct-status { margin-left: auto; font-size: 11px; color: var(--accent); font-family: inherit; white-space: nowrap; }
 .caderno-editor {
   min-height: 500px; padding: 20px 24px;
   border: 1px solid var(--border); border-top: none;
@@ -800,19 +803,22 @@ body.theme-night {
 
 /* ── CADERNO notas salvas ── */
 .caderno-header { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
-.caderno-titulo { flex:1; font-family:'IM Fell English',serif; font-size:20px; border:none; background:transparent; color:var(--ink); outline:none; border-bottom:1px solid transparent; padding:4px 0; }
-.caderno-titulo:focus { border-bottom-color:var(--border-strong); }
+#cadernoTitulo, .caderno-titulo { height:44px; min-height:44px; max-height:44px; font-size:20px; font-weight:600; line-height:44px; padding:0 20px; border:none; border-bottom:1px solid var(--border); background:var(--paper); color:var(--ink); width:100%; outline:none; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; flex-shrink:0; }
 .caderno-actions { display:flex; gap:10px; margin-top:12px; align-items:center; }
 .caderno-save-btn { padding:8px 20px; border-radius:8px; border:none; background:var(--accent); color:white; cursor:pointer; font-size:13px; font-weight:500; }
 .caderno-status { font-size:12px; color:var(--ink-faint); }
 .caderno-notas-lista { margin-top:28px; }
-.caderno-nota-item { padding:10px 14px; border-bottom:1px solid var(--border); cursor:pointer; transition:background .1s; }
+.caderno-nota-item { display:flex; align-items:center; gap:8px; padding:10px 14px; border-bottom:1px solid var(--border); cursor:pointer; transition:background .1s; }
 .caderno-nota-item:hover { background:var(--paper-dark); }
 .caderno-nota-item.active { background:var(--accent-pale); border-left:3px solid var(--accent); }
+.caderno-nota-info { flex:1; min-width:0; }
 .caderno-nota-titulo { font-size:13px; font-weight:500; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .caderno-nota-data { font-size:11px; color:var(--ink-faint); margin-top:2px; }
 .caderno-nota-del { background:none; border:none; color:var(--ink-faint); cursor:pointer; font-size:16px; padding:2px 6px; border-radius:4px; }
 .caderno-nota-del:hover { color:var(--accent); background:var(--paper-dark); }
+.caderno-nota-del-btn { background:none; border:none; cursor:pointer; font-size:14px; opacity:0; transition:opacity .15s; padding:4px 6px; border-radius:4px; color:var(--ink-faint); flex-shrink:0; }
+.caderno-nota-item:hover .caderno-nota-del-btn { opacity:1; }
+.caderno-nota-del-btn:hover { color:#ef4444; background:var(--paper-dark); }
 /* Layout duas colunas do Caderno */
 .caderno-layout { display:flex; height:calc(100vh - 160px); overflow:hidden; margin:-36px -48px; }
 .caderno-sidebar { width:240px; flex-shrink:0; border-right:1px solid var(--border); display:flex; flex-direction:column; overflow:hidden; background:var(--paper-warm); }
@@ -822,9 +828,7 @@ body.theme-night {
 .caderno-nova-btn:hover { background:var(--paper-dark); }
 #cadernoListaNotas { flex:1; overflow-y:auto; }
 .caderno-main { flex:1; display:flex; flex-direction:column; overflow:hidden; padding:0; }
-.caderno-main .caderno-toolbar { border-radius:0; border-left:none; border-right:none; border-top:none; }
-.caderno-main .caderno-titulo { border-radius:0; border-left:none; border-right:none; border-top:none; border-bottom:1px solid var(--border); padding:14px 24px; font-size:18px; }
-.caderno-main .caderno-editor { border-radius:0; border-left:none; border-right:none; border-bottom:none; flex:1; min-height:0; }
+.caderno-main .caderno-editor { flex:1; min-height:0; border:none; }
 .caderno-main .caderno-actions { padding:8px 24px; border-top:1px solid var(--border); }
 .select-font, .select-size { font-size:12px; padding:4px 6px; border:1px solid var(--border); border-radius:5px; background:var(--paper); color:var(--ink); cursor:pointer; font-family:'Karla',sans-serif; }
 .select-size { width:55px; }
@@ -3910,39 +3914,72 @@ function renderCadernoView() {
       <!-- Coluna direita: editor -->
       <div class="caderno-main">
         <div class="caderno-toolbar">
-          <select class="select-font" onchange="execCmd('fontName',this.value)" title="Fonte">
-            <option value="'IM Fell English',serif">IM Fell</option>
-            <option value="Georgia,serif">Georgia</option>
-            <option value="'Helvetica Neue',Arial,sans-serif">Sans-serif</option>
-            <option value="'Courier New',monospace">Monospace</option>
-          </select>
-          <select class="select-size" onchange="execCmdSize(this.value)" title="Tamanho">
-            <option value="1">10px</option>
-            <option value="2">12px</option>
-            <option value="3" selected>14px</option>
-            <option value="4">16px</option>
-            <option value="5">18px</option>
-            <option value="6">22px</option>
-            <option value="7">26px</option>
-          </select>
-          <div class="caderno-sep"></div>
-          <button class="caderno-btn" onclick="execCmd('bold')" title="Negrito"><strong>N</strong></button>
-          <button class="caderno-btn" onclick="execCmd('italic')" title="Itálico"><em>I</em></button>
-          <button class="caderno-btn" onclick="execCmd('underline')" title="Sublinhado"><u>S</u></button>
-          <button class="caderno-btn" onclick="execCmd('strikeThrough')" title="Tachado"><s>T</s></button>
-          <div class="caderno-sep"></div>
-          <button class="caderno-btn" onclick="execCmd('justifyLeft')" title="Esquerda">⬅</button>
-          <button class="caderno-btn" onclick="execCmd('justifyCenter')" title="Centralizar">↔</button>
-          <button class="caderno-btn" onclick="execCmd('justifyRight')" title="Direita">➡</button>
-          <button class="caderno-btn" onclick="execCmd('justifyFull')" title="Justificar">≡</button>
-          <div class="caderno-sep"></div>
-          <button class="caderno-btn" onclick="execCmd('insertUnorderedList')" title="Lista">•—</button>
-          <button class="caderno-btn" onclick="execCmd('insertOrderedList')" title="Numerada">1.</button>
-          <div class="caderno-sep"></div>
-          <label class="caderno-btn" title="Cor do texto">A <input type="color" style="display:none" oninput="execCmd('foreColor',this.value)"></label>
-          <label class="caderno-btn" title="Cor de fundo"><span style="background:#ffeb3b;padding:0 3px">M</span><input type="color" style="display:none" value="#ffeb3b" oninput="execCmd('backColor',this.value)"></label>
-          <div class="caderno-sep"></div>
-          <button class="caderno-btn" onclick="execCmd('removeFormat')" title="Limpar">✕</button>
+          <div class="ct-group">
+            <select class="ct-select ct-font" onchange="execCmd('fontName',this.value)" title="Fonte">
+              <option value="'Lora', serif">Lora</option>
+              <option value="Arial, sans-serif">Arial</option>
+              <option value="Georgia, serif">Georgia</option>
+              <option value="'IM Fell English', serif">IM Fell</option>
+            </select>
+            <select class="ct-select ct-size" onchange="execCmdSize(this.value)" title="Tamanho">
+              <option value="1">10</option>
+              <option value="2">12</option>
+              <option value="3" selected>14</option>
+              <option value="4">16</option>
+              <option value="5">18</option>
+              <option value="6">24</option>
+              <option value="7">32</option>
+            </select>
+          </div>
+          <div class="ct-sep"></div>
+          <div class="ct-group">
+            <button class="ct-btn" onclick="execCmd('bold')" title="Negrito (⌘B)"><b>B</b></button>
+            <button class="ct-btn" onclick="execCmd('italic')" title="Itálico (⌘I)"><i>I</i></button>
+            <button class="ct-btn" onclick="execCmd('underline')" title="Sublinhado (⌘U)"><u>U</u></button>
+            <button class="ct-btn" onclick="execCmd('strikeThrough')" title="Tachado"><s>S</s></button>
+          </div>
+          <div class="ct-sep"></div>
+          <div class="ct-group">
+            <button class="ct-btn" onclick="execCmd('justifyLeft')" title="Alinhar à esquerda">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="0" width="14" height="2" rx="1"/><rect x="0" y="4" width="9" height="2" rx="1"/><rect x="0" y="8" width="14" height="2" rx="1"/><rect x="0" y="12" width="7" height="2" rx="1"/></svg>
+            </button>
+            <button class="ct-btn" onclick="execCmd('justifyCenter')" title="Centralizar">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="0" width="14" height="2" rx="1"/><rect x="2.5" y="4" width="9" height="2" rx="1"/><rect x="0" y="8" width="14" height="2" rx="1"/><rect x="3.5" y="12" width="7" height="2" rx="1"/></svg>
+            </button>
+            <button class="ct-btn" onclick="execCmd('justifyRight')" title="Alinhar à direita">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="0" width="14" height="2" rx="1"/><rect x="5" y="4" width="9" height="2" rx="1"/><rect x="0" y="8" width="14" height="2" rx="1"/><rect x="7" y="12" width="7" height="2" rx="1"/></svg>
+            </button>
+            <button class="ct-btn" onclick="execCmd('justifyFull')" title="Justificar">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="0" width="14" height="2" rx="1"/><rect x="0" y="4" width="14" height="2" rx="1"/><rect x="0" y="8" width="14" height="2" rx="1"/><rect x="0" y="12" width="14" height="2" rx="1"/></svg>
+            </button>
+          </div>
+          <div class="ct-sep"></div>
+          <div class="ct-group">
+            <button class="ct-btn" onclick="execCmd('insertUnorderedList')" title="Lista com marcadores">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><circle cx="1.5" cy="2" r="1.5"/><rect x="4" y="1" width="10" height="2" rx="1"/><circle cx="1.5" cy="7" r="1.5"/><rect x="4" y="6" width="10" height="2" rx="1"/><circle cx="1.5" cy="12" r="1.5"/><rect x="4" y="11" width="10" height="2" rx="1"/></svg>
+            </button>
+            <button class="ct-btn" onclick="execCmd('insertOrderedList')" title="Lista numerada">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="5" y="1" width="9" height="2" rx="1"/><rect x="5" y="6" width="9" height="2" rx="1"/><rect x="5" y="11" width="9" height="2" rx="1"/></svg>
+            </button>
+          </div>
+          <div class="ct-sep"></div>
+          <div class="ct-group">
+            <label class="ct-btn ct-color-btn" title="Cor do texto">
+              <span style="font-weight:700;font-size:13px;border-bottom:3px solid #e74c3c;padding-bottom:1px">A</span>
+              <input type="color" value="#e74c3c" style="display:none" oninput="execCmd('foreColor',this.value)">
+            </label>
+            <label class="ct-btn ct-color-btn" title="Cor de fundo">
+              <span style="font-size:13px;background:#f9e547;padding:0 3px;border-radius:2px">A</span>
+              <input type="color" value="#f9e547" style="display:none" oninput="execCmd('hiliteColor',this.value)">
+            </label>
+          </div>
+          <div class="ct-sep"></div>
+          <div class="ct-group">
+            <button class="ct-btn" onclick="execCmd('removeFormat')" title="Limpar formatação">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 11L8 6M5 3l4 4M9 3l2 2-6 6H3v-2l6-6z"/><line x1="1" y1="13" x2="13" y2="13"/></svg>
+            </button>
+          </div>
+          <span class="ct-status" id="cadernoStatus"></span>
         </div>
         <input class="caderno-titulo" id="cadernoTitulo" placeholder="Título da nota…" oninput="cadernoAutoSave()">
         <div class="caderno-editor" id="cadernoEditor"
@@ -3951,7 +3988,6 @@ function renderCadernoView() {
           oninput="cadernoAutoSave()"></div>
         <div class="caderno-actions">
           <button class="caderno-save-btn" onclick="salvarNotaAtual()">💾 Salvar nota</button>
-          <span class="caderno-status" id="cadernoStatus"></span>
         </div>
       </div>
     </div>`;
@@ -4069,11 +4105,24 @@ function abrirNota(i) {
   if (editor) editor.innerHTML = nota.conteudo || '';
 }
 
-function deletarNota(i) {
-  if (!confirm('Deletar esta nota?')) return;
+async function deletarNota(i) {
+  if (!confirm('Apagar esta nota permanentemente?')) return;
+  const nota = cadernoNotas[i];
+  if (nota && supa && supaUserId && nota.id && !String(nota.id).startsWith('local_')) {
+    try {
+      await supa.from('notas').delete().eq('id', nota.id).eq('user_id', supaUserId);
+    } catch(e) { console.warn('Erro ao deletar nota:', e.message); }
+  }
   cadernoNotas.splice(i, 1);
-  if (cadernoNotaAtual === i) { cadernoNotaAtual = null; novaNota(); }
-  else if (cadernoNotaAtual > i) cadernoNotaAtual--;
+  if (cadernoNotaAtual === i) {
+    cadernoNotaAtual = null;
+    const tit = document.getElementById('cadernoTitulo');
+    const ed = document.getElementById('cadernoEditor');
+    if (tit) tit.value = '';
+    if (ed) ed.innerHTML = '';
+  } else if (cadernoNotaAtual > i) {
+    cadernoNotaAtual--;
+  }
   salvarCaderno();
   renderListaNotas();
 }
@@ -4087,8 +4136,11 @@ function renderListaNotas() {
   }
   lista.innerHTML = cadernoNotas.map((n, i) => `
     <div class="caderno-nota-item ${i === cadernoNotaAtual ? 'active' : ''}" onclick="abrirNota(${i})">
-      <div class="caderno-nota-titulo">${escH(n.titulo || 'Sem título')}</div>
-      <div class="caderno-nota-data">${escH(n.atualizado || n.criado || '')}</div>
+      <div class="caderno-nota-info">
+        <div class="caderno-nota-titulo">${escH(n.titulo || 'Sem título')}</div>
+        <div class="caderno-nota-data">${escH(n.atualizado || n.criado || '')}</div>
+      </div>
+      <button class="caderno-nota-del-btn" onclick="event.stopPropagation();deletarNota(${i})" title="Apagar nota">🗑</button>
     </div>`).join('');
 }
 
