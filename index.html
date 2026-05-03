@@ -929,7 +929,7 @@ body.theme-night {
     transition: transform .25s ease; background: var(--paper-warm);
     border-right: 1px solid var(--border); overflow-y: auto; padding-top: 60px; }
   .sidebar.mobile-open { display: block; transform: translateX(0); }
-  .right-panel { display: none; }
+  .panel { display: none; }
   .topbar { padding: 0 12px; }
   .topbar-title { font-size: 11px; max-width: 160px; overflow: hidden;
     text-overflow: ellipsis; white-space: nowrap; }
@@ -947,6 +947,9 @@ body.theme-night {
     top: auto !important; transform: none !important; }
   /* Botão hamburguer para sidebar no mobile */
   .mobile-menu-btn { display: flex !important; }
+  /* Touch targets mínimos 44px */
+  .seg-bookmark-btn { width: 44px; height: 44px; left: -44px; top: -8px; }
+  .btn-audio { min-width: 44px; min-height: 44px; }
 }
 
 .mobile-menu-btn {
@@ -1847,6 +1850,16 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   window.addEventListener('beforeunload', () => salvarPosicaoLeitura());
   setInterval(() => { if (S.activeTab === 'read') salvarPosicaoLeitura(); }, 30000);
+
+  // Fechar painel de tema ao clicar fora
+  document.addEventListener('click', e => {
+    const panel = document.getElementById('themePanel');
+    if (panel?.classList.contains('visible') &&
+        !panel.contains(e.target) &&
+        !e.target.closest('[onclick*="toggleThemePanel"]')) {
+      panel.classList.remove('visible');
+    }
+  });
 });
 
 // ══════════════════════════════════════════════════════
