@@ -2417,15 +2417,40 @@ function posicionarMenu(rect) {
   menu.style.top = top + 'px';
 }
 
-function removeHighlight() {
-  if (!hiSpanAlvo) { hideMenu(); return; }
+async function removeHighlight() {
+  if (!hiSpanAlvo) return;
+  const segEl = hiSpanAlvo.closest('[data-seg]');
+  const segId = segEl?.dataset?.seg;
+  const texto = hiSpanAlvo.textContent;
+  const cor = hiSpanAlvo.dataset.hi;
+
+  // 1. Remover do DOM
   const parent = hiSpanAlvo.parentNode;
-  if (parent) {
-    while (hiSpanAlvo.firstChild) parent.insertBefore(hiSpanAlvo.firstChild, hiSpanAlvo);
-    parent.removeChild(hiSpanAlvo);
-    parent.normalize();
-  }
+  while (hiSpanAlvo.firstChild) parent.insertBefore(hiSpanAlvo.firstChild, hiSpanAlvo);
+  parent.removeChild(hiSpanAlvo);
+  parent.normalize();
   hiSpanAlvo = null;
+
+  // 2. Remover de S.highlights em memória
+  if (segId && S.highlights?.[segId]) {
+    S.highlights[segId] = S.highlights[segId].filter(h =>
+      !(h.text === texto && h.color === cor)
+    );
+    if (!S.highlights[segId].length) delete S.highlights[segId];
+  }
+
+  // 3. Deletar do Supabase
+  if (supa && supaUserId && segId) {
+    try {
+      await supa.from('highlights')
+        .delete()
+        .eq('user_id', supaUserId)
+        .eq('seg_id', segId)
+        .eq('texto', texto)
+        .eq('cor', cor);
+    } catch(e) { console.warn('Erro ao remover highlight:', e.message); }
+  }
+
   hideMenu();
 }
 
