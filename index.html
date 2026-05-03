@@ -975,7 +975,6 @@ body.theme-night {
 <div class="main-tabs" id="mainTabs" style="display:none">
   <div class="main-tab active" id="tabRead" onclick="switchTab('read')">Leitura</div>
   <div class="main-tab" id="tabTrad" onclick="switchTab('trad')">Tradução</div>
-  <div class="main-tab" id="tabConj" onclick="switchTab('conj')">Conjugador</div>
   <div class="main-tab" id="tabVocab" onclick="switchTab('vocab')">Vocabulário</div>
   <div class="main-tab" id="tabGram" onclick="switchTab('gram')">Gramática</div>
   <div class="main-tab" id="tabCaderno" onclick="switchTab('caderno')">Caderno</div>
@@ -1040,9 +1039,13 @@ body.theme-night {
     </div>
     <div class="saved-view" id="savedView"></div>
     <div class="trad-view" id="tradView"></div>
-    <div class="tool-view" id="conjView"></div>
+    <div class="tool-view" id="gramUnificadoView">
+      <div class="tool-header" style="font-family:'IM Fell English SC',serif;letter-spacing:.08em;font-size:13px;margin-bottom:16px">CONJUGADOR</div>
+      <div id="conjView"></div>
+      <div class="tool-header" style="font-family:'IM Fell English SC',serif;letter-spacing:.08em;font-size:13px;margin:28px 0 16px">GRAMÁTICA FRANCESA</div>
+      <div id="gramView"></div>
+    </div>
     <div class="tool-view" id="vocabView"></div>
-    <div class="tool-view" id="gramView"></div>
     <div class="tool-view" id="cadernoView"></div>
   </main>
 
@@ -2563,7 +2566,7 @@ function switchTab(tab) {
   if (S.activeTab === 'caderno') salvarNotaAtual(true);
 
   S.activeTab = tab;
-  const allTabs = ['read','trad','conj','vocab','gram','caderno','saved'];
+  const allTabs = ['read','trad','vocab','gram','caderno','saved'];
   allTabs.forEach(t => {
     const el = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
     if (el) el.classList.toggle('active', t === tab);
@@ -2574,9 +2577,8 @@ function switchTab(tab) {
   inner.classList.toggle('hidden', tab !== 'read');
   document.getElementById('savedView').classList.toggle('visible', tab === 'saved');
   document.getElementById('tradView').classList.toggle('visible', tab === 'trad');
-  document.getElementById('conjView').classList.toggle('visible', tab === 'conj');
+  document.getElementById('gramUnificadoView').classList.toggle('visible', tab === 'gram');
   document.getElementById('vocabView').classList.toggle('visible', tab === 'vocab');
-  document.getElementById('gramView').classList.toggle('visible', tab === 'gram');
   document.getElementById('cadernoView').classList.toggle('visible', tab === 'caderno');
 
   // Restaurar posição DEPOIS do reader estar visível (não antes)
@@ -2587,9 +2589,8 @@ function switchTab(tab) {
 
   if (tab === 'saved') renderSaved();
   if (tab === 'trad') renderTradView();
-  if (tab === 'conj') renderConjView();
   if (tab === 'vocab') renderVocabView();
-  if (tab === 'gram') renderGramView();
+  if (tab === 'gram') { renderConjView(); renderGramView(); }
   if (tab === 'caderno') renderCadernoView();
 }
 
