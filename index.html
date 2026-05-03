@@ -4268,6 +4268,7 @@ let audioUtterance = null;
 let audioPaused = false;
 let audioSpeed = 0.88;
 let audioProgressTimer = null;
+let audioTextoRestante = '';
 
 function getMelhorVozFrancesa() {
   const vozes = window.speechSynthesis.getVoices();
@@ -4288,6 +4289,7 @@ function playAudio(segId) {
   audioPaused = false;
   const texto = textosPuros[segId];
   if (!texto) return;
+  audioTextoRestante = texto;
   const utt = new SpeechSynthesisUtterance(texto);
   utt.lang = 'fr-FR';
   utt.rate = audioSpeed;
@@ -4299,6 +4301,9 @@ function playAudio(segId) {
     const voz = getMelhorVozFrancesa();
     if (voz) utt.voice = voz;
 
+    utt.onboundary = (e) => {
+      if (e.name === 'word') audioTextoRestante = texto.slice(e.charIndex);
+    };
     utt.onstart = () => {
       audioAtivo = segId;
       startAudioUI(segId);
@@ -4308,6 +4313,7 @@ function playAudio(segId) {
     utt.onend = utt.onerror = () => {
       // Não esconder o painel — manter visível para o usuário reiniciar
       audioAtivo = null; audioPaused = false; audioUtterance = null;
+      audioTextoRestante = '';
       clearInterval(audioProgressTimer);
       stopAudioUI();
       // Atualizar botão para play
@@ -4355,7 +4361,35 @@ function togglePauseAudio() {
     if (speechSynthesis.paused) {
       speechSynthesis.resume();
     } else {
-      // Safari: reiniciar do início
+      // Safari: retomar do ponto onde parou usando texto restante
+      const restante = audioTextoRestante;
+      if (restante) {
+        const utt2 = new SpeechSynthesisUtterance(restante);
+        utt2.lang = 'fr-FR';
+        utt2.rate = audioSpeed;
+        utt2.pitch = 1.0;
+        utt2.volume = 1.0;
+        audioUtterance = utt2;
+        const voz = getMelhorVozFrancesa();
+        if (voz) utt2.voice = voz;
+        utt2.onboundary = (ev) => {
+          if (ev.name === 'word') audioTextoRestante = restante.slice(ev.charIndex);
+        };
+        utt2.onend = utt2.onerror = () => {
+          audioAtivo = null; audioPaused = false; audioUtterance = null;
+          audioTextoRestante = '';
+          clearInterval(audioProgressTimer);
+          stopAudioUI();
+          const b = document.getElementById('audioPauseBtn');
+          if (b) { b.classList.remove('paused'); b.innerHTML = `<svg viewBox="0 0 20 20" fill="currentColor"><polygon points="4,2 18,10 4,18"/></svg>`; b.title = 'Retomar'; }
+        };
+        speechSynthesis.speak(utt2);
+        audioPaused = false;
+        const btn = document.getElementById('audioPauseBtn');
+        btn?.classList.remove('paused');
+        if (btn) { btn.innerHTML = `<svg viewBox="0 0 20 20" fill="currentColor"><rect x="4" y="3" width="4" height="14" rx="1"/><rect x="12" y="3" width="4" height="14" rx="1"/></svg>`; btn.title = 'Pausar'; }
+        return;
+      }
       const segId = audioAtivo || document.getElementById('audioSegLabel').dataset.segId;
       if (segId) { playAudio(segId); return; }
     }
